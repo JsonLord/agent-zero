@@ -26,7 +26,9 @@ if hasattr(time, 'tzset'):
 
 # initialize the internal Flask server
 webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
-webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+# A stable secret key is required for Flask sessions and CSRF protection.
+# For production, this should be set as an environment variable `FLASK_SECRET_KEY`.
+webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or "super-secret-development-key"
 webapp.config.update(
     JSON_SORT_KEYS=False,
     SESSION_COOKIE_NAME="session_" + runtime.get_runtime_id(),  # bind the session cookie name to runtime id to prevent session collision on same host
@@ -246,6 +248,9 @@ def run():
 
 
 def init_a0():
+    # initialize git
+    initialize.initialize_git()
+
     # initialize contexts and MCP
     init_chats = initialize.initialize_chats()
     # only wait for init chats, otherwise they would seem to disappear for a while on restart

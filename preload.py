@@ -40,6 +40,7 @@ async def preload():
         # async tasks to preload
         tasks = [
             preload_embedding(),
+            # Disabled for resource-constrained deployment
             # preload_whisper(),
             # preload_kokoro()
         ]

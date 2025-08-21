@@ -138,6 +138,11 @@ def initialize_preload():
     return defer.DeferredTask().start_task(preload.preload)
 
 
+def initialize_git():
+    from python.helpers import persist_chat
+    return defer.DeferredTask().start_task(persist_chat.git_setup)
+
+
 def _args_override(config):
     # update config with runtime args
     for key, value in runtime.args.items():

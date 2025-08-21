@@ -3,83 +3,134 @@ from datetime import datetime
 from typing import Any
 import uuid
 from agent import Agent, AgentConfig, AgentContext, AgentContextType
+from datetime import datetime
 from python.helpers import files, history
 import json
 from initialize import initialize_agent
-
+import subprocess
+import threading
+import os
 from python.helpers.log import Log, LogItem
 
-CHATS_FOLDER = "tmp/chats"
+# --- Git as a Database ---
+STATE_FILE_PATH = "memory/agent_state.json"
+git_lock = threading.Lock()
+
 LOG_SIZE = 1000
-CHAT_FILE_NAME = "chat.json"
 
 
-def get_chat_folder_path(ctxid: str):
-    """
-    Get the folder path for any context (chat or task).
+def git_setup():
+    """Configure git for the agent."""
+    hf_token = os.getenv("HF_TOKEN")
+    if not hf_token:
+        print("HF_TOKEN environment variable not set. Git operations will fail.")
+        return
 
-    Args:
-        ctxid: The context ID
+    # Using placeholders as specified in the prompt
+    repo_url = f"https://user:{hf_token}@huggingface.co/spaces/<your-username>/<your-space-name>"
 
-    Returns:
-        The absolute path to the context folder
-    """
-    return files.get_abs_path(CHATS_FOLDER, ctxid)
+    commands = [
+        ['git', 'config', '--global', 'user.name', 'Agent-Zero'],
+        ['git', 'config', '--global', 'user.email', 'agent@hf.space'],
+        ['git', 'remote', 'set-url', 'origin', repo_url],
+    ]
+
+    for command in commands:
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error setting up git: {e.stderr}")
+
+
+def save_state_to_git(state_data: dict, commit_message: str):
+    """Saves the state data to a JSON file and commits it to git."""
+    with git_lock:
+        try:
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(STATE_FILE_PATH), exist_ok=True)
+
+            # Read existing data
+            if os.path.exists(STATE_FILE_PATH):
+                with open(STATE_FILE_PATH, 'r') as f:
+                    try:
+                        all_states = json.load(f)
+                    except json.JSONDecodeError:
+                        all_states = {}
+            else:
+                all_states = {}
+
+            # Merge new data
+            all_states.update(state_data)
+
+            # Write updated data
+            with open(STATE_FILE_PATH, 'w') as f:
+                json.dump(all_states, f, ensure_ascii=False, indent=4, default=str)
+
+            # Git operations
+            subprocess.run(['git', 'add', STATE_FILE_PATH], check=True)
+            subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+            subprocess.run(['git', 'push', 'origin', 'main'], check=True)
+
+        except subprocess.CalledProcessError as e:
+            print(f"Git operation failed: {e.stderr}")
+        except Exception as e:
+            print(f"An error occurred in save_state_to_git: {e}")
 
 
 def save_tmp_chat(context: AgentContext):
-    """Save context to the chats folder"""
+    """Save context to the git-backed JSON file."""
     # Skip saving BACKGROUND contexts as they should be ephemeral
     if context.type == AgentContextType.BACKGROUND:
         return
 
-    path = _get_chat_file_path(context.id)
-    files.make_dirs(path)
-    data = _serialize_context(context)
-    js = _safe_json_serialize(data, ensure_ascii=False)
-    files.write_file(path, js)
+    # Serialize the current context
+    serialized_context = _serialize_context(context)
+    state_data = {context.id: serialized_context}
+
+    # Create a commit message
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    commit_message = f"MEMORY: Agent recorded a new memory for chat {context.id} at {timestamp}"
+
+    # Save to git
+    save_state_to_git(state_data, commit_message)
 
 
 def save_tmp_chats():
-    """Save all contexts to the chats folder"""
+    """Save all contexts to the git-backed JSON file."""
+    all_contexts_serialized = {}
     for _, context in AgentContext._contexts.items():
         # Skip BACKGROUND contexts as they should be ephemeral
         if context.type == AgentContextType.BACKGROUND:
             continue
-        save_tmp_chat(context)
+        all_contexts_serialized[context.id] = _serialize_context(context)
+
+    if not all_contexts_serialized:
+        return
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    commit_message = f"MEMORY: Batch save of all agent states at {timestamp}"
+    save_state_to_git(all_contexts_serialized, commit_message)
 
 
 def load_tmp_chats():
-    """Load all contexts from the chats folder"""
-    _convert_v080_chats()
-    folders = files.list_files(CHATS_FOLDER, "*")
-    json_files = []
-    for folder_name in folders:
-        json_files.append(_get_chat_file_path(folder_name))
+    """Load all contexts from the git-backed JSON file."""
+    if not os.path.exists(STATE_FILE_PATH):
+        return []
+
+    try:
+        with open(STATE_FILE_PATH, 'r') as f:
+            all_states = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return []
 
     ctxids = []
-    for file in json_files:
+    for ctxid, data in all_states.items():
         try:
-            js = files.read_file(file)
-            data = json.loads(js)
             ctx = _deserialize_context(data)
             ctxids.append(ctx.id)
         except Exception as e:
-            print(f"Error loading chat {file}: {e}")
+            print(f"Error loading chat {ctxid}: {e}")
     return ctxids
-
-
-def _get_chat_file_path(ctxid: str):
-    return files.get_abs_path(CHATS_FOLDER, ctxid, CHAT_FILE_NAME)
-
-
-def _convert_v080_chats():
-    json_files = files.list_files(CHATS_FOLDER, "*.json")
-    for file in json_files:
-        path = files.get_abs_path(CHATS_FOLDER, file)
-        name = file.rstrip(".json")
-        new = _get_chat_file_path(name)
-        files.move_file(path, new)
 
 
 def load_json_chats(jsons: list[str]):
@@ -97,14 +148,45 @@ def load_json_chats(jsons: list[str]):
 def export_json_chat(context: AgentContext):
     """Export context as JSON string"""
     data = _serialize_context(context)
-    js = _safe_json_serialize(data, ensure_ascii=False)
+    js = json.dumps(data, ensure_ascii=False, default=str)
     return js
 
 
 def remove_chat(ctxid):
-    """Remove a chat or task context"""
-    path = get_chat_folder_path(ctxid)
-    files.delete_dir(path)
+    """Remove a chat or task context from the git-backed JSON file"""
+    with git_lock:
+        try:
+            # Read existing data
+            if os.path.exists(STATE_FILE_PATH):
+                with open(STATE_FILE_PATH, 'r') as f:
+                    try:
+                        all_states = json.load(f)
+                    except json.JSONDecodeError:
+                        all_states = {}
+            else:
+                return # Nothing to remove
+
+            # Remove the chat context
+            if ctxid in all_states:
+                del all_states[ctxid]
+            else:
+                return # Chat not found
+
+            # Write updated data
+            with open(STATE_FILE_PATH, 'w') as f:
+                json.dump(all_states, f, ensure_ascii=False, indent=4, default=str)
+
+            # Git operations
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            commit_message = f"MEMORY: Agent removed chat {ctxid} at {timestamp}"
+            subprocess.run(['git', 'add', STATE_FILE_PATH], check=True)
+            subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+            subprocess.run(['git', 'push', 'origin', 'main'], check=True)
+
+        except subprocess.CalledProcessError as e:
+            print(f"Git operation failed: {e.stderr}")
+        except Exception as e:
+            print(f"An error occurred in remove_chat: {e}")
 
 
 def _serialize_context(context: AgentContext):
@@ -261,22 +343,3 @@ def _deserialize_log(data: dict[str, Any]) -> "Log":
     return log
 
 
-def _safe_json_serialize(obj, **kwargs):
-    def serializer(o):
-        if isinstance(o, dict):
-            return {k: v for k, v in o.items() if is_json_serializable(v)}
-        elif isinstance(o, (list, tuple)):
-            return [item for item in o if is_json_serializable(item)]
-        elif is_json_serializable(o):
-            return o
-        else:
-            return None  # Skip this property
-
-    def is_json_serializable(item):
-        try:
-            json.dumps(item)
-            return True
-        except (TypeError, OverflowError):
-            return False
-
-    return json.dumps(obj, default=serializer, **kwargs)
