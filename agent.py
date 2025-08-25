@@ -122,6 +122,41 @@ class AgentContext:
             "type": self.type.value,
         }
 
+    def _serialize_agent_for_persistence(self, agent: "Agent"):
+        data = {k: v for k, v in agent.data.items() if not k.startswith("_")}
+        history = agent.history.serialize()
+        return {
+            "number": agent.number,
+            "data": data,
+            "history": history,
+        }
+
+    def serialize_for_persistence(self):
+        agents = []
+        agent = self.agent0
+        while agent:
+            agents.append(self._serialize_agent_for_persistence(agent))
+            agent = agent.data.get(Agent.DATA_NAME_SUBORDINATE, None)
+
+        return {
+            "id": self.id,
+            "name": self.name,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at
+                else datetime.fromtimestamp(0).isoformat()
+            ),
+            "type": self.type.value,
+            "last_message": (
+                self.last_message.isoformat() if self.last_message
+                else datetime.fromtimestamp(0).isoformat()
+            ),
+            "agents": agents,
+            "streaming_agent": (
+                self.streaming_agent.number if self.streaming_agent
+                else 0
+            ),
+        }
+
     @staticmethod
     def log_to_all(
         type: Log.Type,
@@ -768,6 +803,15 @@ class Agent:
     ):
         from python.tools.unknown import Unknown
         from python.helpers.tool import Tool
+
+        # --- Hugging Face Spaces modification ---
+        # Intercept the 'code_execution' tool to use the safe executor
+        if name == "code_execution" or name == "code_execution_tool":
+            from python.tools.safe_code_execution_tool import SafeCodeExecution
+            return SafeCodeExecution(
+                agent=self, name=name, method=method, args=args, message=message, loop_data=loop_data, **kwargs
+            )
+        # --- End of modification ---
 
         classes = []
 
