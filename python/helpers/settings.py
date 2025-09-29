@@ -52,6 +52,7 @@ class Settings(TypedDict):
     browser_model_rl_input: int
     browser_model_rl_output: int
     browser_model_kwargs: dict[str, str]
+    browser_http_headers: dict[str, str]
 
     agent_profile: str
     agent_memory_subdir: str
@@ -1375,6 +1376,7 @@ def get_default_settings() -> Settings:
         browser_model_rl_input=0,
         browser_model_rl_output=0,
         browser_model_kwargs={"temperature": "0"},
+        browser_http_headers={},
         memory_recall_enabled=True,
         memory_recall_delayed=False,
         memory_recall_interval=3,
