@@ -277,15 +277,12 @@ class MCPServerRemote(BaseModel):
                     setattr(self, key, value)
 
             if self.bearer:
-                # Resolve environment variable if bearer token is a placeholder
-                if self.bearer.startswith("$"):
-                    var_name = self.bearer.strip("${}")
-                    self.bearer = os.getenv(var_name)
-
-                if self.bearer:
+                # Resolve environment variable from bearer token
+                token = os.getenv(self.bearer)
+                if token:
                     if self.headers is None:
                         self.headers = {}
-                    self.headers["Authorization"] = f"Bearer {self.bearer}"
+                    self.headers["Authorization"] = f"Bearer {token}"
 
             # We already run in an event loop, dont believe Pylance
             return asyncio.run(self.__on_update())
