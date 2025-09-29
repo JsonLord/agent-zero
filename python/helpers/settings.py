@@ -52,6 +52,7 @@ class Settings(TypedDict):
     browser_model_rl_input: int
     browser_model_rl_output: int
     browser_model_kwargs: dict[str, str]
+    browser_http_headers: dict[str, str]
 
     agent_profile: str
     agent_memory_subdir: str
