@@ -1330,6 +1330,16 @@ def _write_sensitive_settings(settings: Settings):
 
 
 def get_default_settings() -> Settings:
+    mcp_servers_config = {}
+    try:
+        with open(files.get_abs_path("conf/mcp_servers.json"), "r") as f:
+            server_list = json.load(f)
+            for server in server_list:
+                if "name" in server:
+                    mcp_servers_config[server["name"]] = server
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
     return Settings(
         version=_get_version(),
         chat_model_provider="openrouter",
@@ -1398,7 +1408,7 @@ def get_default_settings() -> Settings:
         stt_silence_duration=1000,
         stt_waiting_timeout=2000,
         tts_kokoro=True,
-        mcp_servers='{\n    "mcpServers": {}\n}',
+        mcp_servers=json.dumps({"mcpServers": mcp_servers_config}),
         mcp_client_init_timeout=10,
         mcp_client_tool_timeout=120,
         mcp_server_enabled=False,

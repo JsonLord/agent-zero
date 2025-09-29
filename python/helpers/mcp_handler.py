@@ -18,6 +18,7 @@ from typing import (
 import threading
 import asyncio
 from contextlib import AsyncExitStack
+import os
 from shutil import which
 from datetime import timedelta
 import json
@@ -213,6 +214,7 @@ class MCPServerRemote(BaseModel):
     description: Optional[str] = Field(default="Remote SSE Server")
     type: str = Field(default="sse", description="Server connection type")
     url: str = Field(default_factory=str)
+    bearer: Optional[str] = Field(default=None)
     headers: dict[str, Any] | None = Field(default_factory=dict[str, Any])
     init_timeout: int = Field(default=0)
     tool_timeout: int = Field(default=0)
@@ -260,6 +262,7 @@ class MCPServerRemote(BaseModel):
                     "description",
                     "type",
                     "url",
+                    "bearer",
                     "serverUrl",
                     "headers",
                     "init_timeout",
@@ -272,6 +275,18 @@ class MCPServerRemote(BaseModel):
                         key = "url"  # remap serverUrl to url
 
                     setattr(self, key, value)
+
+            if self.bearer:
+                # Resolve environment variable if bearer token is a placeholder
+                if self.bearer.startswith("$"):
+                    var_name = self.bearer.strip("${}")
+                    self.bearer = os.getenv(var_name)
+
+                if self.bearer:
+                    if self.headers is None:
+                        self.headers = {}
+                    self.headers["Authorization"] = f"Bearer {self.bearer}"
+
             # We already run in an event loop, dont believe Pylance
             return asyncio.run(self.__on_update())
 
