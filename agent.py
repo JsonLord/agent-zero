@@ -218,7 +218,6 @@ class AgentConfig:
     embeddings_model: models.ModelConfig
     browser_model: models.ModelConfig
     mcp_servers: str
-    browser_http_headers: dict[str, str] = field(default_factory=dict)
     profile: str = ""
     memory_subdir: str = ""
     knowledge_subdirs: list[str] = field(default_factory=lambda: ["default", "custom"])
