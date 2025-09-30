@@ -153,6 +153,37 @@ class AgentContext:
         self.streaming_agent = None
         self.paused = False
 
+    async def recover(self):
+        """
+        Recovers from a stuck state by resetting the context and resubmitting the last user message.
+        """
+        self.log.log(type="warning", content="Agent appears to be in a non-responsive state. Attempting to recover by resetting the chat.")
+
+        # 1. Find the last user message from history
+        last_user_hist_message = None
+        for msg in reversed(self.agent0.history.history):
+            if not msg.ai and isinstance(msg.content, dict) and 'message' in msg.content:
+                last_user_hist_message = msg
+                break
+
+        # 2. Reset the context
+        self.reset()
+
+        if last_user_hist_message:
+            # 3. Reconstruct the UserMessage object and re-communicate
+            content = last_user_hist_message.content
+            user_message_to_resubmit = UserMessage(
+                message=content.get("message", ""),
+                attachments=content.get("attachments", []),
+                system_message=content.get("system_message", [])
+            )
+
+            self.log.log(type="info", content=f"Restarting chat with the last message: {user_message_to_resubmit.message[:100]}...")
+            self.communicate(user_message_to_resubmit)
+        else:
+            self.log.log(type="error", content="Recovery failed: Could not find the last user message to resubmit. The chat has been reset.")
+
+
     def nudge(self):
         self.kill_process()
         self.paused = False
@@ -342,11 +373,18 @@ class Agent:
                             await self.handle_response_stream(full)
 
                         # call main LLM
-                        agent_response, _reasoning = await self.call_chat_model(
-                            messages=prompt,
-                            response_callback=stream_callback,
-                            reasoning_callback=reasoning_callback,
-                        )
+                        try:
+                            agent_response, _reasoning = await asyncio.wait_for(
+                                self.call_chat_model(
+                                    messages=prompt,
+                                    response_callback=stream_callback,
+                                    reasoning_callback=reasoning_callback,
+                                ),
+                                timeout=60.0  # 60-second timeout
+                            )
+                        except asyncio.TimeoutError:
+                            await self.context.recover()
+                            return  # Exit the current stuck monologue
 
                         await self.handle_intervention(agent_response)
 
