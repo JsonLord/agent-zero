@@ -1,0 +1,12 @@
+{
+  "default": {
+    "endpoint": "YOUR_MCP_ENDPOINT",
+    "bearer_token": "MCP_BEARER_TOKEN"
+  },
+  "servers": {
+    "harvesthealth-notion-mcp": {
+      "endpoint": "https://harvesthealth-notion-mcp.hf.space/mcp",
+      "bearer_token": "NOTION_MCP_BEARER_TOKEN"
+    }
+  }
+}
