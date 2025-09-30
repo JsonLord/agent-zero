@@ -4,9 +4,21 @@
     "bearer_token": "MCP_BEARER_TOKEN"
   },
   "servers": {
+    "harvesthealth-n8n-mcp": {
+      "endpoint": "https://harvesthealth-n8n-suite-open.hf.space/api/v1",
+      "bearer_token": "N8N_MCP_TOKEN"
+    },
     "harvesthealth-notion-mcp": {
-      "endpoint": "https://harvesthealth-notion-mcp.hf.space/mcp",
-      "bearer_token": "NOTION_MCP_BEARER_TOKEN"
-    }
-  }
+      "endpoint": "https://harvesthealth-notion-mcp-keyed.hf.space/mcp",
+      "bearer_token": "NOTION_MCP_TOKEN"
+  },
+    "playwright-mcp": {
+      "endpoint": "https://harvesthealth-playwright-mcp.hf.space/mcp",
+  },
+    "huggingface-mcp": {
+      "endpoint": "https://harvesthealth-huggingface-mcp-server.hf.space/mcp",
+  },
+    "github-mcp": {
+      "endpoint": "https://harvesthealth-github-mcp-server.hf.space/mcp",
+  },
 }
