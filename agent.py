@@ -153,6 +153,12 @@ class AgentContext:
         self.streaming_agent = None
         self.paused = False
 
+    async def recover(self):
+        PrintStyle(font_color="orange", padding=True).print(
+            "Agent appears to be in a non-responsive state. Attempting to recover by resetting the chat."
+        )
+        self.reset()
+
     def nudge(self):
         self.kill_process()
         self.paused = False
@@ -340,12 +346,19 @@ class Agent:
                             printer.stream(chunk)
                             await self.handle_response_stream(full)
 
-                        # call main LLM
-                        agent_response, _reasoning = await self.call_chat_model(
-                            messages=prompt,
-                            response_callback=stream_callback,
-                            reasoning_callback=reasoning_callback,
-                        )
+                        try:
+                            # call main LLM
+                            agent_response, _reasoning = await asyncio.wait_for(
+                                self.call_chat_model(
+                                    messages=prompt,
+                                    response_callback=stream_callback,
+                                    reasoning_callback=reasoning_callback,
+                                ),
+                                timeout=120.0,
+                            )
+                        except TimeoutError:
+                            await self.context.recover()
+                            continue
 
                         await self.handle_intervention(agent_response)
 
