@@ -4,6 +4,14 @@ from python.helpers import runtime, settings, defer
 from python.helpers.print_style import PrintStyle
 
 
+def initialize_mcp():
+    set = settings.get_settings()
+    async def initialize_mcp_async():
+        from python.helpers.mcp_handler import initialize_mcp as _initialize_mcp
+        return _initialize_mcp(set["mcp_servers"])
+    return defer.DeferredTask().start_task(initialize_mcp_async)
+
+
 def initialize_agent():
     current_settings = settings.get_settings()
 
@@ -121,13 +129,6 @@ def initialize_chats():
     async def initialize_chats_async():
         persist_chat.load_tmp_chats()
     return defer.DeferredTask().start_task(initialize_chats_async)
-
-def initialize_mcp():
-    set = settings.get_settings()
-    async def initialize_mcp_async():
-        from python.helpers.mcp_handler import initialize_mcp as _initialize_mcp
-        return _initialize_mcp(set["mcp_servers"])
-    return defer.DeferredTask().start_task(initialize_mcp_async)
 
 def initialize_job_loop():
     from python.helpers.job_loop import run_loop
