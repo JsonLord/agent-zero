@@ -162,6 +162,8 @@ def _args_override(config):
 
 def _set_runtime_config(config: AgentConfig, set: settings.Settings):
     ssh_conf = settings.get_runtime_config(set)
+    # remove browser_http_headers from ssh_conf if it exists
+    ssh_conf.pop('browser_http_headers', None)
     for key, value in ssh_conf.items():
         if hasattr(config, key):
             setattr(config, key, value)
