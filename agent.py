@@ -11,7 +11,7 @@ from enum import Enum
 import uuid
 import models
 
-from python.helpers import extract_tools, files, errors, history, tokens
+from python.helpers import extract_tools, files, errors, history, tokens, persist_chat
 from python.helpers import dirty_json
 from python.helpers.print_style import PrintStyle
 from langchain_core.prompts import (
@@ -157,6 +157,9 @@ class AgentContext:
         PrintStyle(font_color="orange", padding=True).print(
             "Agent appears to be in a non-responsive state. Attempting to recover by resetting the chat."
         )
+
+        # archive the stuck chat for later analysis
+        persist_chat.archive_stuck_chat(self)
 
         # backup history
         current_agent = self.get_agent()

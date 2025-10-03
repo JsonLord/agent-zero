@@ -107,6 +107,22 @@ def remove_chat(ctxid):
     files.delete_dir(path)
 
 
+def archive_stuck_chat(context: AgentContext):
+    """Archive a stuck context to a timestamped file"""
+    try:
+        folder_path = get_chat_folder_path(context.id)
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        archive_file_name = f"chat-stuck-{timestamp}.json"
+        archive_file_path = files.get_abs_path(folder_path, archive_file_name)
+
+        data = _serialize_context(context)
+        js = _safe_json_serialize(data, ensure_ascii=False)
+        files.write_file(archive_file_path, js)
+        print(f"Archived stuck chat {context.id} to {archive_file_path}")
+    except Exception as e:
+        print(f"Error archiving stuck chat {context.id}: {e}")
+
+
 def _serialize_context(context: AgentContext):
     # serialize agents
     agents = []
