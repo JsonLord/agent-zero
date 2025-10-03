@@ -157,7 +157,21 @@ class AgentContext:
         PrintStyle(font_color="orange", padding=True).print(
             "Agent appears to be in a non-responsive state. Attempting to recover by resetting the chat."
         )
+
+        # backup history
+        current_agent = self.get_agent()
+        history_backup = current_agent.history
+        last_user_message_backup = current_agent.last_user_message
+        intervention_backup = current_agent.intervention
+
         self.reset()
+
+        # restore history
+        new_agent = self.get_agent()
+        new_agent.history = history_backup
+        new_agent.history.agent = new_agent # re-link agent
+        new_agent.last_user_message = last_user_message_backup
+        new_agent.intervention = intervention_backup
 
     def nudge(self):
         self.kill_process()
