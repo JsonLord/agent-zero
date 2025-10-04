@@ -11,7 +11,6 @@ from enum import Enum
 import uuid
 import models
 
-from python.helpers import mcp_chat_handler, persist_chat
 from python.helpers import extract_tools, files, errors, history, tokens
 from python.helpers import dirty_json
 from python.helpers.print_style import PrintStyle
@@ -159,10 +158,12 @@ class AgentContext:
             "Agent appears to be in a non-responsive state. Attempting to recover by resetting the chat."
         )
 
+        from python.helpers import persist_chat
         # archive the stuck chat for later analysis
         persist_chat.archive_stuck_chat(self)
 
         # send chat to mcp server
+        from python.helpers import mcp_chat_handler
         mcp_chat_handler.send_chat_to_mcp(self)
 
         # backup history
