@@ -125,9 +125,16 @@ def initialize_agent():
     return config
 
 def initialize_chats():
-    from python.helpers import persist_chat
+    from python.helpers import persist_chat, mcp_chat_handler
     async def initialize_chats_async():
-        persist_chat.load_tmp_chats()
+        # Try to load chat from MCP server first
+        mcp_chat_json = mcp_chat_handler.get_chat_from_mcp()
+        if mcp_chat_json:
+            print("Loading chat from MCP server.")
+            persist_chat.load_json_chats([mcp_chat_json])
+        else:
+            print("No chat found on MCP server, loading from local temp files.")
+            persist_chat.load_tmp_chats()
     return defer.DeferredTask().start_task(initialize_chats_async)
 
 def initialize_job_loop():

@@ -11,7 +11,8 @@ from enum import Enum
 import uuid
 import models
 
-from python.helpers import extract_tools, files, errors, history, tokens, persist_chat
+from python.helpers import mcp_chat_handler, persist_chat
+from python.helpers import extract_tools, files, errors, history, tokens
 from python.helpers import dirty_json
 from python.helpers.print_style import PrintStyle
 from langchain_core.prompts import (
@@ -160,6 +161,9 @@ class AgentContext:
 
         # archive the stuck chat for later analysis
         persist_chat.archive_stuck_chat(self)
+
+        # send chat to mcp server
+        mcp_chat_handler.send_chat_to_mcp(self)
 
         # backup history
         current_agent = self.get_agent()
