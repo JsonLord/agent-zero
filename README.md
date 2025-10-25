@@ -165,6 +165,7 @@ docker run -p 50001:80 agent0ai/agent-zero
 | [Architecture](./docs/architecture.md) | System design and components |
 | [Contributing](./docs/contribution.md) | How to contribute |
 | [Troubleshooting](./docs/troubleshooting.md) | Common issues and their solutions |
+| [Adding Secrets](./HOW_TO_ADD_SECRETS.md) | How to add API keys and other secrets |
 
 
 ## 🎯 Changelog

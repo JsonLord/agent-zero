@@ -291,6 +291,7 @@ class Agent:
         self.last_user_message: history.Message | None = None
         self.intervention: UserMessage | None = None
         self.data = {}  # free data object all the tools can use
+        self.reasoning = True
 
 
         asyncio.run(self.call_extensions("agent_init"))
@@ -345,6 +346,7 @@ class Agent:
                             messages=prompt,
                             response_callback=stream_callback,
                             reasoning_callback=reasoning_callback,
+                            no_reasoning=not self.reasoning,
                         )
 
                         await self.handle_intervention(agent_response)
@@ -630,6 +632,7 @@ class Agent:
         response_callback: Callable[[str, str], Awaitable[None]] | None = None,
         reasoning_callback: Callable[[str, str], Awaitable[None]] | None = None,
         background: bool = False,
+        no_reasoning: bool = False,
     ):
         response = ""
 
@@ -639,7 +642,7 @@ class Agent:
         # call model
         response, reasoning = await model.unified_call(
             messages=messages,
-            reasoning_callback=reasoning_callback,
+            reasoning_callback=reasoning_callback if not no_reasoning else None,
             response_callback=response_callback,
             rate_limiter_callback=self.rate_limiter_callback if not background else None,
         )
