@@ -88,19 +88,6 @@ def load_tmp_chats():
     return ctxids
 
 
-def _get_chat_file_path(ctxid: str):
-    return files.get_abs_path(CHATS_FOLDER, ctxid, CHAT_FILE_NAME)
-
-
-def _convert_v080_chats():
-    json_files = files.list_files(CHATS_FOLDER, "*.json")
-    for file in json_files:
-        path = files.get_abs_path(CHATS_FOLDER, file)
-        name = file.rstrip(".json")
-        new = _get_chat_file_path(name)
-        files.move_file(path, new)
-
-
 def load_json_chats(jsons: list[str]):
     """Load contexts from JSON strings"""
     ctxids = []
