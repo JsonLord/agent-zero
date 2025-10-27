@@ -6,6 +6,7 @@ from agent import Agent, AgentConfig, AgentContext, AgentContextType
 from python.helpers import files, history
 import json
 from initialize import initialize_agent
+from python.helpers.mem0_helper import Mem0Helper
 
 from python.helpers.log import Log, LogItem
 
@@ -28,44 +29,62 @@ def get_chat_folder_path(ctxid: str):
 
 
 def save_tmp_chat(context: AgentContext):
-    """Save context to the chats folder"""
-    # Skip saving BACKGROUND contexts as they should be ephemeral
+    """Save chat history to Mem0.ai and create a marker file"""
     if context.type == AgentContextType.BACKGROUND:
         return
 
-    path = _get_chat_file_path(context.id)
+    # Create a marker directory
+    path = get_chat_folder_path(context.id)
     files.make_dirs(path)
-    data = _serialize_context(context)
-    js = _safe_json_serialize(data, ensure_ascii=False)
-    files.write_file(path, js)
 
+    # Save chat history to Mem0.ai
+    mem0_helper = Mem0Helper()
+    mem0_helper.delete_user_memories(user_id=context.id) # Clear old history
+    agent = context.agent0
+    while agent:
+        for message in agent.history.output():
+            role = "ai" if message["ai"] else "user"
+            content = _safe_json_serialize(message["content"], ensure_ascii=False)
+            mem0_helper.add_memory(user_id=context.id, role=role, content=content)
+        agent = agent.data.get(Agent.DATA_NAME_SUBORDINATE, None)
 
 def save_tmp_chats():
-    """Save all contexts to the chats folder"""
+    """Save all contexts"""
     for _, context in AgentContext._contexts.items():
-        # Skip BACKGROUND contexts as they should be ephemeral
         if context.type == AgentContextType.BACKGROUND:
             continue
         save_tmp_chat(context)
 
 
 def load_tmp_chats():
-    """Load all contexts from the chats folder"""
-    _convert_v080_chats()
-    folders = files.list_files(CHATS_FOLDER, "*")
-    json_files = []
-    for folder_name in folders:
-        json_files.append(_get_chat_file_path(folder_name))
-
+    """Load all contexts from Mem0.ai using marker files"""
+    mem0_helper = Mem0Helper()
     ctxids = []
-    for file in json_files:
+
+    folders = files.list_files(CHATS_FOLDER, "*")
+    for folder_name in folders:
         try:
-            js = files.read_file(file)
-            data = json.loads(js)
-            ctx = _deserialize_context(data)
-            ctxids.append(ctx.id)
+            user_id = folder_name.strip('/')
+            memories = mem0_helper.get_all_memories(user_id=user_id)
+            if memories:
+                # Reconstruct the chat history
+                config = initialize_agent()
+                context = AgentContext(config=config, id=user_id)
+                agent = context.agent0
+
+                # Sort memories by timestamp if available, otherwise assume order is correct
+                # This is a simplification. A real implementation should handle message ordering robustly.
+                sorted_memories = sorted(memories, key=lambda m: m.get('timestamp', 0))
+
+                for memory in sorted_memories:
+                    role = memory['data']['role']
+                    content = json.loads(memory['text'])
+                    is_ai = role == 'ai'
+                    agent.history.add_message(ai=is_ai, content=content)
+
+                ctxids.append(context.id)
         except Exception as e:
-            print(f"Error loading chat {file}: {e}")
+            print(f"Error loading chat for user {folder_name}: {e}")
     return ctxids
 
 
@@ -102,9 +121,14 @@ def export_json_chat(context: AgentContext):
 
 
 def remove_chat(ctxid):
-    """Remove a chat or task context"""
+    """Remove a chat or task context from both local and Mem0.ai"""
+    # Remove local marker directory
     path = get_chat_folder_path(ctxid)
     files.delete_dir(path)
+
+    # Remove memories from Mem0.ai
+    mem0_helper = Mem0Helper()
+    mem0_helper.delete_user_memories(user_id=ctxid)
 
 
 def _serialize_context(context: AgentContext):

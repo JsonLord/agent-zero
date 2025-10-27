@@ -25,6 +25,7 @@ from python.helpers.defer import DeferredTask
 from typing import Callable
 from python.helpers.localization import Localization
 from python.helpers.extension import call_extensions
+from python.helpers import persist_chat
 
 class AgentContextType(Enum):
     USER = "user"
@@ -167,6 +168,15 @@ class AgentContext:
 
         current_agent = self.get_agent()
 
+        if msg.message.lower() == "hello":
+            mem0_helper = persist_chat.Mem0Helper()
+            memories = mem0_helper.get_all_memories(user_id=self.id)
+            if memories:
+                # Create a summary of the last conversation
+                # This is a simplified summary. A more sophisticated approach could be used.
+                summary = "Last conversation summary:\n" + "\n".join([m['text'] for m in memories[-5:]]) # Summary of last 5 messages
+                current_agent.hist_add_retrieved_context(summary)
+
         if self.task and self.task.is_alive():
             # set intervention messages to agent(s):
             intervention_agent = current_agent
@@ -191,9 +201,40 @@ class AgentContext:
         self.task.start_task(func, *args, **kwargs)
         return self.task
 
+    def recover(self):
+        self.log.log(
+            "system",
+            "Monologue timed out, recovering",
+            "An automatic recovery process has been initiated.",
+        )
+        persist_chat.save_tmp_chat(self)
+
+        # Retrieve context from Mem0
+        mem0_helper = persist_chat.Mem0Helper()
+        last_messages = self.history.output_text()
+        retrieved_memories = mem0_helper.get_relevant_memories(user_id=self.context.id, query=last_messages)
+
+        self.reset()
+
+        if retrieved_memories:
+            # Join the 'text' of each memory
+            context_str = "\n".join([mem['text'] for mem in retrieved_memories])
+            self.get_agent().hist_add_retrieved_context(context_str)
+
+        self.communicate(UserMessage(message="hello, I seem to have gotten stuck. What were we talking about?"))
+
     # this wrapper ensures that superior agents are called back if the chat was loaded from file and original callstack is gone
     async def _process_chain(self, agent: "Agent", msg: "UserMessage|str", user=True):
         try:
+            # If this is the first message in a new chat, retrieve context
+            if len(agent.history.bulks) == 0 and len(agent.history.topics) == 0 and len(agent.history.current.messages) == 0:
+                mem0_helper = persist_chat.Mem0Helper()
+                if isinstance(msg, UserMessage):
+                    retrieved_memories = mem0_helper.get_relevant_memories(user_id=agent.context.id, query=msg.message)
+                    if retrieved_memories:
+                        context_str = "\n".join([mem['text'] for mem in retrieved_memories])
+                        agent.hist_add_retrieved_context(context_str)
+
             msg_template = (
                 agent.hist_add_user_message(msg)  # type: ignore
                 if user
@@ -563,6 +604,11 @@ class Agent:
         content = self.parse_prompt(
             "fw.tool_result.md", tool_name=tool_name, tool_result=tool_result
         )
+        return self.hist_add_message(False, content=content)
+
+    def hist_add_retrieved_context(self, context: str):
+        """Adds retrieved context to the history."""
+        content = self.parse_prompt("fw.retrieved_context.md", context=context)
         return self.hist_add_message(False, content=content)
 
     def concat_messages(
