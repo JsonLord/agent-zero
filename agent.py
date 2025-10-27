@@ -208,9 +208,9 @@ class AgentContext:
 
         self.reset()
 
-        if retrieved_memories:
-            # Join the 'text' of each memory
-            context_str = "\n".join([mem['text'] for mem in retrieved_memories])
+        if retrieved_memories and retrieved_memories.get("results"):
+            # Join the 'memory' of each result
+            context_str = "\n".join([res['memory'] for res in retrieved_memories["results"]])
             self.get_agent().hist_add_retrieved_context(context_str)
 
         self.nudge()
@@ -224,8 +224,8 @@ class AgentContext:
                 mem0_helper = persist_chat.Mem0Helper()
                 if isinstance(msg, UserMessage):
                     retrieved_memories = mem0_helper.get_relevant_memories(user_id=agent.context.id, query=msg.message)
-                    if retrieved_memories:
-                        context_str = "\n".join([mem['text'] for mem in retrieved_memories])
+                    if retrieved_memories and retrieved_memories.get("results"):
+                        context_str = "\n".join([res['memory'] for res in retrieved_memories["results"]])
                         agent.hist_add_retrieved_context(context_str)
 
             msg_template = (
