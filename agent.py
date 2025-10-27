@@ -25,7 +25,6 @@ from python.helpers.defer import DeferredTask
 from typing import Callable
 from python.helpers.localization import Localization
 from python.helpers.extension import call_extensions
-from python.helpers import persist_chat
 
 class AgentContextType(Enum):
     USER = "user"
@@ -164,6 +163,7 @@ class AgentContext:
         return self.streaming_agent or self.agent0
 
     def communicate(self, msg: "UserMessage", broadcast_level: int = 1):
+        from python.helpers import persist_chat
         self.paused = False  # unpause if paused
 
         current_agent = self.get_agent()
@@ -202,6 +202,7 @@ class AgentContext:
         return self.task
 
     def recover(self):
+        from python.helpers import persist_chat
         self.log.log(
             "system",
             "Monologue timed out, recovering",
@@ -212,7 +213,7 @@ class AgentContext:
         # Retrieve context from Mem0
         mem0_helper = persist_chat.Mem0Helper()
         last_messages = self.history.output_text()
-        retrieved_memories = mem0_helper.get_relevant_memories(user_id=self.context.id, query=last_messages)
+        retrieved_memories = mem0_helper.get_relevant_memories(user_id=self.id, query=last_messages)
 
         self.reset()
 
@@ -225,6 +226,7 @@ class AgentContext:
 
     # this wrapper ensures that superior agents are called back if the chat was loaded from file and original callstack is gone
     async def _process_chain(self, agent: "Agent", msg: "UserMessage|str", user=True):
+        from python.helpers import persist_chat
         try:
             # If this is the first message in a new chat, retrieve context
             if len(agent.history.bulks) == 0 and len(agent.history.topics) == 0 and len(agent.history.current.messages) == 0:
