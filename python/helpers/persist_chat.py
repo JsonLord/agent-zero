@@ -44,8 +44,8 @@ def save_tmp_chat(context: AgentContext):
     while agent:
         for message in agent.history.output():
             role = "ai" if message["ai"] else "user"
-            content = message["content"]
-            mem0_helper.add_memory(user_id=context.id, role=role, content=content)
+            content = {"role": role, "content": message["content"]}
+            mem0_helper.add_memory(user_id=context.id, content=json.dumps(content))
         agent = agent.data.get(Agent.DATA_NAME_SUBORDINATE, None)
 
 def save_tmp_chats():
@@ -75,8 +75,9 @@ def load_tmp_chats():
                 sorted_memories = sorted(memories, key=lambda m: m.get('created_at', ''))
 
                 for memory in sorted_memories:
-                    role = memory['data']['role']
-                    content = memory['memory']
+                    data = json.loads(memory['memory'])
+                    role = data['role']
+                    content = data['content']
                     is_ai = role == 'ai'
                     agent.history.add_message(ai=is_ai, content=content)
 

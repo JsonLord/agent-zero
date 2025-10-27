@@ -1,4 +1,5 @@
 import os
+from typing import Any
 from mem0 import MemoryClient
 from dotenv import load_dotenv
 
@@ -14,10 +15,9 @@ class Mem0Helper:
     def get_memory(self, user_id: str, query: str):
         return self.client.search(query=query, user_id=user_id)
 
-    def add_memory(self, user_id: str, role: str, content: Any):
+    def add_memory(self, user_id: str, content: Any):
         """Adds a single message to the memory."""
-        message = {"role": role, "content": content}
-        self.client.add(messages=[message], user_id=user_id)
+        self.client.add(content, user_id=user_id)
 
     def get_relevant_memories(self, user_id: str, query: str):
         """Retrieves relevant memories for a given query."""

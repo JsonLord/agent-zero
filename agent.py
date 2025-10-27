@@ -22,6 +22,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 import python.helpers.log as Log
 from python.helpers.dirty_json import DirtyJson
 from python.helpers.defer import DeferredTask
+import json
 from typing import Callable
 from python.helpers.localization import Localization
 from python.helpers.extension import call_extensions
@@ -210,7 +211,11 @@ class AgentContext:
 
         if retrieved_memories and retrieved_memories.get("results"):
             # Join the 'memory' of each result
-            context_str = "\n".join([res['memory'] for res in retrieved_memories["results"]])
+            context_list = []
+            for res in retrieved_memories["results"]:
+                data = json.loads(res['memory'])
+                context_list.append(f"{data['role']}: {data['content']}")
+            context_str = "\n".join(context_list)
             self.get_agent().hist_add_retrieved_context(context_str)
 
         self.nudge()
@@ -225,7 +230,11 @@ class AgentContext:
                 if isinstance(msg, UserMessage):
                     retrieved_memories = mem0_helper.get_relevant_memories(user_id=agent.context.id, query=msg.message)
                     if retrieved_memories and retrieved_memories.get("results"):
-                        context_str = "\n".join([res['memory'] for res in retrieved_memories["results"]])
+                        context_list = []
+                        for res in retrieved_memories["results"]:
+                            data = json.loads(res['memory'])
+                            context_list.append(f"{data['role']}: {data['content']}")
+                        context_str = "\n".join(context_list)
                         agent.hist_add_retrieved_context(context_str)
 
             msg_template = (
