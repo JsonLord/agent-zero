@@ -12,8 +12,7 @@ class Mem0Helper:
         self.client = MemoryClient(api_key=self.api_key)
 
     def get_memory(self, user_id: str, query: str):
-        filters = {"OR": [{"user_id": user_id}]}
-        return self.client.search(query=query, filters=filters)
+        return self.client.search(query=query, user_id=user_id)
 
     def add_memory(self, user_id: str, role: str, content: str):
         """Adds a single message to the memory."""
@@ -22,14 +21,12 @@ class Mem0Helper:
 
     def get_relevant_memories(self, user_id: str, query: str):
         """Retrieves relevant memories for a given query."""
-        filters = {"OR": [{"user_id": user_id}]}
-        memories = self.client.search(query=query, filters=filters)
+        memories = self.client.search(query=query, user_id=user_id)
         return memories if memories is not None else []
 
     def get_all_memories(self, user_id: str):
         """Retrieves all memories for a given user."""
-        filters = {"OR": [{"user_id": user_id}]}
-        return self.client.get_all(filters=filters)
+        return self.client.get_all(user_id=user_id)
 
     def delete_user_memories(self, user_id: str):
         """Deletes all memories for a given user."""

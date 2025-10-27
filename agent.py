@@ -168,15 +168,6 @@ class AgentContext:
 
         current_agent = self.get_agent()
 
-        if msg.message.lower() == "hello":
-            mem0_helper = persist_chat.Mem0Helper()
-            memories = mem0_helper.get_all_memories(user_id=self.id)
-            if memories:
-                # Create a summary of the last conversation
-                # This is a simplified summary. A more sophisticated approach could be used.
-                summary = "Last conversation summary:\n" + "\n".join([m['text'] for m in memories[-5:]]) # Summary of last 5 messages
-                current_agent.hist_add_retrieved_context(summary)
-
         if self.task and self.task.is_alive():
             # set intervention messages to agent(s):
             intervention_agent = current_agent
@@ -222,7 +213,7 @@ class AgentContext:
             context_str = "\n".join([mem['text'] for mem in retrieved_memories])
             self.get_agent().hist_add_retrieved_context(context_str)
 
-        self.communicate(UserMessage(message="hello, I seem to have gotten stuck. What were we talking about?"))
+        self.nudge()
 
     # this wrapper ensures that superior agents are called back if the chat was loaded from file and original callstack is gone
     async def _process_chain(self, agent: "Agent", msg: "UserMessage|str", user=True):

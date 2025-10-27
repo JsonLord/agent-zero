@@ -72,9 +72,7 @@ def load_tmp_chats():
                 context = AgentContext(config=config, id=user_id)
                 agent = context.agent0
 
-                # Sort memories by timestamp if available, otherwise assume order is correct
-                # This is a simplification. A real implementation should handle message ordering robustly.
-                sorted_memories = sorted(memories, key=lambda m: m.get('timestamp', 0))
+                sorted_memories = sorted(memories, key=lambda m: m.get('created_at', ''))
 
                 for memory in sorted_memories:
                     role = memory['data']['role']
