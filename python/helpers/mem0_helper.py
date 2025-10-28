@@ -1,6 +1,8 @@
 import os
+import warnings
 from typing import Any
 from mem0 import MemoryClient
+from mem0.client.utils import APIError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,7 +12,9 @@ class Mem0Helper:
         self.api_key = os.getenv("MEM0_API_KEY")
         if not self.api_key:
             raise ValueError("MEM0_API_KEY not found in environment variables")
-        self.client = MemoryClient(api_key=self.api_key)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            self.client = MemoryClient(api_key=self.api_key)
 
     def get_memory(self, user_id: str, query: str):
         return self.client.search(query=query, user_id=user_id)
@@ -32,4 +36,10 @@ class Mem0Helper:
         """Deletes all memories for a given user."""
         memories = self.get_all_memories(user_id=user_id)
         for memory in memories:
-            self.client.delete(memory_id=memory['id'])
+            try:
+                self.client.delete(memory_id=memory['id'])
+            except APIError as e:
+                if "Memory not found!" in str(e):
+                    print(f"Warning: Memory with ID {memory['id']} not found. Skipping.")
+                else:
+                    raise e
