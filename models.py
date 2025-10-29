@@ -314,6 +314,7 @@ class LiteLLMChatWrapper(SimpleChatModel):
         limiter = await apply_rate_limiter(self.a0_model_conf, str(msgs_conv), rate_limiter_callback)
 
         # call model
+        kwargs.pop("model", None)
         _completion = await acompletion(
             model=self.model_name,
             messages=msgs_conv,
