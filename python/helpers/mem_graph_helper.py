@@ -21,15 +21,11 @@ class MemGraphHelper:
             print(f"API Request Error: {e}")
             return {"error": str(e)}
 
-    def load_history(self, conversation_id: str, user_input: str = "") -> list:
+    def load_history(self, conversation_id: str) -> list:
         """
         Loads chat history for a given conversation ID.
-        Returns an empty list if no history is found or if the trigger word is present.
+        Returns an empty list if no history is found.
         """
-        if "--new-chat" in user_input:
-            print("<- Trigger word detected. Starting new chat.")
-            return []
-
         key = f"chat_history:{conversation_id}"
         print(f"<- Loading history for key: {key}")
 
