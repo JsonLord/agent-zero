@@ -33,8 +33,8 @@ class MemGraphHelper:
 
         if "response" in response_data and response_data["response"] != "(nil)":
             try:
-                # The response is a JSON string, so we need to parse it
-                return json.loads(response_data["response"])
+                # The response is a JSON string wrapped in single quotes, so we need to strip them before parsing
+                return json.loads(response_data["response"].strip("'"))
             except json.JSONDecodeError:
                 print("Error: Could not decode JSON from response.")
                 return []
@@ -45,8 +45,8 @@ class MemGraphHelper:
         Saves the chat history for a given conversation ID.
         """
         key = f"chat_history:{conversation_id}"
-        # Convert the list of messages into a compact JSON string
-        value = json.dumps(history)
+        # Convert the list of messages into a compact JSON string and wrap it in single quotes
+        value = f"'{json.dumps(history)}'"
 
         print(f"-> Saving history for key: {key}")
 
