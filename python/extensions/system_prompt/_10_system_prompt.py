@@ -10,12 +10,17 @@ class SystemPrompt(Extension):
         # append main system prompt and tools
         main = get_main_prompt(self.agent)
         tools = get_tools_prompt(self.agent)
-        mcp_tools = get_mcp_tools_prompt(self.agent)
+        # mcp_tools = get_mcp_tools_prompt(self.agent)
 
         system_prompt.append(main)
         system_prompt.append(tools)
-        if mcp_tools:
-            system_prompt.append(mcp_tools)
+
+        # Check if the user's last message contains "mcp" (case-insensitive)
+        user_message = loop_data.user_message
+        if user_message and "mcp" in str(user_message.content).lower():
+            mcp_tools = get_mcp_tools_prompt(self.agent)
+            if mcp_tools:
+                system_prompt.append(mcp_tools)
 
 
 def get_main_prompt(agent: Agent):
