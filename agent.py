@@ -206,13 +206,37 @@ class AgentContext:
         )
         persist_chat.save_tmp_chat(self)
         self.reset()
-        persist_chat.load_tmp_chats()
+        # Get the current context ID
+        ctx_id = self.id
+        # Load the history for the current context
+        from python.helpers.mem_graph_helper import MemGraphHelper
+        mem_graph_helper = MemGraphHelper()
+        history = mem_graph_helper.load_history(ctx_id)
+        if history:
+            agent = self.agent0
+            for message in history:
+                role = message['role']
+                content = message['content']
+                is_ai = role == 'ai'
+                agent.history.add_message(ai=is_ai, content=content)
         self.nudge()
 
     # this wrapper ensures that superior agents are called back if the chat was loaded from file and original callstack is gone
     async def _process_chain(self, agent: "Agent", msg: "UserMessage|str", user=True):
         from python.helpers import persist_chat
         try:
+            # If this is the first message in a new chat, retrieve context
+            if len(agent.history.bulks) == 0 and len(agent.history.topics) == 0 and len(agent.history.current.messages) == 0:
+                from python.helpers.mem_graph_helper import MemGraphHelper
+                mem_graph_helper = MemGraphHelper()
+                history = mem_graph_helper.load_history(agent.context.id)
+                if history:
+                    for message in history:
+                        role = message['role']
+                        content = message['content']
+                        is_ai = role == 'ai'
+                        agent.history.add_message(ai=is_ai, content=content)
+
             msg_template = (
                 agent.hist_add_user_message(msg)  # type: ignore
                 if user
@@ -645,7 +669,6 @@ class Agent:
         response, _reasoning = await model.unified_call(
             system_message=system,
             user_message=message,
-            model=self.config.utility_model.name,
             response_callback=stream_callback,
             rate_limiter_callback=self.rate_limiter_callback if not background else None,
         )
