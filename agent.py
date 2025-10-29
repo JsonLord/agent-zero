@@ -167,6 +167,10 @@ class AgentContext:
         from python.helpers import persist_chat
         self.paused = False  # unpause if paused
 
+        if "--new-chat" in msg.message:
+            self.reset()
+            msg.message = msg.message.replace("--new-chat", "").strip()
+
         current_agent = self.get_agent()
 
         if self.task and self.task.is_alive():

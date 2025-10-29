@@ -6,8 +6,7 @@ from agent import Agent, AgentConfig, AgentContext, AgentContextType
 from python.helpers import files, history
 import json
 from initialize import initialize_agent
-from python.helpers.mem0_helper import Mem0Helper
-
+from python.helpers.mem_graph_helper import MemGraphHelper
 from python.helpers.log import Log, LogItem
 
 CHATS_FOLDER = "tmp/chats"
@@ -37,16 +36,17 @@ def save_tmp_chat(context: AgentContext):
     path = get_chat_folder_path(context.id)
     files.make_dirs(path)
 
-    # Save chat history to Mem0.ai
-    mem0_helper = Mem0Helper()
-    mem0_helper.delete_user_memories(user_id=context.id) # Clear old history
+    # Save chat history to MemGraph
+    mem_graph_helper = MemGraphHelper()
+    history = []
     agent = context.agent0
     while agent:
         for message in agent.history.output():
             role = "ai" if message["ai"] else "user"
             content = {"role": role, "content": message["content"]}
-            mem0_helper.add_memory(user_id=context.id, content=json.dumps(content))
+            history.append(content)
         agent = agent.data.get(Agent.DATA_NAME_SUBORDINATE, None)
+    mem_graph_helper.save_history(context.id, history)
 
 def save_tmp_chats():
     """Save all contexts"""
@@ -57,27 +57,24 @@ def save_tmp_chats():
 
 
 def load_tmp_chats():
-    """Load all contexts from Mem0.ai using marker files"""
-    mem0_helper = Mem0Helper()
+    """Load all contexts from MemGraph using marker files"""
+    mem_graph_helper = MemGraphHelper()
     ctxids = []
 
     folders = files.list_files(CHATS_FOLDER, "*")
     for folder_name in folders:
         try:
             user_id = folder_name.strip('/')
-            memories = mem0_helper.get_all_memories(user_id=user_id)
-            if memories:
+            history = mem_graph_helper.load_history(user_id)
+            if history:
                 # Reconstruct the chat history
                 config = initialize_agent()
                 context = AgentContext(config=config, id=user_id)
                 agent = context.agent0
 
-                sorted_memories = sorted(memories, key=lambda m: m.get('created_at', ''))
-
-                for memory in sorted_memories:
-                    data = json.loads(memory['memory'])
-                    role = data['role']
-                    content = data['content']
+                for message in history:
+                    role = message['role']
+                    content = message['content']
                     is_ai = role == 'ai'
                     agent.history.add_message(ai=is_ai, content=content)
 
@@ -107,14 +104,14 @@ def export_json_chat(context: AgentContext):
 
 
 def remove_chat(ctxid):
-    """Remove a chat or task context from both local and Mem0.ai"""
+    """Remove a chat or task context from both local and MemGraph"""
     # Remove local marker directory
     path = get_chat_folder_path(ctxid)
     files.delete_dir(path)
 
-    # Remove memories from Mem0.ai
-    mem0_helper = Mem0Helper()
-    mem0_helper.delete_user_memories(user_id=ctxid)
+    # Remove memories from MemGraph
+    mem_graph_helper = MemGraphHelper()
+    mem_graph_helper.save_history(ctxid, [])
 
 
 def _serialize_context(context: AgentContext):
