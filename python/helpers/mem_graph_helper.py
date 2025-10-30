@@ -2,8 +2,10 @@ import requests
 import json
 import uuid
 
-from python.helpers.log import log
+from python.helpers.log import Log
 import re
+
+log = Log()
 
 class MemGraphHelper:
     _instance = None
@@ -35,7 +37,7 @@ class MemGraphHelper:
                 return match.group(1)
             return None
         except requests.exceptions.RequestException as e:
-            log(f"API Request Error: {e}", "error")
+            log.log("error", f"API Request Error: {e}")
             return None
 
     def _send_command(self, command: str) -> dict:
@@ -45,18 +47,17 @@ class MemGraphHelper:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            log(f"API Request Error: {e}", "error")
+            log.log("error", f"API Request Error: {e}")
             return {"error": str(e)}
         except json.JSONDecodeError as e:
-            log(f"JSON Decode Error: {e.msg} at line {e.lineno} column {e.colno}", "error")
-            log(f"Response text: {response.text}", "error")
+            log.log("error", f"JSON Decode Error: {e.msg} at line {e.lineno} column {e.colno}", f"Response text: {response.text}")
             return {"error": "JSON Decode Error"}
 
     def load_history(self, conversation_id: str) -> list:
         key = f"chat_history:{conversation_id}"
-        log(f"<- Loading history for key: {key}")
+        log.log("info", f"<- Loading history for key: {key}")
         response_data = self._send_command(f"GET {key}")
-        log(f"Load response: {response_data}")
+        log.log("info", f"Load response: {response_data}")
 
         if "response" in response_data and response_data["response"] != "(nil)":
             try:
@@ -65,18 +66,18 @@ class MemGraphHelper:
                     response_str = response_str[1:-1]
                 return json.loads(response_str)
             except json.JSONDecodeError as e:
-                log(f"Error: Could not decode JSON from response: {e}", "error")
+                log.log("error", f"Error: Could not decode JSON from response: {e}")
                 return []
         return []
 
     def save_history(self, conversation_id: str, history: list):
         key = f"chat_history:{conversation_id}"
         value = f"'{json.dumps(history)}'"
-        log(f"-> Saving history for key: {key}")
+        log.log("info", f"-> Saving history for key: {key}")
         response_data = self._send_command(f"SET {key} {value}")
-        log(f"Save response: {response_data}")
+        log.log("info", f"Save response: {response_data}")
 
         if "response" in response_data and "OK" in response_data["response"]:
-            log(" Save successful.")
+            log.log("info", " Save successful.")
         else:
-            log(f" Save failed. Response: {response_data}", "error")
+            log.log("error", f" Save failed. Response: {response_data}")
