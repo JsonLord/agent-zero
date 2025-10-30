@@ -288,6 +288,7 @@ class LoopData:
         self.extras_temporary: OrderedDict[str, history.MessageContent] = OrderedDict()
         self.extras_persistent: OrderedDict[str, history.MessageContent] = OrderedDict()
         self.last_response = ""
+        self.repeat_count = 0
         self.params_temporary: dict = {}
         self.params_persistent: dict = {}
 
@@ -397,18 +398,20 @@ class Agent:
                         if (
                             self.loop_data.last_response == agent_response
                         ):  # if assistant_response is the same as last message in history, let him know
-                            # Append the assistant's response to the history
-                            self.hist_add_ai_response(agent_response)
-                            # Append warning message to the history
-                            warning_msg = self.read_prompt("fw.msg_repeat.md")
-                            self.hist_add_warning(message=warning_msg)
-                            PrintStyle(font_color="orange", padding=True).print(
-                                warning_msg
-                            )
-                            self.context.log.log(type="warning", content=warning_msg)
-                            self.context.recover()
-
-                        else:  # otherwise proceed with tool
+                            self.loop_data.repeat_count += 1
+                            if self.loop_data.repeat_count >= 5:
+                                # Append the assistant's response to the history
+                                self.hist_add_ai_response(agent_response)
+                                # Append warning message to the history
+                                warning_msg = self.read_prompt("fw.msg_repeat.md")
+                                self.hist_add_warning(message=warning_msg)
+                                PrintStyle(font_color="orange", padding=True).print(
+                                    warning_msg
+                                )
+                                self.context.log.log(type="warning", content=warning_msg)
+                                self.context.recover()
+                        else:
+                            self.loop_data.repeat_count = 0
                             # Append the assistant's response to the history
                             self.hist_add_ai_response(agent_response)
                             # process tools requested in agent message
