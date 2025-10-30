@@ -2,57 +2,81 @@ import requests
 import json
 import uuid
 
+from python.helpers.log import log
+import re
+
 class MemGraphHelper:
-    """
-    A class to manage persistent chat history using the MCP Knowledge Graph service.
-    """
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if MemGraphHelper._instance is None:
+            MemGraphHelper._instance = MemGraphHelper()
+        return MemGraphHelper._instance
+
     def __init__(self, base_url="https://harvesthealth-mem-graph.hf.space/mcp"):
+        if MemGraphHelper._instance is not None:
+            raise Exception("This class is a singleton!")
         self.api_url = base_url
+        self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
+        self.csrf_token = self._get_csrf_token()
+
+    def disconnect(self):
+        self.session.close()
+        MemGraphHelper._instance = None
+
+    def _get_csrf_token(self):
+        try:
+            response = self.session.get(self.api_url)
+            response.raise_for_status()
+            match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', response.text)
+            if match:
+                return match.group(1)
+            return None
+        except requests.exceptions.RequestException as e:
+            log(f"API Request Error: {e}", "error")
+            return None
 
     def _send_command(self, command: str) -> dict:
-        """Helper function to send commands to the memory service."""
-        payload = {"command": command}
+        payload = {"command": command, "csrf_token": self.csrf_token}
         try:
-            response = requests.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status() # Raise an exception for bad status codes
+            response = self.session.post(self.api_url, headers=self.headers, json=payload)
+            response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"API Request Error: {e}")
+            log(f"API Request Error: {e}", "error")
             return {"error": str(e)}
+        except json.JSONDecodeError as e:
+            log(f"JSON Decode Error: {e.msg} at line {e.lineno} column {e.colno}", "error")
+            log(f"Response text: {response.text}", "error")
+            return {"error": "JSON Decode Error"}
 
     def load_history(self, conversation_id: str) -> list:
-        """
-        Loads chat history for a given conversation ID.
-        Returns an empty list if no history is found.
-        """
         key = f"chat_history:{conversation_id}"
-        print(f"<- Loading history for key: {key}")
-
+        log(f"<- Loading history for key: {key}")
         response_data = self._send_command(f"GET {key}")
+        log(f"Load response: {response_data}")
 
         if "response" in response_data and response_data["response"] != "(nil)":
             try:
-                # The response is a JSON string wrapped in single quotes, so we need to strip them before parsing
-                return json.loads(response_data["response"].strip("'"))
-            except json.JSONDecodeError:
-                print("Error: Could not decode JSON from response.")
+                response_str = response_data["response"]
+                if response_str.startswith("'") and response_str.endswith("'"):
+                    response_str = response_str[1:-1]
+                return json.loads(response_str)
+            except json.JSONDecodeError as e:
+                log(f"Error: Could not decode JSON from response: {e}", "error")
                 return []
         return []
 
     def save_history(self, conversation_id: str, history: list):
-        """
-        Saves the chat history for a given conversation ID.
-        """
         key = f"chat_history:{conversation_id}"
-        # Convert the list of messages into a compact JSON string and wrap it in single quotes
         value = f"'{json.dumps(history)}'"
-
-        print(f"-> Saving history for key: {key}")
-
+        log(f"-> Saving history for key: {key}")
         response_data = self._send_command(f"SET {key} {value}")
+        log(f"Save response: {response_data}")
 
-        if "response" in response_data and response_data["response"] == "OK":
-            print(" Save successful.")
+        if "response" in response_data and "OK" in response_data["response"]:
+            log(" Save successful.")
         else:
-            print(f" Save failed. Response: {response_data}")
+            log(f" Save failed. Response: {response_data}", "error")
