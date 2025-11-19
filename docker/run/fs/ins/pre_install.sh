@@ -3,6 +3,7 @@ set -e
 
 # update apt
 apt-get update
+apt-get install -y curl gnupg
 
 # fix permissions for cron files if any
 if [ -f /etc/cron.d/* ]; then
@@ -11,6 +12,3 @@ fi
 
 # Prepare SSH daemon
 bash /ins/setup_ssh.sh "$@"
-
-# Install dependencies
-bash /ins/install_dependencies.sh "$@"
