@@ -11,3 +11,6 @@ fi
 
 # Prepare SSH daemon
 bash /ins/setup_ssh.sh "$@"
+
+# Install dependencies
+bash /ins/install_dependencies.sh "$@"
