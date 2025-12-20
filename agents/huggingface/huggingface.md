@@ -34,8 +34,11 @@ Before using this skill for the first time, you must ensure that the `hf` CLI is
 This skill should be used when:
 - A file needs to be uploaded to the Hugging Face Hub.
 - A new repository needs to be created on the Hugging Face Hub.
+- The build status of a Hugging Face Space needs to be monitored.
 
-## Core Workflow
+## Core Workflows
+
+### Uploading Files
 
 1.  **Create a new repository (if it doesn't exist):**
     ```bash
@@ -54,3 +57,18 @@ This skill should be used when:
     *   `<repo-id>` is the name of the repository.
     *   `<local-path>` is the path to the local file or folder to upload.
     *   `<path-in-repo>` is the path where the file or folder should be placed in the repository.
+
+### Monitoring Hugging Face Space Builds
+
+After uploading files to a Hugging Face Space, use this workflow to monitor the build status.
+
+1.  **Retrieve the build logs:**
+    ```bash
+    curl -H "Authorization: Bearer YOUR_HF_TOKEN" https://huggingface.co/api/spaces/REPO_ID/logs/build
+    ```
+    *   Replace `YOUR_HF_TOKEN` with your Hugging Face access token.
+    *   Replace `REPO_ID` with the ID of the Space repository (e.g., `username/my-cool-space`).
+
+2.  **Check for build success:**
+    *   Examine the logs for messages indicating that the build is complete and the application is running. Look for phrases like "Build complete" or "Application startup complete".
+    *   You may need to run the command periodically to get the latest logs.
