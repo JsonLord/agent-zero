@@ -27,6 +27,9 @@ RUN bash /ins/install_base_packages4.sh
 # install python after packages to ensure version overriding
 RUN bash /ins/install_python.sh
 
+# Set PATH to use venv python
+ENV PATH="/opt/venv/bin:$PATH"
+
 # install searxng
 RUN bash /ins/install_searxng.sh
 
