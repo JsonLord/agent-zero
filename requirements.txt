@@ -27,7 +27,7 @@ pypdf==4.3.1
 python-dotenv==1.1.0
 pytz==2024.2
 sentence-transformers==3.0.1
-tiktoken==0.8.0
+tiktoken>=0.9.0
 unstructured[all-docs]==0.16.23
 unstructured-client==0.31.0
 webcolors==24.6.0
@@ -46,3 +46,6 @@ mem0ai
 numpy==1.26.4
 scipy==1.12.0
 spacy
+openai>=1.65.4
+vllm>=0.6.4.post1
+transformers>=4.46.3
