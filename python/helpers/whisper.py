@@ -26,10 +26,11 @@ async def transcribe(model_name: str, audio_bytes_b64: str):
 
         try:
             # Handle the file and make the prediction
-            result = client.predict(
+            job = client.submit(
                 audio_file=handle_file(temp_path),
                 api_name="/predict"
             )
+            result = job.result()
             return {"text": result}  # The API returns a dictionary with a "text" key
         finally:
             os.remove(temp_path)
