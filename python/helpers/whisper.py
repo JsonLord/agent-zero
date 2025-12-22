@@ -1,96 +1,49 @@
 import base64
-import warnings
-import whisper
 import tempfile
-import asyncio
-from python.helpers import runtime, rfc, settings, files
-from python.helpers.print_style import PrintStyle
-from python.helpers.notification import NotificationManager, NotificationType, NotificationPriority
+import os
+from gradio_client import Client, handle_file
 
-# Suppress FutureWarning from torch.load
-warnings.filterwarnings("ignore", category=FutureWarning)
+# Initialize the client with the model
+client = Client("Nabeelbhat/Audio_Transcribe_App")
 
-_model = None
-_model_name = ""
-is_updating_model = False  # Tracks whether the model is currently updating
+async def transcribe(model_name: str, audio_bytes_b64: str):
+    """
+    Transcribes an audio file using the Nabeelbhat/Audio_Transcribe_App Gradio client.
 
-async def preload(model_name:str):
+    Args:
+        model_name (str): The name of the model (not used in this implementation).
+        audio_bytes_b64 (str): The base64 encoded audio data.
+
+    Returns:
+        dict: The transcription result.
+    """
     try:
-        # return await runtime.call_development_function(_preload, model_name)
-        return await _preload(model_name)
+        audio_bytes = base64.b64decode(audio_bytes_b64)
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio_file:
+            temp_audio_file.write(audio_bytes)
+            temp_path = temp_audio_file.name
+
+        try:
+            # Handle the file and make the prediction
+            result = client.predict(
+                audio_file=handle_file(temp_path),
+                api_name="/predict"
+            )
+            return {"text": result}  # The API returns a dictionary with a "text" key
+        finally:
+            os.remove(temp_path)
     except Exception as e:
-        # if not runtime.is_development():
-        raise e
-        
-async def _preload(model_name:str):
-    global _model, _model_name, is_updating_model
+        print(f"Error during transcription: {str(e)}")
+        return None
 
-    while is_updating_model:
-        await asyncio.sleep(0.1)
-
-    try:
-        is_updating_model = True
-        if not _model or _model_name != model_name:
-            NotificationManager.send_notification(
-                NotificationType.INFO,
-                NotificationPriority.NORMAL,
-                "Loading Whisper model...",
-                display_time=99,
-                group="whisper-preload")
-            PrintStyle.standard(f"Loading Whisper model: {model_name}")
-            _model = whisper.load_model(name=model_name, download_root=files.get_abs_path("/tmp/models/whisper")) # type: ignore
-            _model_name = model_name
-            NotificationManager.send_notification(
-                NotificationType.INFO,
-                NotificationPriority.NORMAL,
-                "Whisper model loaded.",
-                display_time=2,
-                group="whisper-preload")
-    finally:
-        is_updating_model = False
+# The following functions are no longer needed but are kept for compatibility
+# to avoid breaking other parts of the application that might call them.
+async def preload(model_name:str):
+    pass
 
 async def is_downloading():
-    # return await runtime.call_development_function(_is_downloading)
-    return _is_downloading()
-
-def _is_downloading():
-    return is_updating_model
+    return False
 
 async def is_downloaded():
-    try:
-        # return await runtime.call_development_function(_is_downloaded)
-        return _is_downloaded()
-    except Exception as e:
-        # if not runtime.is_development():
-        raise e
-        # Fallback to direct execution if RFC fails in development
-        # return _is_downloaded()
-
-def _is_downloaded():
-    return _model is not None
-
-async def transcribe(model_name:str, audio_bytes_b64: str):
-    # return await runtime.call_development_function(_transcribe, model_name, audio_bytes_b64)
-    return await _transcribe(model_name, audio_bytes_b64)
-
-
-async def _transcribe(model_name:str, audio_bytes_b64: str):
-    await _preload(model_name)
-    
-    # Decode audio bytes if encoded as a base64 string
-    audio_bytes = base64.b64decode(audio_bytes_b64)
-
-    # Create temp audio file
-    import os
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as audio_file:
-        audio_file.write(audio_bytes)
-        temp_path = audio_file.name
-    try:
-        # Transcribe the audio file
-        result = _model.transcribe(temp_path, fp16=False) # type: ignore
-        return result
-    finally:
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass # ignore errors during cleanup
+    return True
