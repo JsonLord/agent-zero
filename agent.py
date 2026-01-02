@@ -26,6 +26,7 @@ import json
 from typing import Callable
 from python.helpers.localization import Localization
 from python.helpers.extension import call_extensions
+from python.helpers.task_history import TaskHistorySystem
 
 class AgentContextType(Enum):
     USER = "user"
@@ -336,6 +337,7 @@ class Agent:
         self.intervention: UserMessage | None = None
         self.data = {}  # free data object all the tools can use
         self.reasoning = True
+        self.task_history = None
 
 
         asyncio.run(self.call_extensions("agent_init"))
@@ -768,15 +770,34 @@ class Agent:
                 )
 
             if tool:
-                await self.handle_intervention()
-                await tool.before_execution(**tool_args)
-                await self.handle_intervention()
-                response = await tool.execute(**tool_args)
-                await self.handle_intervention()
-                await tool.after_execution(response)
-                await self.handle_intervention()
-                if response.break_loop:
-                    return response.message
+                response = None
+                success = False
+                error = None
+                before_execution_completed = False
+                try:
+                    await self.handle_intervention()
+                    await tool.before_execution(**tool_args)
+                    before_execution_completed = True
+                    await self.handle_intervention()
+                    response = await tool.execute(**tool_args)
+                    await self.handle_intervention()
+                    success = True
+                except Exception as e:
+                    error = e
+                    raise
+                finally:
+                    if before_execution_completed:
+                        if response is None:
+                            from python.helpers.tool import Response
+                            from python.helpers.errors import format_error
+                            error_message = format_error(error) if error else "Unknown error during tool execution."
+                            response = Response(message=error_message, break_loop=False)
+
+                        await tool.after_execution(response, success=success)
+                        await self.handle_intervention()
+
+                        if success and response and response.break_loop:
+                            return response.message
             else:
                 error_detail = (
                     f"Tool '{raw_tool_name}' not found or could not be initialized."
@@ -850,3 +871,8 @@ class Agent:
 
     async def call_extensions(self, extension_point: str, **kwargs) -> Any:
         return await call_extensions(extension_point=extension_point, agent=self, **kwargs)
+
+    def get_task_history(self):
+        if not self.task_history:
+            self.task_history = TaskHistorySystem(self)
+        return self.task_history
