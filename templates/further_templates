@@ -1,0 +1,148 @@
+Here are several additional templates for Agent Zero development and fine-tuning:
+
+State Management Template
+class AgentState:
+    def __init__(self):
+        self.context = {}
+        self.session_data = {}
+        self.conversation_history = []
+        self.last_action = None
+        self.status = "idle"
+        
+    def update_context(self, key, value):
+        self.context[key] = value
+        
+    def get_context(self, key, default=None):
+        return self.context.get(key, default)
+        
+    def save_session(self, filename):
+        import pickle
+        with open(filename, 'wb') as f:
+            pickle.dump(self.session_data, f)
+            
+    def load_session(self, filename):
+        import pickle
+        try:
+            with open(filename, 'rb') as f:
+                self.session_data = pickle.load(f)
+        except FileNotFoundError:
+            self.session_data = {}
+
+Decision Making Template
+class DecisionEngine:
+    def __init__(self):
+        self.rules = []
+        self.priority_map = {}
+        
+    def add_rule(self, condition_func, action_func, priority=0):
+        self.rules.append((condition_func, action_func, priority))
+        self.priority_map[priority] = len(self.rules) - 1
+        
+    def make_decision(self, context):
+        # Sort by priority
+        sorted_rules = sorted(self.rules, key=lambda x: x[2], reverse=True)
+        
+        for condition, action, priority in sorted_rules:
+            if condition(context):
+                return action(context)
+        return None
+
+Error Handling & Recovery Template
+class ErrorHandler:
+    def __init__(self):
+        self.error_handlers = {}
+        self.retry_strategies = {}
+        
+    def register_handler(self, error_type, handler_func):
+        self.error_handlers[error_type] = handler_func
+        
+    def handle_error(self, error, context):
+        error_type = type(error).__name__
+        
+        if error_type in self.error_handlers:
+            return self.error_handlers[error_type](error, context)
+        elif hasattr(error, '__cause__') and error.__cause__:
+            cause_type = type(error.__cause__).__name__
+            if cause_type in self.error_handlers:
+                return self.error_handlers[cause_type](error, context)
+        
+        # Default fallback
+        return self.default_handler(error, context)
+        
+    def default_handler(self, error, context):
+        return {
+            "recovered": False,
+            "action": "terminate",
+            "message": f"Unrecoverable error: {str(error)}"
+        }
+
+Communication Protocol Template
+class CommunicationProtocol:
+    def __init__(self):
+        self.message_queue = []
+        self.response_templates = {}
+        
+    def format_response(self, response_type, **kwargs):
+        template = self.response_templates.get(response_type, "{{message}}")
+        return template.format(**kwargs)
+        
+    def queue_message(self, message, priority=0):
+        self.message_queue.append((priority, message))
+        self.message_queue.sort(key=lambda x: x[0])
+        
+    def send_message(self, recipient, message):
+        # Implementation depends on communication channel
+        pass
+
+Monitoring & Logging Template
+class AgentMonitor:
+    def __init__(self):
+        self.metrics = {}
+        self.logs = []
+        self.alert_thresholds = {}
+        
+    def record_metric(self, metric_name, value):
+        if metric_name not in self.metrics:
+            self.metrics[metric_name] = []
+        self.metrics[metric_name].append(value)
+        
+    def check_alerts(self):
+        alerts = []
+        for metric, threshold in self.alert_thresholds.items():
+            if metric in self.metrics and len(self.metrics[metric]) > 0:
+                latest = self.metrics[metric][-1]
+                if latest > threshold:
+                    alerts.append(f"Alert: {metric} exceeded threshold {threshold}")
+        return alerts
+        
+    def log_event(self, event_type, details):
+        self.logs.append({
+            "timestamp": time.time(),
+            "event_type": event_type,
+            "details": details
+        })
+
+Agent Lifecycle Template
+class AgentLifecycle:
+    def __init__(self):
+        self.state = "initialized"
+        self.transitions = {
+            "initialized": ["ready", "error"],
+            "ready": ["active", "sleeping", "error"],
+            "active": ["idle", "sleeping", "error"],
+            "sleeping": ["ready", "error"],
+            "error": ["ready", "shutdown"]
+        }
+        
+    def transition_to(self, new_state):
+        if new_state in self.transitions[self.state]:
+            old_state = self.state
+            self.state = new_state
+            return True, f"Transitioned from {old_state} to {new_state}"
+        return False, f"Invalid transition from {self.state} to {new_state}"
+        
+    def get_current_state(self):
+        return self.state
+
+
+These templates provide foundational patterns for building robust, maintainable, and scalable agent systems. They can be customized and extended based on specific requirements while maintaining consistency with Agent Zero's architecture.
