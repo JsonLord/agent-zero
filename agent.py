@@ -779,7 +779,8 @@ class Agent:
                     await tool.before_execution(**tool_args)
                     before_execution_completed = True
                     await self.handle_intervention()
-                    response = await tool.execute(**tool_args)
+                    timeout = tool_args.pop("timeout", None)
+                    response = await tool.execute(timeout=timeout, **tool_args)
                     await self.handle_intervention()
                     success = True
                 except Exception as e:

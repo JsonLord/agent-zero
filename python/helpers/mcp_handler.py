@@ -99,11 +99,11 @@ def initialize_mcp(mcp_servers_config: str):
 class MCPTool(Tool):
     """MCP Tool wrapper"""
 
-    async def execute(self, **kwargs: Any):
+    async def execute(self, timeout: int | None = None, **kwargs: Any):
         error = ""
         try:
             response: CallToolResult = await MCPConfig.get_instance().call_tool(
-                self.name, kwargs
+                self.name, kwargs, timeout
             )
             message = "\n\n".join(
                 [item.text for item in response.content if item.type == "text"]
@@ -245,12 +245,12 @@ class MCPServerRemote(BaseModel):
             return self.__client.has_tool(tool_name)  # type: ignore
 
     async def call_tool(
-        self, tool_name: str, input_data: Dict[str, Any]
+        self, tool_name: str, input_data: Dict[str, Any], timeout: int | None = None
     ) -> CallToolResult:
         """Call a tool with the given input data"""
         with self.__lock:
             # We already run in an event loop, dont believe Pylance
-            return await self.__client.call_tool(tool_name, input_data)  # type: ignore
+            return await self.__client.call_tool(tool_name, input_data, timeout)  # type: ignore
 
     def update(self, config: dict[str, Any]) -> "MCPServerRemote":
         with self.__lock:
@@ -322,12 +322,12 @@ class MCPServerLocal(BaseModel):
             return self.__client.has_tool(tool_name)  # type: ignore
 
     async def call_tool(
-        self, tool_name: str, input_data: Dict[str, Any]
+        self, tool_name: str, input_data: Dict[str, Any], timeout: int | None = None
     ) -> CallToolResult:
         """Call a tool with the given input data"""
         with self.__lock:
             # We already run in an event loop, dont believe Pylance
-            return await self.__client.call_tool(tool_name, input_data)  # type: ignore
+            return await self.__client.call_tool(tool_name, input_data, timeout)  # type: ignore
 
     def update(self, config: dict[str, Any]) -> "MCPServerLocal":
         with self.__lock:
@@ -761,7 +761,7 @@ class MCPConfig(BaseModel):
         return MCPTool(agent=agent, name=tool_name, method=None, args={}, message="", loop_data=None)
 
     async def call_tool(
-        self, tool_name: str, input_data: Dict[str, Any]
+        self, tool_name: str, input_data: Dict[str, Any], timeout: int | None = None
     ) -> CallToolResult:
         """Call a tool with the given input data"""
         if "." not in tool_name:
@@ -770,7 +770,7 @@ class MCPConfig(BaseModel):
         with self.__lock:
             for server in self.servers:
                 if server.name == server_name_part and server.has_tool(tool_name_part):
-                    return await server.call_tool(tool_name_part, input_data)
+                    return await server.call_tool(tool_name_part, input_data, timeout)
             raise ValueError(f"Tool {tool_name} not found")
 
 
@@ -918,7 +918,7 @@ class MCPClientBase(ABC):
             return self.tools
 
     async def call_tool(
-        self, tool_name: str, input_data: Dict[str, Any]
+        self, tool_name: str, input_data: Dict[str, Any], timeout: int | None = None
     ) -> CallToolResult:
         # PrintStyle(font_color="cyan").print(f"MCPClientBase ({self.server.name}): Preparing for 'call_tool' operation for tool '{tool_name}'.")
         if not self.has_tool(tool_name):
@@ -943,7 +943,7 @@ class MCPClientBase(ABC):
             response: CallToolResult = await current_session.call_tool(
                 tool_name,
                 input_data,
-                read_timeout_seconds=timedelta(seconds=set["mcp_client_tool_timeout"]),
+                read_timeout_seconds=timedelta(seconds=timeout or set["mcp_client_tool_timeout"]),
             )
             # PrintStyle(font_color="green").print(f"MCPClientBase ({self.server.name}): Tool '{tool_name}' call successful via session.")
             return response
