@@ -51,25 +51,13 @@ class SchedulerTaskCreate(ApiHandler):
         task = None
         if schedule:
             # Create a scheduled task
-            # Handle different schedule formats (string or object)
-            if isinstance(schedule, str):
-                # Parse the string schedule
-                parts = schedule.split(' ')
-                task_schedule = TaskSchedule(
-                    minute=parts[0] if len(parts) > 0 else "*",
-                    hour=parts[1] if len(parts) > 1 else "*",
-                    day=parts[2] if len(parts) > 2 else "*",
-                    month=parts[3] if len(parts) > 3 else "*",
-                    weekday=parts[4] if len(parts) > 4 else "*"
-                )
-            elif isinstance(schedule, dict):
-                # Use our standardized parsing function
+            if isinstance(schedule, dict):
                 try:
                     task_schedule = parse_task_schedule(schedule)
                 except ValueError as e:
                     raise ValueError(str(e))
             else:
-                raise ValueError("Invalid schedule format. Must be string or object.")
+                raise ValueError("Invalid schedule format. Must be an object.")
 
             task = ScheduledTask.create(
                 name=name,

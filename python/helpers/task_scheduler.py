@@ -46,11 +46,14 @@ class TaskType(str, Enum):
 
 
 class TaskSchedule(BaseModel):
-    minute: str
-    hour: str
-    day: str
-    month: str
-    weekday: str
+    minute: str = "*"
+    hour: str = "*"
+    day: str = "*"
+    month: str = "*"
+    weekday: str = "*"
+    interval: int | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     timezone: str = Field(default_factory=lambda: Localization.get().get_timezone())
 
     def to_crontab(self) -> str:
@@ -327,20 +330,28 @@ class ScheduledTask(BaseTask):
 
     def check_schedule(self, frequency_seconds: float = 60.0) -> bool:
         with self._lock:
-            crontab = CronTab(crontab=self.schedule.to_crontab())  # type: ignore
+            now = datetime.now(pytz.timezone(self.schedule.timezone or Localization.get().get_timezone()))
 
-            # Get the timezone from the schedule or use UTC as fallback
+            if self.schedule.interval:
+                if self.last_run is None:
+                    return True
+
+                if self.schedule.start_time and now < self.schedule.start_time:
+                    return False
+
+                if self.schedule.end_time and now > self.schedule.end_time:
+                    return False
+
+                if (now - self.last_run).total_seconds() >= self.schedule.interval * 60:
+                    return True
+                else:
+                    return False
+
+            crontab = CronTab(crontab=self.schedule.to_crontab())
             task_timezone = pytz.timezone(self.schedule.timezone or Localization.get().get_timezone())
-
-            # Get reference time in task's timezone (by default now - frequency_seconds)
             reference_time = datetime.now(timezone.utc) - timedelta(seconds=frequency_seconds)
             reference_time = reference_time.astimezone(task_timezone)
-
-            # Get next run time as seconds until next execution
-            next_run_seconds: Optional[float] = crontab.next(  # type: ignore
-                now=reference_time,
-                return_datetime=False
-            )  # type: ignore
+            next_run_seconds: Optional[float] = crontab.next(now=reference_time, return_datetime=False)
 
             if next_run_seconds is None:
                 return False
@@ -601,6 +612,7 @@ class TaskScheduler:
     _tasks: SchedulerTaskList
     _printer: PrintStyle
     _instance = None
+    _task_queue: asyncio.Queue = asyncio.Queue()
 
     @classmethod
     def get(cls) -> "TaskScheduler":
@@ -614,6 +626,13 @@ class TaskScheduler:
             self._tasks = SchedulerTaskList.get()
             self._printer = PrintStyle(italic=True, font_color="green", padding=False)
             self._initialized = True
+            asyncio.create_task(self._worker())
+
+    async def _worker(self):
+        while True:
+            task = await self._task_queue.get()
+            await self._run_task(task)
+            self._task_queue.task_done()
 
     async def reload(self):
         await self._tasks.reload()
@@ -648,7 +667,7 @@ class TaskScheduler:
 
     async def tick(self):
         for task in await self._tasks.get_due_tasks():
-            await self._run_task(task)
+            await self._task_queue.put(task)
 
     async def run_task_by_uuid(self, task_uuid: str, task_context: str | None = None):
         # First reload tasks to ensure we have the latest state
