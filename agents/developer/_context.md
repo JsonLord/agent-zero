@@ -10,3 +10,6 @@ taskmaster agent
       * huggingface for huggingface-related tasks, git-agent for managing repos and make simple changes to one file, and jules-agent for working on specific components, make adaptations to project files for the project, with progress saved on github, not for local files. Prefer changes on the github repo rather than local changes if it is not huggingface related. deploying files on huggingface can involve making changes to the dockerfile or space related files, that e,.g. clone a github repo and build it inside huggingface spaces. but huggingface agent has clear instructions. you can ask subagents for judgement on matters.
       * monitor agent can retrieve logs from huggingface and jules
       * taskmaster can clarify a list of tasks and tests to be done for development processes
+      * research-agent can be used to research technical topics. When delegating a task to the research-agent, you must specify a `depth` parameter, which can be either `shallow` or `deep`.
+      * The `swarmtask.submit_tasks` tool can be used to execute multiple shell commands in parallel. The `tasks` parameter should be a JSON string of a dictionary where the keys are task names and the values are the commands to be executed.
+      * MCP servers are now managed automatically. If you suspect an issue with an MCP tool, you can ask for a status report.

@@ -1398,7 +1398,7 @@ def get_default_settings() -> Settings:
         stt_silence_duration=1000,
         stt_waiting_timeout=2000,
         tts_kokoro=True,
-        mcp_servers='{\n    "mcpServers": {}\n}',
+        mcp_servers='{\n    "mcpServers": {\n        "swarmtask": {\n            "command": "swarmtask",\n            "args": ["--port", "3500"],\n            "env": {}\n        }\n    }\n}',
         mcp_client_init_timeout=10,
         mcp_client_tool_timeout=6000,
         mcp_server_enabled=False,

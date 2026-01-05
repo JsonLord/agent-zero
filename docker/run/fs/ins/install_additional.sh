@@ -6,7 +6,12 @@ set -e
 
 # searxng - moved to base image
 # bash /ins/install_searxng.sh "$@"
-\n# Install mermaid-cli
+
+# Install mermaid-cli
 bash /app/docker/run/fs/ins/install_mermaid.sh
-\n# Install todo.ai
+
+# Install todo.ai
 bash /app/docker/run/fs/ins/install_todo_ai.sh
+
+# Install swarmtask
+bash /app/docker/run/fs/ins/install_swarmtask.sh

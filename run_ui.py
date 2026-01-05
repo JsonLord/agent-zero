@@ -252,6 +252,9 @@ def init_a0():
     init_chats.result_sync()
 
     initialize.initialize_mcp()
+    # start MCP servers
+    from python.helpers.mcp_manager import get_mcp_manager
+    get_mcp_manager().manage_servers()
     # start job loop
     initialize.initialize_job_loop()
     # preload
