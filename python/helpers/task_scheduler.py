@@ -958,7 +958,7 @@ def serialize_task_schedule(schedule: TaskSchedule) -> Dict[str, str]:
     }
 
 
-def parse_task_schedule(schedule_data: Dict[str, str]) -> TaskSchedule:
+def parse_task_schedule(schedule_data: Dict[str, Any]) -> TaskSchedule:
     """Parse dictionary into TaskSchedule with validation."""
     try:
         return TaskSchedule(
@@ -967,6 +967,9 @@ def parse_task_schedule(schedule_data: Dict[str, str]) -> TaskSchedule:
             day=schedule_data.get('day', '*'),
             month=schedule_data.get('month', '*'),
             weekday=schedule_data.get('weekday', '*'),
+            interval=schedule_data.get('interval'),
+            start_time=parse_datetime(schedule_data.get('start_time')),
+            end_time=parse_datetime(schedule_data.get('end_time')),
             timezone=schedule_data.get('timezone', Localization.get().get_timezone())
         )
     except Exception as e:
