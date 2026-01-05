@@ -2,7 +2,6 @@ import uuid
 from abc import abstractmethod
 from dataclasses import dataclass
 
-from agent import Agent, LoopData
 from python.helpers.print_style import PrintStyle
 from python.helpers.strings import sanitize_string
 
@@ -12,9 +11,12 @@ class Response:
     message:str
     break_loop: bool
 
+from typing import Union
+
 class Tool:
 
-    def __init__(self, agent: Agent, name: str, method: str | None, args: dict[str,str], message: str, loop_data: LoopData | None, **kwargs) -> None:
+    def __init__(self, agent: "Agent", name: str, method: Union[str, None], args: dict[str,str], message: str, loop_data: Union["LoopData", None], **kwargs) -> None:
+        from agent import Agent, LoopData
         self.agent = agent
         self.name = name
         self.method = method

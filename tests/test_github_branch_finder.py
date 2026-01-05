@@ -16,47 +16,35 @@ class TestGitHubBranchFinder(unittest.TestCase):
         mock_branches_response = MagicMock()
         mock_branches_response.status_code = 200
         mock_branches_response.json.return_value = [
-            {
-                "name": "main",
-                "commit": {
-                    "sha": "c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbc",
-                    "url": "https://api.github.com/repos/octocat/Hello-World/commits/c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbc"
-                }
-            },
-            {
-                "name": "develop",
-                "commit": {
-                    "sha": "c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbd",
-                    "url": "https://api.github.com/repos/octocat/Hello-World/commits/c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbd"
-                }
-            }
+            {"name": "main", "commit": {"sha": "c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbc"}},
+            {"name": "develop", "commit": {"sha": "c5b97d5ae6c19d5c5df71a34c7fbeeda2479ccbd"}}
         ]
 
         # Mock the response from requests.get for commits
         mock_main_commit_response = MagicMock()
         mock_main_commit_response.status_code = 200
-        mock_main_commit_response.json.return_value = {
+        mock_main_commit_response.json.return_value = [{
             "commit": {
                 "committer": {
                     "date": "2023-01-01T12:00:00Z"
                 }
             }
-        }
+        }]
 
         mock_develop_commit_response = MagicMock()
         mock_develop_commit_response.status_code = 200
-        mock_develop_commit_response.json.return_value = {
+        mock_develop_commit_response.json.return_value = [{
             "commit": {
                 "committer": {
                     "date": "2023-01-02T12:00:00Z"
                 }
             }
-        }
+        }]
 
         mock_get.side_effect = [
             mock_branches_response,
             mock_main_commit_response,
-            mock_develop_commit_response,
+            mock_develop_commit_response
         ]
 
         # Run the tool's execute method

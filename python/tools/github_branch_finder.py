@@ -18,11 +18,11 @@ class GitHubBranchFinder(Tool):
         if '/' not in repo_name:
             repo_name = f"JsonLord/{repo_name}"
 
-        url = f"https://api.github.com/repos/{repo_name}/branches"
+        branches_url = f"https://api.github.com/repos/{repo_name}/branches"
 
         try:
-            response = requests.get(url)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response = requests.get(branches_url)
+            response.raise_for_status()
             branches = response.json()
 
             if not branches:
@@ -30,15 +30,17 @@ class GitHubBranchFinder(Tool):
 
             branch_info = []
             for branch in branches:
-                commit_url = branch['commit']['url']
-                commit_response = requests.get(commit_url)
+                branch_name = branch['name']
+                commits_url = f"https://api.github.com/repos/{repo_name}/commits?sha={branch_name}&per_page=1"
+                commit_response = requests.get(commits_url)
                 commit_response.raise_for_status()
                 commit_data = commit_response.json()
-                commit_date = commit_data['commit']['committer']['date']
-                branch_info.append({
-                    'name': branch['name'],
-                    'last_commit_date': commit_date
-                })
+                if commit_data:
+                    commit_date = commit_data[0]['commit']['committer']['date']
+                    branch_info.append({
+                        'name': branch_name,
+                        'last_commit_date': commit_date
+                    })
 
             # Sort branches by the last commit date in descending order
             branch_info.sort(key=lambda x: x['last_commit_date'], reverse=True)
