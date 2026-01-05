@@ -1,7 +1,6 @@
 import json
 import time
 from datetime import datetime
-from python.tools.memory_save import MemorySave
 import asyncio
 
 class TaskHistorySystem:
@@ -127,6 +126,7 @@ class TaskHistorySystem:
         return {'status': 'feedback_recorded', 'memory_id': memory_id}
 
     async def _save_to_memory(self, data: dict, memory_key: str) -> str:
+        from python.tools.memory_save import MemorySave
         """
         Save data to persistent memory using the memory_save tool.
         """

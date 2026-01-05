@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Any, List, Sequence
-from langchain.storage import InMemoryByteStore, LocalFileStore
-from langchain.embeddings import CacheBackedEmbeddings
+from langchain_core.stores import InMemoryByteStore
+from langchain_classic.storage import LocalFileStore
+from langchain_classic.embeddings import CacheBackedEmbeddings
 
 # from langchain_chroma import Chroma
 from langchain_community.vectorstores import FAISS
@@ -28,7 +29,6 @@ import uuid
 from python.helpers import knowledge_import
 from python.helpers.log import Log, LogItem
 from enum import Enum
-from agent import Agent
 import models
 import logging
 from simpleeval import simple_eval
@@ -62,7 +62,8 @@ class Memory:
     index: dict[str, "MyFaiss"] = {}
 
     @staticmethod
-    async def get(agent: Agent):
+    async def get(agent: "Agent"):
+        from agent import Agent
         memory_subdir = agent.config.memory_subdir or "default"
         if Memory.index.get(memory_subdir) is None:
             log_item = agent.context.log.log(
@@ -90,7 +91,8 @@ class Memory:
             )
 
     @staticmethod
-    async def reload(agent: Agent):
+    async def reload(agent: "Agent"):
+        from agent import Agent
         memory_subdir = agent.config.memory_subdir or "default"
         if Memory.index.get(memory_subdir):
             del Memory.index[memory_subdir]
@@ -212,7 +214,7 @@ class Memory:
 
     def __init__(
         self,
-        agent: Agent,
+        agent: "Agent",
         db: MyFaiss,
         memory_subdir: str,
     ):
@@ -428,11 +430,13 @@ class Memory:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def get_memory_subdir_abs(agent: Agent) -> str:
+def get_memory_subdir_abs(agent: "Agent") -> str:
+    from agent import Agent
     return files.get_abs_path("memory", agent.config.memory_subdir or "default")
 
 
-def get_custom_knowledge_subdir_abs(agent: Agent) -> str:
+def get_custom_knowledge_subdir_abs(agent: "Agent") -> str:
+    from agent import Agent
     for dir in agent.config.knowledge_subdirs:
         if dir != "default":
             return files.get_abs_path("knowledge", dir)
