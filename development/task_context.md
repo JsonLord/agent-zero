@@ -1,9 +1,8 @@
 
 
 [Task: 1.1]
-Sheet For: Developer agent. Replace the system prompt for developer agent with new system prompt and add capabilities and knowledge that represents it as a SWE agent.
-SWE-agent from github.   see how to implement that with the agent-0 repo. copy relevant files into the agent-0 repo, and adapt AND submit them, but with the relevant adaptations to it. implement them into the agent-0 setup by enhancing the capabilities of developer-subagent this way.
-https://github.com/SWE-agent/SWE-agent.git
+Sheet For: Developer agent. Replace the system prompt for developer agent with new system prompt and add capabilities and knowledge that represents it as a SWE agent. a planner agent after all
+
 
 [Task: 1.1]
 [Task: 1.3]
