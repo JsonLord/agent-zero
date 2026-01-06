@@ -1288,10 +1288,24 @@ def _adjust_to_version(settings: Settings, default: Settings):
 
 
 def _read_settings_file() -> Settings | None:
+    settings = {}
+
+    # Load from agent.yaml first
+    agent_yaml_path = files.get_abs_path("conf/agent.yaml")
+    if os.path.exists(agent_yaml_path):
+        import yaml
+        with open(agent_yaml_path, 'r') as f:
+            settings.update(yaml.safe_load(f))
+
+    # Then, load from settings.json and overwrite
     if os.path.exists(SETTINGS_FILE):
         content = files.read_file(SETTINGS_FILE)
         parsed = json.loads(content)
-        return normalize_settings(parsed)
+        settings.update(parsed)
+
+    if settings:
+        return normalize_settings(settings)
+    return None
 
 
 def _write_settings_file(settings: Settings):

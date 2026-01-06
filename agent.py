@@ -238,6 +238,15 @@ class AgentContext:
                         is_ai = role == 'ai'
                         agent.history.add_message(ai=is_ai, content=content)
 
+            # Ideation session logging
+            if 'ideation_log_path' in agent.loop_data and agent.loop_data['ideation_log_path']:
+                with open(agent.loop_data['ideation_log_path'], 'a') as f:
+                    if user:
+                        f.write(f"\n---\n**User:**\n```\n{msg.message}\n```\n")
+                    else:
+                        # For AI responses, we log the *final* response after the monologue
+                        pass
+
             msg_template = (
                 agent.hist_add_user_message(msg)  # type: ignore
                 if user
@@ -246,6 +255,12 @@ class AgentContext:
                 )
             )
             response = await agent.monologue()  # type: ignore
+
+            # Log AI response if in an ideation session
+            if 'ideation_log_path' in agent.loop_data and agent.loop_data['ideation_log_path']:
+                with open(agent.loop_data['ideation_log_path'], 'a') as f:
+                    f.write(f"\n**Agent:**\n```json\n{response}\n```\n")
+
             superior = agent.data.get(Agent.DATA_NAME_SUPERIOR, None)
             if superior:
                 response = await self._process_chain(superior, response, False)  # type: ignore
@@ -262,6 +277,7 @@ class AgentConfig:
     embeddings_model: models.ModelConfig
     browser_model: models.ModelConfig
     mcp_servers: str
+    ideation_repo: str = "JsonLord/agent-notes"
     profile: str = ""
     memory_subdir: str = ""
     knowledge_subdirs: list[str] = field(default_factory=lambda: ["default", "custom"])
