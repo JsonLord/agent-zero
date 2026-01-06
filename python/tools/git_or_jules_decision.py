@@ -1,27 +1,37 @@
-from python.helpers.tool import Tool, Response
 import re
+import json
+from python.helpers.tool import Tool, Response
 
 class GitOrJulesDecision(Tool):
     """
-    A tool to decide whether to use git-agent or jules-agent for a task.
+    A tool to decide whether to use git-agent or jules-agent for a task and delegate accordingly.
     """
 
-    async def execute(self, task_description: str, **kwargs) -> Response:
+    async def execute(self, task_description: str, sub_agent_instructions: str, **kwargs) -> Response:
         """
-        Analyzes a task description to recommend either git-agent or jules-agent.
+        Analyzes a task description, chooses between git-agent and jules-agent,
+        and delegates the task to the chosen agent.
+
+        :param task_description: A description of the task to be performed.
+        :param sub_agent_instructions: A JSON string of arguments to be passed to the sub-agent.
         """
-        # A simple heuristic: if the task description mentions more than one file path,
-        # or uses words like "refactor", "implement", "complex", or "multiple",
-        # recommend jules-agent. Otherwise, recommend git-agent.
+        # Heuristic: Count file paths and look for complex words.
+        # The regex looks for file-like paths.
+        file_path_mentions = len(re.findall(r'[\w\/-]+\.[\w\/-]+', task_description))
+        complex_words = ["refactor", "implement", "complex", "multiple", "integrate", "add", "create", "component"]
 
-        file_path_mentions = len(re.findall(r'(\s|^)[\/\w\.-]+(\s|$)', task_description))
-        complex_words = ["refactor", "implement", "complex", "multiple", "integrate", "add", "create"]
-
-        if file_path_mentions > 1 or any(word in task_description.lower() for word in complex_words):
-            recommendation = "jules-agent"
-            reason = "The task appears to involve multiple files or complex changes."
+        # Decision logic based on the requirements.
+        if file_path_mentions >= 3 or any(word in task_description.lower() for word in complex_words):
+            chosen_agent = "jules-agent"
         else:
-            recommendation = "git-agent"
-            reason = "The task appears to be a simple, single-file change."
+            chosen_agent = "git-agent"
 
-        return Response(message=f"Recommendation: {recommendation}\nReason: {reason}", break_loop=False)
+        try:
+            # Parse the instructions for the sub-agent.
+            agent_args = json.loads(sub_agent_instructions)
+        except json.JSONDecodeError:
+            return Response(message="Error: Invalid JSON format for sub_agent_instructions.", break_loop=True)
+
+        # Delegate the task to the chosen agent.
+        response = await self.agent.call_tool(chosen_agent, **agent_args)
+        return response
