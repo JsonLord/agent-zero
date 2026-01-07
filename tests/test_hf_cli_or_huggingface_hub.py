@@ -16,7 +16,7 @@ class TestHuggingFaceDecisionTool(unittest.TestCase):
         response = asyncio.run(self.tool.execute(task_description=task_description))
 
         recommendation = json.loads(response.message)
-        self.assertEqual(recommendation["tool_to_use"], "huggingface-cli")
+        self.assertEqual(recommendation["tool_to_use"], "hf")
         self.assertIn("authentication", recommendation["reason"])
 
     def test_decision_tool_recommends_hub_client_for_repo_creation(self):

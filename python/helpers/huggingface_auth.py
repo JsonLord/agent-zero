@@ -35,7 +35,7 @@ async def ensure_huggingface_auth(agent: Agent) -> bool:
 
     # Use the CLI to login with the new token
     bash_tool = agent.get_tool(name="code_execution_tool", method=None, args={}, message="", loop_data=None)
-    login_command = f"huggingface-cli login --token {new_token}"
+    login_command = f"hf login --token {new_token}"
     login_result = await bash_tool.execute(command=login_command)
 
     # Check if login was successful from the command output
@@ -47,7 +47,7 @@ async def ensure_huggingface_auth(agent: Agent) -> bool:
     try:
         api_new = HfApi(token=new_token)
         api_new.whoami()
-        # Manually set the environment variable for the current session, as huggingface-cli might not do it.
+        # Manually set the environment variable for the current session, as hf might not do it.
         os.environ['HUGGINGFACE_API_TOKEN'] = new_token
         return True
     except HfHubHTTPError:

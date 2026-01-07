@@ -31,9 +31,9 @@ class HuggingFaceDecisionTool(Tool):
 
         if use_cli:
             recommendation = {
-                "tool_to_use": "huggingface-cli",
+                "tool_to_use": "hf",
                 "reason": "The task appears to be related to authentication, local environment configuration, or cache management, which are best handled by the CLI.",
-                "example_command": "huggingface-cli login"
+                "example_command": "hf login"
             }
         elif use_hub_client:
             recommendation = {
@@ -57,8 +57,8 @@ class HuggingFaceDecisionTool(Tool):
             # Default or ambiguous cases
             recommendation = {
                 "tool_to_use": "undetermined",
-                "reason": "The task description is ambiguous. Please provide more specific keywords. For repository and file operations, use the 'huggingface_hub_tool'. For authentication and local configuration, use the 'huggingface-cli'.",
-                "available_tools": ["huggingface-cli", "huggingface_hub_tool"]
+                "reason": "The task description is ambiguous. Please provide more specific keywords. For repository and file operations, use the 'huggingface_hub_tool'. For authentication and local configuration, use the 'hf'.",
+                "available_tools": ["hf", "huggingface_hub_tool"]
             }
 
         return Response(message=json.dumps(recommendation, indent=2), break_loop=False)

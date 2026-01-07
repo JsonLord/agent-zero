@@ -13,10 +13,9 @@ GitPython==3.1.43
 inputimeout==1.0.4
 kokoro>=0.9.2
 simpleeval==1.0.3
-langchain>=1.0.1
-langchain-classic>=1.0.1
-langchain-core>=1.0.1
-langchain-community>=1.0.1
+langchain-core==0.3.49
+langchain-community==0.3.19
+langchain-unstructured[all-docs]==0.1.6
 lxml_html_clean==0.3.1
 markdown==3.7
 mcp==1.9.0
@@ -52,3 +51,8 @@ transformers>=4.46.3
 gradio_client
 ruff
 huggingface_hub
+langchain
+langchain-classic
+webcolors
+nest_asyncio
+litellm
