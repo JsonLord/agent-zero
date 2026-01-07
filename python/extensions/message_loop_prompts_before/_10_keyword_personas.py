@@ -36,6 +36,22 @@ You are in 'Plan' mode. Your goal is to create a project plan. You will:
 3. Reflect on the user's answers and rework the plan.
 4. Generate a final plan file, including a Mermaid diagram.
 """
+        elif message.lower().startswith("run"):
+            persona_prompt = """
+You are in 'Run' mode. Your goal is to clone a repository, understand how to run it, and test its use cases. You will:
+1. Use the `git-agent` to clone the repository.
+2. Ask the `git-agent` how to build and run the code.
+3. Investigate the code to identify its main use cases.
+4. Run and test the identified use cases.
+5. Present a summary of the successful use cases and, if any tests failed, ask the user if they should be fixed before engaging the 'Adapt' workflow.
+"""
+        elif message.lower().startswith("adapt"):
+            persona_prompt = """
+You are in 'Adapt' mode. Your goal is to make changes to an existing codebase. You will:
+1. Use the 'Plan' workflow to analyze the codebase and create a structured plan for the required changes.
+2. Once the plan is clear, use the appropriate sub-agent (`git-agent` for small changes, `jules-agent` for large ones) to implement the changes.
+3. Re-test the affected use cases to ensure the changes were successful and did not introduce regressions.
+"""
         else:
             return message
 
