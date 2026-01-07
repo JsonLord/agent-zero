@@ -39,16 +39,24 @@ class TaskExecutor(Tool):
             if parallel_tasks:
                 swarm_commands = {task_id: task['description'] for task_id, task in parallel_tasks.items()}
                 response = await self.agent.call_tool("swarmtask_tool", tasks=json.dumps(swarm_commands))
-                if response.break_loop:
-                    for task_id in parallel_tasks:
-                        await self.agent.call_tool(
-                            "taskmaster",
-                            command=f"add --priority high 'Fix failed parallel task {task_id}'"
-                        )
-                    continue  # Skip to the next level
 
-                for task_id in parallel_tasks:
-                    await self._run_test_and_handle_failure(parallel_tasks[task_id])
+                try:
+                    results = json.loads(response.message)
+                    if "error" in results:
+                        # Handle script-level errors.
+                        await self.agent.call_tool("taskmaster", command=f"add --priority high 'Fix swarmtask execution error: {results['error']}'")
+                        continue
+
+                    for task_id, result in results.items():
+                        if result.get("status") != "0":
+                            await self.agent.call_tool(
+                                "taskmaster",
+                                command=f"add --priority high 'Fix failed parallel task {task_id}: Exit code {result.get('status')}'"
+                            )
+                        else:
+                            await self._run_test_and_handle_failure(parallel_tasks[task_id])
+                except (json.JSONDecodeError, AttributeError):
+                    await self.agent.call_tool("taskmaster", command=f"add --priority high 'Fix swarmtask execution: Could not parse results.'")
 
 
             # Execute sequential tasks one by one.
@@ -72,7 +80,7 @@ class TaskExecutor(Tool):
         test_goal = task.get('test_goal')
         if not test_goal:
             # Mark task as successful if there's no test.
-            await self.agent.call_tool("taskmaster", command=f"done {task['id']}")
+            await self.agent.call_tool("taskmaster", command=f"complete {task['id']}")
             return
 
         # Delegate test creation and execution to the new, specialized tool.
@@ -84,7 +92,7 @@ class TaskExecutor(Tool):
         try:
             test_result = json.loads(test_result_response.message)
             if test_result.get("status") == "success":
-                await self.agent.call_tool("taskmaster", command=f"done {task['id']}")
+                await self.agent.call_tool("taskmaster", command=f"complete {task['id']}")
             else:
                 await self.agent.call_tool(
                     "taskmaster",

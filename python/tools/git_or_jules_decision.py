@@ -7,13 +7,14 @@ class GitOrJulesDecision(Tool):
     A tool to decide whether to use git-agent or jules-agent for a task and delegate accordingly.
     """
 
-    async def execute(self, task_description: str, sub_agent_instructions: str, **kwargs) -> Response:
+    async def execute(self, task_description: str, sub_agent_instructions: str, task_count: int = 1, **kwargs) -> Response:
         """
         Analyzes a task description, chooses between git-agent and jules-agent,
         and delegates the task to the chosen agent.
 
         :param task_description: A description of the task to be performed.
         :param sub_agent_instructions: A JSON string of arguments to be passed to the sub-agent.
+        :param task_count: The number of tasks involved.
         """
         # Heuristic: Count file paths and look for complex words.
         # The regex looks for file-like paths.
@@ -21,7 +22,7 @@ class GitOrJulesDecision(Tool):
         complex_words = ["refactor", "implement", "complex", "multiple", "integrate", "add", "create", "component"]
 
         # Decision logic based on the requirements.
-        if file_path_mentions >= 3 or any(word in task_description.lower() for word in complex_words):
+        if file_path_mentions >= 3 or task_count >= 3 or any(word in task_description.lower() for word in complex_words):
             chosen_agent = "jules-agent"
         else:
             chosen_agent = "git-agent"

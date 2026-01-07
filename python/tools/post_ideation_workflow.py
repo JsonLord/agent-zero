@@ -5,17 +5,21 @@ class PostIdeationWorkflow(Tool):
     A tool to handle the post-ideation workflow, including log analysis, research, and feasibility evaluation.
     """
 
-    async def execute(self, log_file: str, github_repo: str, **kwargs) -> Response:
+    async def execute(self, log_file: str, github_repo: str, session_timestamp: str, **kwargs) -> Response:
         """
         Executes the post-ideation workflow.
         """
+        # Create a unique filename for the log upload.
+        project_name = log_file.split('/')[-2].split('_')[0]
+        destination_path = f"log_{project_name}_{session_timestamp}.md"
+
         # 1. Upload the log file to GitHub
         await self.agent.call_tool(
             "upload_file_to_github",
             repo=github_repo,
             branch="logs",
             filepath=log_file,
-            destination_path=log_file.split("/")[-1]
+            destination_path=destination_path
         )
 
         # 2. Analyze the log script and make notes

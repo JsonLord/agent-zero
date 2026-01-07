@@ -9,7 +9,7 @@ class InitiateIdeateSession(Tool):
 
     async def execute(self, project_name: str, research_topic: str, research_depth: str = "shallow", **kwargs) -> Response:
         """
-        Initiates the "Develop" workflow, logs the session, and triggers post-ideation steps.
+        Initiates the "Develop" workflow, logs the session, and prepares for post-ideation steps.
         """
         # 1. Create and log the session
         session_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -22,11 +22,7 @@ class InitiateIdeateSession(Tool):
             f.write(f"## Research Topic: {research_topic}\n")
             f.write(f"## Research Depth: {research_depth}\n\n")
 
-        self.agent.log_file = log_file  # Store the log file path in the agent's state
+        self.agent.log_file = log_file
+        self.agent.session_timestamp = session_timestamp
 
-        # 2. Encourage brainstorming and research (handled by the agent's persona)
-
-        # 3. Automatically trigger post-ideation steps upon conclusion
-        #    (This will be handled by a separate tool or a callback mechanism)
-
-        return Response(message=f"Ideation session started. Log file created at: {log_file}", break_loop=False)
+        return Response(message=f"Ideation session started. Log file created at: {log_file}. Use 'conclude_ideate_session' to finalize.", break_loop=False)

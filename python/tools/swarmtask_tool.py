@@ -1,6 +1,7 @@
 import subprocess
 import json
 import tempfile
+import os
 from python.helpers.tool import Tool, Response
 
 class SwarmtaskTool(Tool):
@@ -10,13 +11,15 @@ class SwarmtaskTool(Tool):
 
     async def execute(self, tasks: str, **kwargs) -> Response:
         """
-        Executes a set of tasks in parallel.
-        The tasks parameter should be a JSON string representing a list of commands.
+        Executes a set of tasks in parallel and returns a structured JSON response.
+        The tasks parameter should be a JSON string representing a dictionary of commands,
+        where the keys are task IDs.
         """
+        script_path = "scripts/swarmtask/launchswarm.sh"
+
         try:
-            # The swarmtask script should be located in the scripts directory
-            # and made executable.
-            script_path = "scripts/swarmtask/launchswarm.sh"
+            # Ensure the script is executable.
+            os.chmod(script_path, 0o755)
 
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as tmp_file:
                 tmp_file.write(tasks)
@@ -28,10 +31,14 @@ class SwarmtaskTool(Tool):
                 text=True,
                 check=True,
             )
+
+            # The script now returns a JSON object with the results.
             return Response(message=result.stdout, break_loop=False)
+
         except subprocess.CalledProcessError as e:
-            return Response(message=f"Error executing swarmtask: {e.stderr}", break_loop=False)
+            # If the script itself fails, return the error.
+            return Response(message=json.dumps({"error": f"Swarmtask script failed: {e.stderr}"}), break_loop=True)
         except FileNotFoundError:
-            return Response(message="Error: swarmtask script not found. Please ensure it is located at scripts/swarmtask/launchswarm.sh and is executable.", break_loop=False)
+            return Response(message=json.dumps({"error": "Swarmtask script not found."}), break_loop=True)
         except json.JSONDecodeError:
-            return Response(message="Error: Invalid JSON format for tasks.", break_loop=False)
+            return Response(message=json.dumps({"error": "Invalid JSON format for tasks."}), break_loop=True)
