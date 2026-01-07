@@ -1,0 +1,3 @@
+[submodule "scripts/swarmtask"]
+	path = scripts/swarmtask
+	url = https://github.com/rdhillbb/swarmtask.git

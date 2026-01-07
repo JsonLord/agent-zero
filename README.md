@@ -116,6 +116,10 @@ Click to open a video to learn how to install Agent Zero:
 
 A detailed setup guide for Windows, macOS, and Linux with a video can be found in the Agent Zero Documentation at [this page](./docs/installation.md).
 
+### Dependencies
+
+- **Mermaid CLI (`mmdc`):** The diagramming tool requires the Mermaid CLI to be installed. You can install it with `npm install -g @mermaid-js/mermaid-cli`.
+
 ### ⚡ Quick Start
 
 ```bash
