@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Any, List, Sequence
 from langchain_core.stores import InMemoryByteStore
-from langchain_classic.storage import LocalFileStore
-from langchain_classic.embeddings import CacheBackedEmbeddings
+from langchain.storage import LocalFileStore
+from langchain_community.embeddings import CacheBackedEmbeddings
 
 # from langchain_chroma import Chroma
 from langchain_community.vectorstores import FAISS

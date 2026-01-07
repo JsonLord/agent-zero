@@ -287,6 +287,12 @@ class DynamicMcpProxy:
             DynamicMcpProxy._instance = DynamicMcpProxy()
         return DynamicMcpProxy._instance
 
+    async def close(self):
+        """Gracefully shutdown the http_session_task_group."""
+        if self.http_session_task_group:
+            await self.http_session_task_group.__aexit__(None, None, None)
+            self.http_session_task_group = None
+
     def reconfigure(self, token: str):
         if self.token == token:
             return
