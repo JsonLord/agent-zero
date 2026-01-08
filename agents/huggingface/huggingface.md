@@ -27,7 +27,7 @@ This workflow uses the `deploy_to_hf_space` tool to manage the entire deployment
     - `github_repo_url`: The URL of the source GitHub repository.
     - `secrets`: A JSON string of a dictionary containing the secrets to be set.
     - `requirements_generator_command` (optional): A command to run to generate a `requirements.txt` file.
-    - `start_script_content` (optional): The content for a `start.sh` script.
+    - `start_script_content` (optional): The content for a `start.sh` script. **Note:** Hugging Face Spaces expect the application to be served on port 7860. Ensure your startup command reflects this (e.g., `python run_ui.py --port 7860`).
 
 2.  **Monitor the deployment:**
     - After the `deploy_to_hf_space` tool completes, use the `huggingface_logs` tool to monitor the build and runtime logs of the Space.
