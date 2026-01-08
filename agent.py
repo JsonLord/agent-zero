@@ -783,6 +783,15 @@ class Agent:
                     response = await tool.execute(timeout=timeout, **tool_args)
                     await self.handle_intervention()
                     success = True
+                except TypeError as e:
+                    error = e
+                    # This is a special case. The agent has called a tool with the wrong arguments.
+                    # We need to inform the agent about this so it can correct its next tool call.
+                    error_message = f"Error: Invalid arguments for tool '{raw_tool_name}'. {e}"
+                    self.hist_add_warning(error_message)
+                    PrintStyle(font_color="red", padding=True).print(error_message)
+                    self.context.log.log(type="error", content=error_message)
+                    return # End the tool processing here, let the agent try again.
                 except Exception as e:
                     error = e
                     raise

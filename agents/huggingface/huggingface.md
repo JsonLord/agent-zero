@@ -24,10 +24,12 @@ This workflow uses the `deploy_to_hf_space` tool to manage the entire deployment
 
 1.  **Invoke the `deploy_to_hf_space` tool with the required parameters:**
     - `space_id`: The ID of the Hugging Face Space (e.g., "YourUser/YourSpace").
-    - `github_repo_url`: The URL of the source GitHub repository.
-    - `secrets`: A JSON string of a dictionary containing the secrets to be set.
-    - `requirements_generator_command` (optional): A command to run to generate a `requirements.txt` file.
-    - `start_script_content` (optional): The content for a `start.sh` script. **Note:** Hugging Face Spaces expect the application to be served on port 7860. Ensure your startup command reflects this (e.g., `python run_ui.py --port 7860`).
+    - `github_repo_url`: The URL of the source GitHub repository to be deployed.
+    - `secrets`: A JSON string of a dictionary containing secrets to be set (e.g., '{"HF_TOKEN": "your_token"}').
+    - `app_file` (optional): The name of the main Python application file to run. Defaults to "run_ui.py".
+    - `port` (optional): The port the application should run on. Defaults to 7860, the standard for Hugging Face Spaces.
+    - `requirements_generator_command` (optional): A command to run in the source repo to generate a `requirements.txt` file.
+    - `start_script_content` (optional): The entire content for a `start.sh` script. If provided, this will be used instead of the default.
 
 2.  **Monitor the deployment:**
     - After the `deploy_to_hf_space` tool completes, use the `huggingface_logs` tool to monitor the build and runtime logs of the Space.

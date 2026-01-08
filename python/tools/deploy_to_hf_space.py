@@ -19,6 +19,8 @@ class DeployToHfSpace(Tool):
         space_id: str,
         github_repo_url: str,
         secrets: str,
+        app_file: str = "run_ui.py",
+        port: int = 7860,
         requirements_generator_command: str = "",
         start_script_content: str = "",
         **kwargs,
@@ -27,10 +29,12 @@ class DeployToHfSpace(Tool):
         Deploys a GitHub repository to a Hugging Face Space.
 
         :param space_id: The ID of the Hugging Face Space (e.g., "YourUser/YourSpace").
-        :param github_repo_url: The URL of the source GitHub repository.
-        :param secrets: A JSON string of a dictionary containing the secrets to be set.
-        :param requirements_generator_command: An optional command to run to generate a requirements.txt file.
-        :param start_script_content: An optional string containing the content for a start.sh script.
+        :param github_repo_url: The URL of the source GitHub repository to be deployed.
+        :param secrets: A JSON string of a dictionary containing secrets to be set (e.g., '{"HF_TOKEN": "your_token"}').
+        :param app_file: The name of the main Python application file to run. Defaults to "run_ui.py".
+        :param port: The port the application should run on. Defaults to 7860, the standard for Hugging Face Spaces.
+        :param requirements_generator_command: An optional command to run in the source repo to generate a requirements.txt file.
+        :param start_script_content: An optional string containing the entire content for a start.sh script. If provided, this will be used instead of the default.
         """
         temp_dir = tempfile.mkdtemp()
         try:
@@ -90,19 +94,21 @@ class DeployToHfSpace(Tool):
 
 
             # 6. Scheduler Setup and Final Push
-            if start_script_content:
-                start_script_path = os.path.join(hf_space_repo_path, "start.sh")
-                with open(start_script_path, "w") as f:
-                    f.write(start_script_content)
+            start_script_path = os.path.join(hf_space_repo_path, "start.sh")
+            if not start_script_content:
+                start_script_content = f"#!/bin/bash\npython {app_file} --port {port}\n"
 
-                # Make the script executable
-                st = os.stat(start_script_path)
-                os.chmod(start_script_path, st.st_mode | stat.S_IEXEC)
+            with open(start_script_path, "w") as f:
+                f.write(start_script_content)
 
-                hf_repo.git.add("start.sh")
-                if hf_repo.is_dirty():
-                    hf_repo.git.commit("-m", "Add startup script")
-                    hf_repo.git.push()
+            # Make the script executable
+            st = os.stat(start_script_path)
+            os.chmod(start_script_path, st.st_mode | stat.S_IEXEC)
+
+            hf_repo.git.add("start.sh")
+            if hf_repo.is_dirty():
+                hf_repo.git.commit("-m", "Add startup script")
+                hf_repo.git.push()
 
 
             return Response(message=f"Successfully deployed to Hugging Face Space: {space_id}", break_loop=False)
