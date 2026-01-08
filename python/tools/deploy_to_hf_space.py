@@ -1,31 +1,48 @@
 import os
 import json
-from huggingface_hub import HfApi, Repository
+import shutil
+import stat
+import subprocess
+import tempfile
+from huggingface_hub import HfApi
+import git
 from python.helpers.tool import Tool, Response
 
 class DeployToHfSpace(Tool):
     """
-    A dedicated tool to deploy a local directory to a Hugging Face Space,
-    including setting secrets. This tool is more robust than using git commands.
+    A tool to deploy a GitHub repository to a Hugging Face Space, following a
+    robust, multi-step git-based workflow.
     """
 
-    async def execute(self, space_id: str, local_path: str, secrets: str, **kwargs) -> Response:
+    async def execute(
+        self,
+        space_id: str,
+        github_repo_url: str,
+        secrets: str,
+        requirements_generator_command: str = "",
+        start_script_content: str = "",
+        **kwargs,
+    ) -> Response:
         """
-        Deploys a local directory to a Hugging Face Space.
+        Deploys a GitHub repository to a Hugging Face Space.
 
-        :param space_id: The ID of the Hugging Face Space (e.g., "harvesthealth/ImmoSpider").
-        :param local_path: The local path to the directory to be deployed.
+        :param space_id: The ID of the Hugging Face Space (e.g., "YourUser/YourSpace").
+        :param github_repo_url: The URL of the source GitHub repository.
         :param secrets: A JSON string of a dictionary containing the secrets to be set.
+        :param requirements_generator_command: An optional command to run to generate a requirements.txt file.
+        :param start_script_content: An optional string containing the content for a start.sh script.
         """
+        temp_dir = tempfile.mkdtemp()
         try:
-            # 1. Authenticate with Hugging Face.
-            # Assumes HF_TOKEN is set in the environment.
+            # 1. Setup and Authentication
             hf_api = HfApi()
             token = os.environ.get("HF_TOKEN")
             if not token:
                 return Response(message="Error: HF_TOKEN environment variable not set.", break_loop=True)
 
-            # 2. Set secrets for the space.
+            hf_api.create_repo(repo_id=space_id, repo_type="space", exist_ok=True)
+
+            # 2. Set secrets
             try:
                 secrets_dict = json.loads(secrets)
                 for key, value in secrets_dict.items():
@@ -35,22 +52,62 @@ class DeployToHfSpace(Tool):
             except Exception as e:
                 return Response(message=f"Error setting secrets: {e}", break_loop=True)
 
-            # 3. Clone, commit, and push the files.
-            repo_url = f"https://huggingface.co/spaces/{space_id}"
-            repo = Repository(
-                local_dir=local_path,
-                clone_from=repo_url,
-                use_auth_token=token,
-                git_user="Agent",
-                git_email="agent@huggingface.com",
-            )
+            # 3. Clone Repositories
+            source_repo_path = os.path.join(temp_dir, "source_repo")
+            hf_space_repo_path = os.path.join(temp_dir, "hf_space_repo")
 
-            # The `huggingface_hub` library handles adding, committing, and pushing.
-            # We assume the files are already in the `local_path` directory.
-            # The `Repository` class automatically tracks changes.
-            repo.push_to_hub(commit_message="Deploy new version from agent.")
+            git.Repo.clone_from(github_repo_url, source_repo_path)
+
+            hf_repo_url = f"https://huggingface.co/spaces/{space_id}"
+            hf_repo = git.Repo.clone_from(hf_repo_url, hf_space_repo_path, env={"GIT_ASKPASS": "echo", "HUGGING_FACE_HUB_TOKEN": token})
+
+
+            # 4. Requirements Generation
+            if requirements_generator_command:
+                try:
+                    subprocess.run(
+                        requirements_generator_command,
+                        shell=True,
+                        check=True,
+                        cwd=source_repo_path,
+                    )
+                except subprocess.CalledProcessError as e:
+                    return Response(message=f"Error generating requirements.txt: {e}", break_loop=True)
+
+            # 5. File Copy and Initial Push
+            for item in os.listdir(source_repo_path):
+                s = os.path.join(source_repo_path, item)
+                d = os.path.join(hf_space_repo_path, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(s, d)
+
+            hf_repo.git.add(A=True)
+            if hf_repo.is_dirty(untracked_files=True):
+                hf_repo.git.commit("-m", "Add project files")
+                hf_repo.git.push()
+
+
+            # 6. Scheduler Setup and Final Push
+            if start_script_content:
+                start_script_path = os.path.join(hf_space_repo_path, "start.sh")
+                with open(start_script_path, "w") as f:
+                    f.write(start_script_content)
+
+                # Make the script executable
+                st = os.stat(start_script_path)
+                os.chmod(start_script_path, st.st_mode | stat.S_IEXEC)
+
+                hf_repo.git.add("start.sh")
+                if hf_repo.is_dirty():
+                    hf_repo.git.commit("-m", "Add startup script")
+                    hf_repo.git.push()
+
 
             return Response(message=f"Successfully deployed to Hugging Face Space: {space_id}", break_loop=False)
 
         except Exception as e:
             return Response(message=f"An unexpected error occurred during deployment: {e}", break_loop=True)
+        finally:
+            shutil.rmtree(temp_dir)
