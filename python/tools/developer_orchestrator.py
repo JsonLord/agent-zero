@@ -132,6 +132,7 @@ Please provide your feedback on this direction."""
 
             shutil.copy("knowledge/default/huggingface_deployment_sheet.md", "deployment/huggingface_deployment_sheet.md")
             shutil.copy("knowledge/default/api_log_sheet.md", "deployment/api_log_sheet.md")
+            shutil.copy("knowledge/default/hf_log_retrieval_sheet.md", "deployment/hf_log_retrieval_sheet.md")
 
             if "github_repo" in state_data:
                 repo = state_data["github_repo"]
@@ -215,7 +216,11 @@ Please provide your feedback on this direction."""
                 hf_token = os.environ.get(params["hf_token_env_var"], "HF_TOKEN_NOT_FOUND")
                 hf_space_name = params["hf_space_name"]
 
-                prompt = f"""follow the files in deployments/ folder and prepare the codebase for deployment inside a huggingface space aligning with the requirements. Then use token {hf_token} to use the huggingface cli hf to create a new space {hf_space_name} with the sdk choice of yours, and push the files there. do not monitor but request the user to provide the logs to validate the build success or make adaptations."""
+                prompt = f"""Follow the files in the deployment/ folder to prepare the codebase for deployment to a Hugging Face Space.
+
+Your primary tool for this is the Hugging Face CLI, `hf`. Use the token `{hf_token}` to create a new space named `{hf_space_name}` with an appropriate SDK, and then push the prepared files there.
+
+Refer to the `hf_log_retrieval_sheet.md` for instructions on how to retrieve the build and container logs. Do not monitor the logs continuously. Instead, after pushing the files, request that the user provide the logs to you so you can validate the build's success or make adaptations. If you encounter issues retrieving container logs, ask the user to provide them."""
 
                 jules_agent = self.agent.get_tool(name="jules_api", method=None, args={}, message="", loop_data=None)
 
