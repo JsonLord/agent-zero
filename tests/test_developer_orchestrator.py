@@ -1,9 +1,11 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, mock_open
 from python.tools.developer_orchestrator import DeveloperOrchestrator
 from agent import Agent, AgentConfig, AgentContext, LoopData
 from python.helpers.tool import Response
 import json
+import os
+import subprocess
 
 @pytest.fixture
 def agent_config():
@@ -63,7 +65,7 @@ async def test_awaiting_feedback_state(agent, loop_data):
 
 @pytest.mark.asyncio
 @patch("os.makedirs")
-@patch("builtins.open", new_callable=MagicMock)
+@patch("builtins.open", new_callable=mock_open)
 @patch("shutil.copy")
 async def test_create_deployment_package_state(mock_copy, mock_open, mock_makedirs, agent, loop_data):
     loop_data.params_persistent["developer_orchestrator_data"] = {
@@ -89,7 +91,7 @@ async def test_upload_to_github_state_new_repo(mock_subprocess, agent, loop_data
         "user_idea": "Implement a new feature"
     }
 
-    with patch("builtins.open", MagicMock(read_data=json.dumps({"github_repo": "JsonLord/implement-a-new-feature", "branch": "main"}))):
+    with patch("builtins.open", mock_open(read_data=json.dumps({"github_repo": "JsonLord/implement-a-new-feature", "branch": "main"}))):
         orchestrator = DeveloperOrchestrator(agent=agent, name="developer_orchestrator", method=None, args={}, message="", loop_data=loop_data)
         response = await orchestrator.execute(message="")
 
@@ -99,15 +101,17 @@ async def test_upload_to_github_state_new_repo(mock_subprocess, agent, loop_data
 @pytest.mark.asyncio
 @patch("subprocess.run")
 @patch("shutil.rmtree")
-@patch("os.path.exists", return_value=False)
-async def test_upload_to_github_state_existing_repo(mock_exists, mock_rmtree, mock_subprocess, agent, loop_data):
+@patch("os.path.exists", side_effect=[False, False])
+@patch("os.listdir", return_value=[])
+@patch("os.makedirs")
+async def test_upload_to_github_state_existing_repo(mock_makedirs, mock_listdir, mock_exists, mock_rmtree, mock_subprocess, agent, loop_data):
     loop_data.params_persistent["developer_orchestrator_data"] = {
         "state": "upload_to_github",
         "user_idea": "Implement a new feature",
         "github_repo": "JsonLord/existing-repo"
     }
 
-    with patch("builtins.open", MagicMock(read_data=json.dumps({"github_repo": "JsonLord/existing-repo", "branch": "feature/implement-a-new-feature"}))):
+    with patch("builtins.open", mock_open(read_data=json.dumps({"github_repo": "JsonLord/existing-repo", "branch": "feature/implement-a-new-feature"}))):
         orchestrator = DeveloperOrchestrator(agent=agent, name="developer_orchestrator", method=None, args={}, message="", loop_data=loop_data)
         response = await orchestrator.execute(message="")
 
@@ -126,7 +130,7 @@ async def test_awaiting_start_command_state(agent, loop_data):
     mock_jules_agent.execute.return_value = Response(message=json.dumps({"name": "session-123"}), break_loop=False)
 
     with patch.object(agent, 'get_tool', return_value=mock_jules_agent):
-        with patch("builtins.open", MagicMock(read_data=json.dumps({"github_repo": "JsonLord/implement-a-new-feature", "branch": "main", "hf_space_name": "implement-a-new-feature", "hf_token_env_var": "HF_TOKEN"}))):
+        with patch("builtins.open", mock_open(read_data=json.dumps({"github_repo": "JsonLord/implement-a-new-feature", "branch": "main", "hf_space_name": "implement-a-new-feature", "hf_token_env_var": "HF_TOKEN"}))):
             orchestrator = DeveloperOrchestrator(agent=agent, name="developer_orchestrator", method=None, args={}, message="", loop_data=loop_data)
             response = await orchestrator.execute(message="start")
 

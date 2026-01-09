@@ -1,46 +1,42 @@
-import json
-from typing import Literal
-
-from huggingface_hub import constants
-from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
-
-from python.helpers.tool import Tool
+import requests
+import time
+from python.helpers.tool import Tool, Response
 
 class HuggingfaceLogViewer(Tool):
     """
-    A tool for viewing logs from Hugging Face Spaces.
+    A tool to retrieve build or container logs from a Hugging Face Space.
     """
-
-    def __init__(self, agent, **kwargs):
-        super().__init__(agent, "huggingface_log_viewer", **kwargs)
-
-    async def execute(self, space_id: str, level: Literal["build", "run"] = "run", **kwargs):
+    async def execute(self, repo_id: str, log_type: str = 'container', token: str = None, retries: int = 3, delay: int = 5, **kwargs) -> Response:
         """
-        Fetches and streams logs from a Hugging Face Space.
+        Retrieves logs from a Hugging Face Space with a retry mechanism.
         """
-        try:
-            # fetch a JWT token to access the API
-            jwt_url = f"{constants.ENDPOINT}/api/spaces/{space_id}/jwt"
-            response = get_session().get(jwt_url, headers=build_hf_headers())
-            hf_raise_for_status(response)
-            jwt_token = response.json()["token"]
+        endpoint = 'https://huggingface.co'
+        url = f'{endpoint}/api/spaces/{repo_id}/logs/{log_type}'
 
-            # fetch the logs
-            logs_url = f"https://api.hf.space/v1/{space_id}/logs/{level}"
+        headers = {'User-Agent': 'AgentZero/1.0'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
 
-            log_output = []
-            with get_session().get(logs_url, headers=build_hf_headers(token=jwt_token), stream=True) as response:
-                hf_raise_for_status(response)
-                for line in response.iter_lines():
-                    if not line.startswith(b"data: "):
+        for i in range(retries):
+            try:
+                response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    return Response(message=response.text, break_loop=False)
+                elif response.status_code == 404:
+                    if log_type == 'container':
+                        # For container logs, a 404 might mean the container is not running yet.
+                        # We'll retry after a delay.
+                        time.sleep(delay)
                         continue
-                    line_data = line[len(b"data: "):]
-                    try:
-                        event = json.loads(line_data.decode())
-                        log_output.append(f"{event['timestamp']}: {event['data']}")
-                    except json.JSONDecodeError as e:
-                        print(e)
-                        continue
-            return "\n".join(log_output)
-        except Exception as e:
-            return f"Error fetching logs: {e}"
+                    else:
+                        return Response(message=f'Error: Repository or logs not found (404). URL: {url}', break_loop=True)
+                elif response.status_code == 401:
+                    return Response(message=f'Error: Unauthorized access. Token may be invalid or have insufficient permissions (401).', break_loop=True)
+                elif response.status_code == 403:
+                    return Response(message=f'Error: Access forbidden. Authentication may be required (403).', break_loop=True)
+                else:
+                    return Response(message=f'Error: {response.status_code} - {response.text}', break_loop=True)
+            except requests.exceptions.RequestException as e:
+                return Response(message=f'Exception: {str(e)}', break_loop=True)
+
+        return Response(message=f'Error: Failed to retrieve logs after {retries} retries.', break_loop=True)

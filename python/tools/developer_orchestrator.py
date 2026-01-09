@@ -220,7 +220,7 @@ Please provide your feedback on this direction."""
 
 Your primary tool for this is the Hugging Face CLI, `hf`. Use the token `{hf_token}` to create a new space named `{hf_space_name}` with an appropriate SDK, and then push the prepared files there.
 
-Refer to the `hf_log_retrieval_sheet.md` for instructions on how to retrieve the build and container logs. Do not monitor the logs continuously. Instead, after pushing the files, request that the user provide the logs to you so you can validate the build's success or make adaptations. If you encounter issues retrieving container logs, ask the user to provide them."""
+To monitor the deployment, you MUST use the `huggingface_log_viewer` tool. Refer to the `hf_log_retrieval_sheet.md` for instructions on how to use it. After pushing the files, use the tool to retrieve the logs and validate the build's success. If you encounter issues retrieving container logs, ask the user to provide them."""
 
                 jules_agent = self.agent.get_tool(name="jules_api", method=None, args={}, message="", loop_data=None)
 
