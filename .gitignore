@@ -41,3 +41,4 @@ instruments/**
 !**/.gitkeep
 agent_history.gif
 *.log
+\n# Caches\n__pycache__/\n.pytest_cache/

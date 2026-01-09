@@ -6,37 +6,26 @@ from agent import Agent
 
 class TestHuggingfaceLogViewer(unittest.TestCase):
 
-    @patch('python.tools.huggingface_log_viewer.get_session')
-    def test_execute(self, mock_get_session):
+    @patch('python.tools.huggingface_log_viewer.requests.get')
+    def test_execute(self, mock_requests_get):
         # Arrange
         mock_agent = Agent(number=0, config=MagicMock())
 
-        # Mock for the JWT token response
-        mock_jwt_response = MagicMock()
-        mock_jwt_response.json.return_value = {"token": "fake_token"}
-
         # Mock for the log stream response
         mock_log_response = MagicMock()
-        mock_log_response.iter_lines.return_value = [
-            b'data: {"timestamp": "2024-01-01T12:00:00Z", "data": "Log message 1"}',
-            b'data: {"timestamp": "2024-01-01T12:00:01Z", "data": "Log message 2"}'
-        ]
+        mock_log_response.status_code = 200
+        mock_log_response.text = "2024-01-01T12:00:00Z: Log message 1\n2024-01-01T12:00:01Z: Log message 2"
+        mock_requests_get.return_value = mock_log_response
 
-        # Use side_effect to return the two different mock responses in order
-        mock_get_session.return_value.get.side_effect = [
-            mock_jwt_response,
-            MagicMock(__enter__=MagicMock(return_value=mock_log_response))
-        ]
-
-        tool = HuggingfaceLogViewer(mock_agent, method=MagicMock(), args=MagicMock(), message=MagicMock(), loop_data=MagicMock())
+        tool = HuggingfaceLogViewer(mock_agent, name="huggingface_log_viewer", method=MagicMock(), args=MagicMock(), message=MagicMock(), loop_data=MagicMock())
 
         # Act
         import asyncio
-        result = asyncio.run(tool.execute(space_id="test/space"))
+        result = asyncio.run(tool.execute(repo_id="test/space"))
 
         # Assert
-        self.assertIn("2024-01-01T12:00:00Z: Log message 1", result)
-        self.assertIn("2024-01-01T12:00:01Z: Log message 2", result)
+        self.assertIn("2024-01-01T12:00:00Z: Log message 1", result.message)
+        self.assertIn("2024-01-01T12:00:01Z: Log message 2", result.message)
 
 
 from python.tools.jules_log_viewer import JulesLogViewer
