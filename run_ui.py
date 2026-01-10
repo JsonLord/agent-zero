@@ -167,6 +167,13 @@ async def serve_index():
     return index
 
 
+# handle agent.json, load agent metadata
+@webapp.route("/.well-known/agent.json", methods=["GET"])
+async def serve_agent_json():
+    content = files.read_file(".well-known/agent.json")
+    return Response(content, mimetype="application/json")
+
+
 def run():
     PrintStyle().print("Initializing framework...")
 

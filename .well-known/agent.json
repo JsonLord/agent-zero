@@ -1,0 +1,12 @@
+{
+  "name": "leon4gr45-agent-mcp-new-standard",
+  "version": "1.0.0",
+  "description": "Agent Zero-based agent for MCP standard",
+  "endpoints": [
+    {
+      "path": "/a2a",
+      "method": "POST",
+      "description": "A2A communication endpoint"
+    }
+  ]
+}
