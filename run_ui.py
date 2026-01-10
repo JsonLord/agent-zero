@@ -4,6 +4,7 @@ import secrets
 import time
 import socket
 import struct
+import json
 from functools import wraps
 import threading
 from flask import Flask, request, Response, session
@@ -170,8 +171,19 @@ async def serve_index():
 # handle agent.json, load agent metadata
 @webapp.route("/.well-known/agent.json", methods=["GET"])
 async def serve_agent_json():
-    content = files.read_file(".well-known/agent.json")
-    return Response(content, mimetype="application/json")
+    agent_metadata = {
+        "name": request.host,
+        "version": "1.0.0",
+        "description": "Agent Zero-based agent for MCP standard",
+        "endpoints": [
+            {
+                "path": "/a2a",
+                "method": "POST",
+                "description": "A2A communication endpoint"
+            }
+        ]
+    }
+    return Response(json.dumps(agent_metadata, indent=2), mimetype="application/json")
 
 
 def run():
