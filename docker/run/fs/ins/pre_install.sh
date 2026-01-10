@@ -3,7 +3,7 @@ set -e
 
 # update apt
 apt-get update
-apt-get install -y curl gnupg
+apt-get install -y curl gnupg build-essential
 
 # fix permissions for cron files if any
 if [ -f /etc/cron.d/* ]; then
