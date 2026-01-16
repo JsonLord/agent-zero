@@ -94,6 +94,7 @@ def initialize_mcp(mcp_servers_config: str):
             PrintStyle(
                 background_color="black", font_color="red", padding=True
             ).print(f"Failed to update MCP settings: {e}")
+            raise e
 
 
 class MCPTool(Tool):

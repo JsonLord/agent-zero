@@ -10,7 +10,7 @@ import threading
 from flask import Flask, request, Response, session
 from flask_basicauth import BasicAuth
 import initialize
-from python.helpers import files, git, fasta2a_server
+from python.helpers import files, git, mcp_server, fasta2a_server
 from python.helpers.files import get_abs_path
 from python.helpers import runtime, dotenv, process
 from python.helpers.extract_tools import load_classes_from_folder
@@ -238,9 +238,13 @@ def run():
 
     # add the webapp, mcp, and a2a to the app
     middleware_routes = {
-        # "/mcp": ASGIMiddleware(app=mcp_server.DynamicMcpProxy.get_instance()),  # type: ignore
+        "/mcp": ASGIMiddleware(app=mcp_server.DynamicMcpProxy.get_instance()),  # type: ignore
         "/a2a": ASGIMiddleware(app=fasta2a_server.DynamicA2AProxy.get_instance()),  # type: ignore
     }
+
+    from python.helpers.settings import create_auth_token
+    token = create_auth_token()
+    mcp_server.DynamicMcpProxy.get_instance().reconfigure(token)
 
     app = DispatcherMiddleware(webapp, middleware_routes)  # type: ignore
 
@@ -270,10 +274,10 @@ def init_a0():
     # only wait for init chats, otherwise they would seem to disappear for a while on restart
     init_chats.result_sync()
 
-    # initialize.initialize_mcp()
+    initialize.initialize_mcp()
     # start MCP servers
-    # from python.helpers.mcp_manager import get_mcp_manager
-    # get_mcp_manager().manage_servers()
+    from python.helpers.mcp_manager import get_mcp_manager
+    get_mcp_manager().manage_servers()
     # start job loop
     initialize.initialize_job_loop()
     # preload
