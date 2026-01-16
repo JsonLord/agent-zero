@@ -1575,6 +1575,11 @@ def get_runtime_config(set: Settings):
 
 
 def create_auth_token() -> str:
+    # Get A2A token from environment if available
+    a2a_token = os.getenv("A2A_TOKEN")
+    if a2a_token:
+        return a2a_token
+
     runtime_id = runtime.get_persistent_id()
     username = dotenv.get_dotenv_value(dotenv.KEY_AUTH_LOGIN) or ""
     password = dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD) or ""

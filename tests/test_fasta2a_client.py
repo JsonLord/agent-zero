@@ -210,5 +210,28 @@ def main():
     return 0
 
 
+def test_a2a_token_environment_variable():
+    """Test that the A2A_TOKEN environment variable is correctly used."""
+    print("\n🧪 Testing A2A_TOKEN environment variable")
+    print("=" * 45)
+
+    # Set the A2A_TOKEN environment variable
+    # Set the A2A_TOKEN environment variable
+    os.environ["A2A_TOKEN"] = "test_token_from_env"
+
+    # Get the test URLs
+    data = get_test_urls()
+
+    # Check if the token is correct
+    if data and data["token"] == "test_token_from_env":
+        print("✅ A2A_TOKEN environment variable correctly used.")
+    else:
+        print("❌ A2A_TOKEN environment variable not used.")
+        sys.exit(1)
+
+    # Clean up the environment variable
+    del os.environ["A2A_TOKEN"]
+
 if __name__ == "__main__":
+    test_a2a_token_environment_variable()
     sys.exit(main())
