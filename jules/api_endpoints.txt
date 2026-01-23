@@ -1,0 +1,51 @@
+Here is the extracted list of **API endpoints** and their intended purposes based on the analysis:
+
+1. **`/mcp` (HTTP MCP Server)**
+   - **Purpose**: Core Agent-to-Agent (A2A) communication endpoint for sending/receiving messages.
+   - **Methods**: `POST` (for message transmission), likely supports streaming (e.g., SSE or chunked responses).
+   - **Input/Output**:
+     - **Request Body** (JSON):
+       ```json
+       {
+         "message": "Your task or query",
+         "disable_subagents": true/false,  // Bypass sub-agent delegation if needed
+         "stream_terminal": true/false    // Enable terminal output streaming
+       }
+       ```
+     - **Expected Response**:
+       ```json
+       {
+         "final_answer": "The concise result",
+         "terminal_stream": ["$ ls", "file1.txt file2.txt"],  // If streaming enabled
+         "error": "Description"  // Fallback for failures
+       }
+       ```
+   - **Features**:
+     - Message serialization/deserialization validation.
+     - Terminal stream capture (real-time output).
+     - Sub-agent delegation control.
+     - Error handling and logging.
+
+2. **`/stream` (Alternative Endpoint)**
+   - **Purpose**: Streaming-specific endpoint (if separate from `/mcp`) for real-time terminal output.
+   - **Methods**: Likely `GET`/`POST` with SSE/chunked responses.
+   - **Use Case**: Capturing live terminal logs (e.g., command execution output).
+
+3. **`/api` (Generic API Gateway)**
+   - **Purpose**: May expose additional routes (e.g., status checks, configuration).
+   - **Methods**: `GET` (for health/status), `POST` (for custom tools).
+   - **Example**: `/api/status` → Returns agent uptime or endpoint availability.
+
+---
+### **Key Endpoint Behaviors**:
+- **Final Answer Focus**: API must return only the **final output** (not intermediate thoughts/sub-agent logs) unless explicitly requested.
+- **Terminal Streaming**: Enabled via `stream_terminal: true`, returning raw terminal output (e.g., `ls` commands, Python logs).
+- **Sub-Agent Control**: Use `disable_subagents: true` to prevent delegation during API calls.
+- **Serialization**: Input/output must validate JSON/MD formats to avoid parsing errors.
+- **Error Handling**: Clear error messages (e.g., `{"error": "Invalid message"}`) for debugging.
+
+---
+### **Deployment Notes**:
+- **Hugging Face Space**: Ensure `server.py` routes `/mcp` and `/stream` with logging middleware.
+- **Config**: Update `prompts/default/agent.system.md` to enforce API-focused behavior (e.g., "disable sub-agents for API calls").
+- **Dependencies**: Requires `mermaid-cli` (for diagramming) and custom `python/tools/` for tool extensibility.

@@ -1,0 +1,66 @@
+### **Functionality Expectations of the Agent Zero A2A Deployed System**
+
+#### **Core Requirements**
+1. **Direct API Communication**
+   - **Input/Output:** Accept API messages (JSON payloads) via HTTP (e.g., `/mcp` or `/stream`).
+   - **Final Answer Only:** Return the **conclusive response** (not intermediate thoughts, tool calls, or sub-agent progress).
+   - **Example:**
+     ```json
+     Input:  {"message": "What is 2+2?"}
+     Output: {"final_answer": "4"}
+     ```
+
+2. **Terminal Stream Support (Optional)**
+   - **Streaming:** Capture and return **real-time terminal output** (e.g., code execution, CLI commands) via API.
+   - **Format:** Chunked or SSE responses with structured logs.
+   - **Example:**
+     ```json
+     Input:  {"command": "ls", "stream_terminal": true}
+     Output: [
+       {"type": "terminal", "content": "$ ls"},
+       {"type": "log", "content": "file1.txt  file2.txt"}
+     ]
+     ```
+
+3. **Sub-Agent Isolation**
+   - **Bypass Delegation:** For API-driven tasks, **disable sub-agent creation** to avoid cluttering responses.
+   - **Flag:** Use a request parameter (e.g., `"disable_subagents": true`) or prompt-level instruction.
+
+4. **Error Handling & Logging**
+   - **Validation:** Reject malformed requests with clear error messages (e.g., `{"error": "Invalid payload"}`).
+   - **Logging:** Middleware to track API calls, terminal streams, and failures for debugging.
+
+5. **Hugging Face Space Compatibility**
+   - **Endpoint Exposure:** Deploy `/mcp` or `/stream` routes via `server.py`.
+   - **Configuration:** Enable streaming/logging in `config.yaml` and `prompts/default/agent.system.md`.
+   - **Dependencies:** Include `mermaid-cli` and custom `python/tools/` for tool execution.
+
+6. **Agent Zero Core Integrations**
+   - **Prompts:** Modify system prompts to enforce API-specific behavior (e.g., "Return only final answers for API calls").
+   - **Tools:** Ensure tools (e.g., code execution, search) are serializable via API.
+
+7. **Monitoring & Edge Cases**
+   - **Long-Running Tasks:** Handle timeouts and large payloads (e.g., file uploads/downloads).
+   - **Rate Limiting:** Prevent abuse via API request throttling.
+
+---
+#### **Key Features to Validate**
+| Feature               | Requirement                                                                 | Test Case                                                                 |
+|-----------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| **Final Answer Only** | API response excludes sub-agent logs/thoughts.                          | Input: `{"message": "Sum 1+1"}`, Output: `{"final_answer": "2"}`          |
+| **Terminal Streaming**| Real-time CLI output accessible via API.                               | Input: `{"command": "echo hello", "stream_terminal": true}`              |
+| **Sub-Agent Bypass**  | API calls do not trigger sub-agent creation unless explicitly allowed. | Input: `{"message": "Task", "disable_subagents": true}` → No sub-agents. |
+| **Error Handling**    | API rejects invalid requests gracefully.                              | Input: `{"invalid": "key"}`, Output: `{"error": "Missing 'message' field"}` |
+| **Logging**           | API interactions and terminal outputs are logged.                       | Check Hugging Face Space logs for `POST /mcp` entries.                  |
+
+---
+#### **Deployment-Specific Expectations**
+- **Hugging Face Space:**
+  - **Accelerator:** CPU-only (no GPU required for Agent Zero).
+  - **Exposed Endpoints:** `/mcp` (HTTP MCP server) and `/stream` (if enabled).
+  - **Files to Deploy:**
+    - `server.py` (updated to handle A2A routes).
+    - `prompts/default/agent.system.md` (API-specific instructions).
+    - `config.yaml` (enable `streaming` and `logging` flags).
+- **Custom Fork:**
+  - Fork `agent0ai/agent-zero` → Push fixes to `harvesthealth/agent-zero` for Space deployment.

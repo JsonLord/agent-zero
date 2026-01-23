@@ -1,0 +1,156 @@
+### **Extracted Tasks and Tests (7-Point Template)**
+
+---
+
+#### **1. Estimation of Project Scope (1-10):**
+**Core Scope Breakdown (10/10 for full API validation + deployment)**
+- **API Testing & Fixing (7/10)**: Validate `/mcp` or `/stream` endpoints, message serialization, and terminal streaming.
+- **Sub-Agent Bypass (3/10)**: Modify system prompt or agent role to disable sub-agent delegation for API calls.
+- **Deployment & Monitoring (5/10)**: Update Hugging Face Space, log monitoring, and edge-case testing.
+
+---
+
+#### **2. Project Description**
+**Vision**:
+Ensure the Hugging Face Space-hosted Agent Zero instance (`harvesthealth-running-mcp-agent-backup.hf.space`) supports **direct A2A API calls** that:
+- Return **only the final answer** (not intermediate thoughts/sub-agent progress).
+- Capture and stream **terminal output** if enabled.
+- Handle errors gracefully and log interactions for debugging.
+
+**Concrete Goals**:
+- Validate `/mcp` or `/stream` API endpoints for compatibility with Hugging Face Spaces.
+- Modify Agent Zero’s **system prompt** to bypass sub-agent delegation for API-driven tasks.
+- Deploy fixes to the Space and monitor logs for stability.
+
+**Future Use Cases**:
+- **Distributed agent networks**: Use A2A to orchestrate multi-agent workflows across Spaces.
+- **Automated testing**: Integrate with CI/CD pipelines for Agent Zero upgrades.
+- **Voice/STT integrations**: Stream terminal output to voice assistants (e.g., via WebSocket).
+
+**Future Integrations**:
+- **External APIs**: Connect Agent Zero to tools like **MCP servers**, **LiteLLM providers**, or **custom Python tools**.
+- **Hugging Face Hub**: Share agent configurations (prompts/tools) as reusable models.
+- **WebSocket**: Enable real-time terminal streaming for remote debugging.
+
+---
+
+#### **3. External Projects/APIs to Integrate**
+| **Component**               | **Purpose**                                                                 | **Integration Notes**                                                                                     |
+|-----------------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **Hugging Face Spaces**     | Hosting the MCP server instance.                                            | Use `/mcp` endpoint for A2A communication; ensure `server.py` exposes routes correctly.                   |
+| **Agent Zero Core**         | Modular tools/prompts for A2A behavior.                                     | Update `prompts/default/agent.system.md` to disable sub-agents for API calls.                            |
+| **LiteLLM**                 | LLM provider abstraction (supports OpenRouter, Azure, etc.).                | Verify API logs work with LiteLLM’s streaming responses.                                                |
+| **Mermaid CLI**             | Generate diagrams for terminal output (e.g., file structures).               | Ensure terminal streams include Markdown-compatible formatting.                                          |
+| **SSE/WebSocket**           | Real-time terminal streaming (if `/mcp` doesn’t support it).               | Fallback to custom WebSocket endpoint if API limits streaming.                                           |
+| **Loguru**                  | Logging middleware for API interactions.                                    | Add to `server.py` to track API calls, terminal output, and errors.                                      |
+| **Postman/curl**            | API testing tools.                                                          | Predefined requests for validation (e.g., `POST /mcp` with `disable_subagents=true`).                   |
+
+---
+
+#### **4. Components & Subtasks**
+##### **4.1 Core Components to Build/Integrate**
+| **Component**               | **Type**          | **Interaction Protocol**                                                                                     |
+|-----------------------------|-------------------|-------------------------------------------------------------------------------------------------------------|
+| **A2A API Endpoint**        | New (Hugging Face Space route) | HTTP POST to `/mcp` or `/stream` with JSON payload (`message`, `disable_subagents`, `stream_terminal`).|
+| **Sub-Agent Bypass Logic**  | Prompt modification | System prompt filter to ignore sub-agent delegation for API requests.                                |
+| **Terminal Stream Capture** | Feature enhancement | Log terminal output to JSON lines or SSE format for API responses.                                        |
+| **Error Handler**           | Middleware         | Validate payloads, return structured errors (e.g., `{"error": "Invalid command"}`).                       |
+| **Logging System**          | Deployment tool    | Loguru middleware in `server.py` to track API calls and terminal output.                                  |
+
+---
+
+##### **4.2 Subtasks per Component**
+###### **A2A API Endpoint**
+- **Architecture**:
+  - **Security**: Authenticate API calls (e.g., API keys in `config.yaml`).
+  - **Functionality**: Support `POST /mcp` with body:
+    ```json
+    {
+      "message": "Sum 2+2",
+      "disable_subagents": true,
+      "stream_terminal": true
+    }
+    ```
+  - **Interaction**: Return final answer + terminal stream (if enabled) in JSON.
+- **Integration**:
+  - Clone `agent0ai/agent-zero` and inspect `server.py` for existing MCP server logic.
+  - Merge with `harvesthealth` fork to expose `/mcp` route.
+  - **Build Protocol**: Use FastAPI or Flask to handle POST requests; validate payload schema.
+
+###### **Sub-Agent Bypass Logic**
+- **Architecture**:
+  - Modify `prompts/default/agent.system.md` to include:
+    ```markdown
+    IF "disable_subagents" is true in API request, bypass sub-agent delegation.
+    ```
+  - **Security**: Ensure API keys or headers override system prompt settings.
+- **Integration**:
+  - Update `python/tools/` to add a `tool_disabled` flag for sub-agents when `disable_subagents=true`.
+  - **Judgement**: Full prompt modification needed; no partial integration possible.
+
+###### **Terminal Stream Capture**
+- **Architecture**:
+  - **Protocol**: Capture terminal output as JSON lines or SSE chunks.
+  - **Endpoint**: Add `/mcp/stream` to return live output (fallback to `/mcp` if not supported).
+- **Integration**:
+  - Modify `python/tools/terminal.py` to buffer output for API responses.
+  - **Build Protocol**: Use `itertools` for chunked streaming or WebSocket for real-time.
+
+###### **Error Handler**
+- **Architecture**:
+  - **Logging**: Loguru integration to track API errors (e.g., malformed requests).
+  - **Response**: Standardize error messages (e.g., `400 Bad Request` with `{"error": "..."}`).
+- **Integration**:
+  - Add to `server.py` middleware; validate against API schema.
+
+###### **Logging System**
+- **Architecture**:
+  - **Protocol**: Log API calls, terminal output, and agent actions to `logs/api_debug.log`.
+  - **Format**: JSON with timestamps and payloads.
+- **Integration**:
+  - Install `loguru`; update `config.yaml` to enable logging.
+
+---
+
+##### **4.3 Tests per Component**
+| **Component**               | **Test Description**                                                                                     | **Success Criteria**                                                                                     |
+|-----------------------------|---------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **A2A API Endpoint**        | Send `POST /mcp` with `{"message": "Hello"}`; check response status.                                  | Returns `200 OK` with `{"final_answer": "..."}`.                                                        |
+| **Sub-Agent Bypass**        | Send `POST /mcp` with `{"disable_subagents": true}`; verify no sub-agent logs.                        | Response contains only final answer; no `sub-agent:` prefixes in logs.                                    |
+| **Terminal Stream**         | Send `{"command": "ls"}`, check if response includes terminal output.                                  | Response includes `"terminal_stream": ["file1.txt", ...]`.                                                |
+| **Error Handler**           | Send malformed JSON (e.g., `null`); verify error message.                                              | Returns `400 Bad Request` with `{"error": "Invalid payload"}`.                                         |
+| **Logging System**          | Trigger API call; check `logs/api_debug.log` for recorded payload.                                     | Log contains timestamped JSON with `{"action": "api_call", "payload": {...}}`.                         |
+
+---
+
+#### **5. Full Pipeline Test**
+**Test Description**:
+Simulate an end-to-end A2A workflow:
+1. **Input**: API call to Hugging Face Space with:
+   ```json
+   {
+     "message": "Analyze this file: /tmp/report.txt",
+     "disable_subagents": true,
+     "stream_terminal": true
+   }
+   ```
+2. **Output**:
+   - **Final Answer**: `"The report contains 3 sections: Overview, Data, Conclusion."`
+   - **Terminal Stream**: `[{"type": "command", "content": "cat /tmp/report.txt"}, {"type": "output", "content": "Section 1:..."}]`
+3. **Mock Input Data**:
+   ```bash
+   # Simulated file content (for testing):
+   echo "Section 1: Overview" > /tmp/report.txt
+   echo "Section 2: Data" >> /tmp/report.txt
+   ```
+
+**Success Criteria**:
+- API returns final answer **without sub-agent delegation**.
+- Terminal stream is **captured and formatted** in the response.
+- Logs show `API call completed successfully`.
+
+---
+
+#### **6. API Endpoints for Testing**
+| **Endpoint**               | **Method** | **Description**                                                                                     | **FastAPI/Gradio Reference**                                                                 |
+|-----------------------------|------------|----------------------------------------------------------------
