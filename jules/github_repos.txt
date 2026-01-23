@@ -1,4 +1,0 @@
-Here is the extracted list of GitHub repositories from the provided log:
-
-1. **[agent0ai/agent-zero](https://github.com/agent0ai/agent-zero)**
-2. **[harvesthealth](https://github.com/harvesthealth)** *(Custom fork, implied by the Hugging Face Space URL)*
