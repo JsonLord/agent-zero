@@ -63,6 +63,10 @@ class UiServerRuntime:
         webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
         webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
+        if os.getenv("HF_SPACE") == "true":
+            from werkzeug.middleware.proxy_fix import ProxyFix
+            webapp.wsgi_app = ProxyFix(webapp.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1) # type: ignore
+
         WerkzeugRequest.max_form_memory_size = UPLOAD_LIMIT_BYTES
         webapp.config.update(
             JSON_SORT_KEYS=False,

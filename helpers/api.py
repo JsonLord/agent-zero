@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import json
+import os
 import threading
 from functools import wraps
 from pathlib import Path
@@ -45,6 +46,8 @@ class ApiHandler:
 
     @classmethod
     def requires_auth(cls) -> bool:
+        if os.getenv("HF_SPACE") == "true":
+            return False
         return True
 
     @classmethod
@@ -53,6 +56,8 @@ class ApiHandler:
 
     @classmethod
     def requires_csrf(cls) -> bool:
+        if os.getenv("HF_SPACE") == "true":
+            return False
         return cls.requires_auth()
 
     @abstractmethod
@@ -137,6 +142,9 @@ def requires_loopback(f):
 def requires_auth(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
+        if os.getenv("HF_SPACE") == "true":
+            return await f(*args, **kwargs)
+
         from helpers import login
 
         user_pass_hash = login.get_credentials_hash()
@@ -152,6 +160,9 @@ def requires_auth(f):
 def csrf_protect(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
+        if os.getenv("HF_SPACE") == "true":
+            return await f(*args, **kwargs)
+
         from helpers import runtime
 
         token = session.get("csrf_token")

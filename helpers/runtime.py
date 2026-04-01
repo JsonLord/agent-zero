@@ -1,5 +1,6 @@
 import argparse
 import inspect
+import os
 import secrets
 from pathlib import Path
 from typing import TypeVar, Callable, Awaitable, Union, overload, cast
@@ -167,6 +168,9 @@ def call_development_function_sync(
 
 
 def get_web_ui_port():
+    if os.getenv("HF_SPACE") == "true":
+        return int(os.getenv("WEB_UI_PORT", 7860))
+
     web_ui_port = (
         get_arg("port") or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0)) or 5000
     )
