@@ -6,7 +6,8 @@ ENV PYTHONUNBUFFERED=1 \
     HOME=/home/user \
     APP_HOME=/home/user/app
 
-# Install system dependencies including build tools for Scipy and Meson
+# Install system dependencies
+# Including tools for builds and a0 framework (ffmpeg for whisper, etc)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
@@ -21,6 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     ninja-build \
     libgomp1 \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -29,6 +33,9 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN useradd -m -u 1000 user
 WORKDIR /home/user/app
 RUN chown -R user:user /home/user
+
+# Pre-create patches directory to ensure correct structure
+RUN mkdir -p /home/user/app/patches/helpers /home/user/app/patches/api
 
 COPY --chown=user:user . /home/user/app
 
