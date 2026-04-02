@@ -58,10 +58,14 @@ def has_arg(name: str):
 
 
 def is_dockerized() -> bool:
+    if os.getenv("HF_SPACE") == "true":
+        return True
     return bool(get_arg("dockerized"))
 
 
 def is_development() -> bool:
+    if os.getenv("HF_SPACE") == "true":
+        return False
     return not is_dockerized()
 
 

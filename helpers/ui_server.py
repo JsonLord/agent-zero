@@ -133,6 +133,18 @@ class UiServerRuntime:
             methods=["GET"],
         )
         self.webapp.add_url_rule(
+            "/health",
+            "health_check_root",
+            handlers.health_check_handler,
+            methods=["GET"],
+        )
+        self.webapp.add_url_rule(
+            "/api-docs",
+            "api_docs_root",
+            handlers.api_docs_handler,
+            methods=["GET"],
+        )
+        self.webapp.add_url_rule(
             "/",
             "serve_index",
             handlers.serve_index,
@@ -200,6 +212,16 @@ class UiServerRuntime:
 class UiRouteHandlers:
     def __init__(self, runtime_state: UiServerRuntime) -> None:
         self.runtime = runtime_state
+
+    async def health_check_handler(self):
+        from api.health import HealthCheck
+        handler = HealthCheck(self.runtime.webapp, self.runtime.lock)
+        return await handler.handle_request(request)
+
+    async def api_docs_handler(self):
+        from api.api_docs import ApiDocs
+        handler = ApiDocs(self.runtime.webapp, self.runtime.lock)
+        return await handler.handle_request(request)
 
     @extensible
     async def login_handler(self):
