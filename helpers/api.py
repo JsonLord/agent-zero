@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import json
-import os
 import threading
+import os
 from functools import wraps
 from pathlib import Path
 from typing import Union, Dict, Any
@@ -25,7 +25,6 @@ from helpers import files, cache
 ThreadLockType = Union[threading.Lock, threading.RLock]
 
 CACHE_AREA = "api_handlers(api)"
-# cache.toggle_area(CACHE_AREA, False)  # cache off for now
 
 Input = dict
 Output = Union[Dict[str, Any], Response]
@@ -46,8 +45,6 @@ class ApiHandler:
 
     @classmethod
     def requires_auth(cls) -> bool:
-        if os.getenv("HF_SPACE") == "true":
-            return False
         return True
 
     @classmethod
@@ -56,8 +53,6 @@ class ApiHandler:
 
     @classmethod
     def requires_csrf(cls) -> bool:
-        if os.getenv("HF_SPACE") == "true":
-            return False
         return cls.requires_auth()
 
     @abstractmethod
@@ -66,25 +61,19 @@ class ApiHandler:
 
     async def handle_request(self, request: Request) -> Response:
         try:
-            # input data from request based on type
             input_data: Input = {}
             if request.is_json:
                 try:
-                    if request.data:  # Check if there's any data
+                    if request.data:
                         input_data = request.get_json()
-                    # If empty or not valid JSON, use empty dict
                 except Exception as e:
-                    # Just log the error and continue with empty input
                     PrintStyle().print(f"Error parsing JSON: {str(e)}")
                     input_data = {}
             else:
-                # input_data = {"data": request.get_data(as_text=True)}
                 input_data = {}
 
-            # process via handler
             output = await self.process(input_data, request)
 
-            # return output based on type
             if isinstance(output, Response):
                 return output
             else:
@@ -92,14 +81,11 @@ class ApiHandler:
                 return Response(
                     response=response_json, status=200, mimetype="application/json"
                 )
-
-            # return exceptions with 500
         except Exception as e:
             error = format_error(e)
             PrintStyle.error(f"API error: {error}")
             return Response(response=error, status=500, mimetype="text/plain")
 
-    # get context to run agent zero in
     def use_context(self, ctxid: str, create_if_not_exists: bool = True):
         from helpers.context_utils import use_context as _use_context
         return _use_context(self.thread_lock, ctxid, create_if_not_exists)
@@ -111,8 +97,10 @@ from helpers.network import is_loopback_address
 def requires_api_key(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
-        from helpers.settings import get_settings
+        if os.getenv("HF_SPACE") == "true":
+             return await f(*args, **kwargs)
 
+        from helpers.settings import get_settings
         valid_api_key = get_settings()["mcp_server_token"]
 
         if api_key := request.headers.get("X-API-KEY"):
@@ -132,6 +120,9 @@ def requires_api_key(f):
 def requires_loopback(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
+        if os.getenv("HF_SPACE") == "true":
+             return await f(*args, **kwargs)
+
         if not is_loopback_address(str(request.remote_addr)):
             return Response("Access denied.", 403, {})
         return await f(*args, **kwargs)
@@ -143,10 +134,9 @@ def requires_auth(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
         if os.getenv("HF_SPACE") == "true":
-            return await f(*args, **kwargs)
+             return await f(*args, **kwargs)
 
         from helpers import login
-
         user_pass_hash = login.get_credentials_hash()
         if not user_pass_hash:
             return await f(*args, **kwargs)
@@ -161,10 +151,9 @@ def csrf_protect(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
         if os.getenv("HF_SPACE") == "true":
-            return await f(*args, **kwargs)
+             return await f(*args, **kwargs)
 
         from helpers import runtime
-
         token = session.get("csrf_token")
         header = request.headers.get("X-CSRF-Token")
         cookie = request.cookies.get("csrf_token_" + runtime.get_runtime_id())
@@ -181,16 +170,12 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
     from helpers import plugins
 
     async def _dispatch(path: str) -> BaseResponse:
-        # Return cached wrapped handler if available
         cached = cache.get(CACHE_AREA, path)
         if cached is not None:
             return await cached()
 
-        # Resolve file path for the handler
-        # Try built-in api folder first, then plugin api folders
         handler_cls: type[ApiHandler] | None = None
 
-        # Check built-in python/api/<path>.py
         builtin_file = files.get_abs_path(f"api/{path}.py")
         if files.is_in_dir(builtin_file, files.get_abs_path("api")) and files.exists(
             builtin_file
@@ -199,7 +184,6 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
             if classes:
                 handler_cls = classes[0]
 
-        # Check plugin api folders: path format plugins/<plugin_name>/<handler>
         if handler_cls is None and path.startswith("plugins/"):
             parts = path.split("/", 2)
             if len(parts) == 3:
@@ -215,11 +199,9 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
         if handler_cls is None:
             return Response(f"API endpoint not found: {path}", 404)
 
-        # Check method is allowed
         if request.method not in handler_cls.get_methods():
             return Response(f"Method {request.method} not allowed for: {path}", 405)
 
-        # Build handler call, wrapping with security decorators as required
         async def call_handler() -> BaseResponse:
             instance = handler_cls(app, lock)
             return await instance.handle_request(request=request)
@@ -242,25 +224,4 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
         "api_dispatch",
         _dispatch,
         methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-    )
-
-
-def register_watchdogs():
-    from helpers import watchdog
-    from helpers.ws import CACHE_AREA as WS_CACHE_AREA
-
-
-    def on_api_change(items: list[watchdog.WatchItem]):
-        PrintStyle.debug("API endpoint watchdog triggered:", items)
-        cache.clear(CACHE_AREA)
-        cache.clear(WS_CACHE_AREA)
-
-    watchdog.add_watchdog(
-        "api_handlers",
-        roots=[
-            files.get_abs_path(files.API_DIR),
-            files.get_abs_path(files.USER_DIR, files.API_DIR),
-        ],
-        patterns=["*.py"],
-        handler=on_api_change,
     )
