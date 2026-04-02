@@ -4,22 +4,26 @@ set -e
 REPO_URL="https://github.com/JsonLord/agent-zero.git"
 CLONE_DIR="/home/user/app/agent-zero-clone"
 APP_DIR="/home/user/app"
+PATCHES_DIR="/home/user/app/patches"
 
-echo "Cloning Agent-Zero (main branch)..."
+echo "Cloning Agent-Zero (main branch) into temporary directory..."
 if [ -d "$CLONE_DIR" ]; then
     rm -rf "$CLONE_DIR"
 fi
 
 git clone "$REPO_URL" "$CLONE_DIR"
 
-echo "Applying adaptations..."
+echo "Applying Agent-Zero codebase to app directory..."
 cp -rn "$CLONE_DIR"/* "$APP_DIR/" 2>/dev/null || true
 
-cp -f /home/user/app/helpers/api.py "$APP_DIR/helpers/api.py"
-cp -f /home/user/app/helpers/runtime.py "$APP_DIR/helpers/runtime.py"
-cp -f /home/user/app/helpers/settings.py "$APP_DIR/helpers/settings.py"
-cp -f /home/user/app/helpers/ui_server.py "$APP_DIR/helpers/ui_server.py"
-cp -f /home/user/app/api/api_docs.py "$APP_DIR/api/api_docs.py"
+echo "Applying patches from $PATCHES_DIR..."
+if [ -d "$PATCHES_DIR/helpers" ]; then
+    cp -f "$PATCHES_DIR/helpers/"*.py "$APP_DIR/helpers/"
+fi
+if [ -d "$PATCHES_DIR/api" ]; then
+    mkdir -p "$APP_DIR/api"
+    cp -f "$PATCHES_DIR/api/"*.py "$APP_DIR/api/"
+fi
 
 echo "Installing dependencies..."
 if command -v uv > /dev/null; then

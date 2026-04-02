@@ -61,7 +61,6 @@ class ApiHandler:
 
     async def handle_request(self, request: Request) -> Response:
         try:
-            # input data from request based on type
             input_data: Input = {}
             if request.is_json:
                 try:

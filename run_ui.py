@@ -1,83 +1,86 @@
-from datetime import timedelta
-import os
-import secrets
-import threading
-from flask import Flask, request, Response, session
-from werkzeug.middleware.proxy_fix import ProxyFix
 import initialize
-from python.helpers import files, git, mcp_server, fasta2a_server
-from python.helpers.files import get_abs_path
-from python.helpers import runtime, dotenv, process
-from python.helpers.extract_tools import load_classes_from_folder
-from python.helpers.api import ApiHandler
-from python.helpers.print_style import PrintStyle
+from helpers import dotenv, extension, runtime
+from helpers.print_style import PrintStyle
+from helpers.server_startup import run_uvicorn_with_retries
+from helpers.ui_server import UiServerRuntime, configure_process_environment
 
-# initialize the internal Flask server
-webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
-webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
-# HF Space reverse proxy support
-if os.getenv("HF_SPACE") == "true":
-    webapp.wsgi_app = ProxyFix(webapp.wsgi_app, x_for=1, x_proto=1, x_host=1)
+configure_process_environment()
 
-webapp.config.update(
-    JSON_SORT_KEYS=False,
-    SESSION_COOKIE_NAME="session_" + runtime.get_runtime_id(),
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_PERMANENT=True,
-    PERMANENT_SESSION_LIFETIME=timedelta(days=1)
-)
-
-lock = threading.Lock()
-
-@webapp.route("/", methods=["GET"])
-async def serve_index():
-    index = files.read_file("webui/index.html")
-    return index
-
-@webapp.route("/health", methods=["GET"])
-async def health():
-    return {"status": "ok", "service": "agent-zero"}
-
-@webapp.route("/api-docs", methods=["GET"])
-async def api_docs():
-    from python.api.api_docs import ApiDocs
-    handler = ApiDocs(webapp, lock)
-    result = await handler.process({}, request)
-    return result
 
 def run():
-    from werkzeug.serving import make_server
-    from werkzeug.middleware.dispatcher import DispatcherMiddleware
-    from a2wsgi import ASGIMiddleware
+    PrintStyle().print("Initializing Python framework...")
+    PrintStyle().print("Checking for data migration...")
+    run_migration_checks()
 
+    PrintStyle().print("Preparing web server runtime...")
+    server_runtime, host, port = prepare_web_runtime()
+
+    PrintStyle().print("Initializing Agent Zero components...")
+    init_a0()
+
+    PrintStyle().print("Starting UI/API server...")
+    start_web_server(server_runtime, host, port)
+
+
+def run_migration_checks() -> None:
+    initialize.initialize_migration()
+
+
+def prepare_web_runtime() -> tuple[UiServerRuntime, str, int]:
+    host = (
+        runtime.get_arg("host") or dotenv.get_dotenv_value("WEB_UI_HOST") or "localhost"
+    )
     port = runtime.get_web_ui_port()
-    host = "0.0.0.0"
+    server_runtime = UiServerRuntime.create()
+    server_runtime.register_http_routes()
+    server_runtime.register_transport_handlers()
 
-    # register API handlers
-    handlers = load_classes_from_folder("python/api", "*.py", ApiHandler)
-    for handler in handlers:
-        name = handler.__module__.split(".")[-1]
-        instance = handler(webapp, lock)
-        async def handler_wrap(h=instance): return await h.handle_request(request=request)
-        webapp.add_url_rule(f"/api/{name}", f"/{name}", handler_wrap, methods=handler.get_methods())
+    return server_runtime, host, port
 
-    middleware_routes = {
-        "/mcp": ASGIMiddleware(app=mcp_server.DynamicMcpProxy.get_instance()),
-        "/a2a": ASGIMiddleware(app=fasta2a_server.DynamicA2AProxy.get_instance()),
-    }
 
-    app = DispatcherMiddleware(webapp, middleware_routes)
-    server = make_server(host=host, port=port, app=app, threaded=True)
-    process.set_server(server)
+def start_web_server(server_runtime: UiServerRuntime, host: str, port: int) -> None:
+    run_uvicorn_with_retries(
+        host=host,
+        port=port,
+        build_asgi_app=server_runtime.build_asgi_app,
+        flush_callback=create_flush_callback(),
+        access_log=server_runtime.access_log_enabled(),
+        ws="wsproto",
+    )
 
-    # Init tasks
-    initialize.initialize_chats().result_sync()
+
+def create_flush_callback():
+    def flush_and_shutdown_callback() -> None:
+        """
+        TODO(dev): add cleanup + flush-to-disk logic here.
+        """
+        return
+
+    flush_ran = False
+
+    def _run_flush(reason: str) -> None:
+        nonlocal flush_ran
+        if flush_ran:
+            return
+        flush_ran = True
+        try:
+            flush_and_shutdown_callback()
+        except Exception as e:
+            PrintStyle.warning(f"Shutdown flush failed ({reason}): {e}")
+
+    return _run_flush
+
+
+@extension.extensible
+def init_a0():
+    init_chats = initialize.initialize_chats()
+    init_chats.result_sync()
+
     initialize.initialize_mcp()
     initialize.initialize_job_loop()
+    initialize.initialize_preload()
 
-    PrintStyle().debug(f"Starting server at http://{host}:{port} ...")
-    server.serve_forever()
 
 if __name__ == "__main__":
     runtime.initialize()

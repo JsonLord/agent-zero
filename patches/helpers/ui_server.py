@@ -85,7 +85,6 @@ class UiServerRuntime:
 
         lock = threading.RLock()
 
-        # Use a lambda to avoid issues if validate_ws_origin is called during initialization
         cors_allowed = "*" if os.getenv("HF_SPACE") == "true" else (lambda _origin, environ: validate_ws_origin(environ)[0])
 
         socketio_server = socketio.AsyncServer(
