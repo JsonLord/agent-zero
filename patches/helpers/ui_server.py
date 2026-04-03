@@ -24,6 +24,7 @@ from starlette.routing import Mount, Route
 from starlette.responses import JSONResponse
 from uvicorn.middleware.wsgi import WSGIMiddleware
 from werkzeug.wrappers.request import Request as WerkzeugRequest
+from werkzeug.middleware.proxy_fix import ProxyFix
 import socketio  # type: ignore[import-untyped]
 
 from helpers import dotenv, fasta2a_server, files, git, login, mcp_server, runtime
@@ -63,10 +64,7 @@ class UiServerRuntime:
     def create(cls) -> "UiServerRuntime":
         webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
         webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
-
-        if os.getenv("HF_SPACE") == "true":
-            from werkzeug.middleware.proxy_fix import ProxyFix
-            webapp.wsgi_app = ProxyFix(webapp.wsgi_app, x_for=1, x_proto=1, x_host=1)
+        if os.getenv("HF_SPACE") == "true": webapp.wsgi_app = ProxyFix(webapp.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
         WerkzeugRequest.max_form_memory_size = UPLOAD_LIMIT_BYTES
         webapp.config.update(
@@ -84,18 +82,14 @@ class UiServerRuntime:
         )
 
         lock = threading.RLock()
-
-        # Use a lambda to avoid issues if validate_ws_origin is called during initialization
-        cors_allowed = "*" if os.getenv("HF_SPACE") == "true" else (lambda _origin, environ: validate_ws_origin(environ)[0])
-
         socketio_server = socketio.AsyncServer(
             async_mode="asgi",
             namespaces="*",
-            cors_allowed_origins=cors_allowed,
+            cors_allowed_origins="*" if os.getenv("HF_SPACE") == "true" else (lambda _origin, environ: validate_ws_origin(environ)[0]),
             logger=False,
             engineio_logger=False,
             ping_interval=25,
-            ping_timeout=30,
+            ping_timeout=20,
             max_http_buffer_size=50 * 1024 * 1024,
         )
 
@@ -185,20 +179,11 @@ class UiServerRuntime:
         with startup_monitor.stage("a2a.proxy.init"):
             a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
 
-        async def health_endpoint(request):
-            return JSONResponse({"status": "ok", "service": "agent-zero"})
-
-        async def api_docs_endpoint(request):
-            from api.api_docs import ApiDocs
-            handler = ApiDocs(self.webapp, self.lock)
-            result = await handler.process({}, None)
-            return JSONResponse(result)
-
         with startup_monitor.stage("starlette.app.create"):
             starlette_app = Starlette(
                 routes=[
-                    Route("/health", endpoint=health_endpoint, methods=["GET"]),
-                    Route("/api-docs", endpoint=api_docs_endpoint, methods=["GET"]),
+                    Route("/health", endpoint=lambda r: JSONResponse({"status": "ok"}), methods=["GET"]),
+                    Route("/api-docs", endpoint=lambda r: JSONResponse({"title": "Agent-Zero API", "hf_space": True}), methods=["GET"]),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),

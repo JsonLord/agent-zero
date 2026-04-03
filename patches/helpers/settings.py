@@ -643,6 +643,7 @@ def _dict_to_env(data_dict):
 
 
 def set_root_password(password: str):
+    if os.getenv("HF_SPACE") == "true": return
     if not runtime.is_dockerized():
         raise Exception("root password can only be set in dockerized environments")
     _result = subprocess.run(
