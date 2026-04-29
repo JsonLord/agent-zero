@@ -62,3 +62,4 @@ urllib3>=2.6.0  # security floor: resource exhaustion CWE-770, data amplificatio
 cryptography>=46.0.0  # security floor: insufficient data authenticity CWE-345
 werkzeug>=3.0.3  # security floor: RCE CWE-94
 PyYAML==6.0.1
+litellm
