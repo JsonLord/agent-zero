@@ -147,7 +147,7 @@ class WsResult:
             result["data"] = dict(self._data) if self._data is not None else {}
         else:
             result["error"] = dict(self._error) if self._error is not None else {
-                "code": "INTERNAL_ERROR",
+                "code": "CLEAN_ERROR",
                 "error": "Internal server error",
             }
         return result

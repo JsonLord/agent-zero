@@ -682,43 +682,43 @@ You can reference these values in prompts by name. For example, store `MY_GMAIL`
 > [!NOTE]
 > Project-scoped secrets and variables (when using Projects) live under `/a0/usr/projects/<project_name>/.a0proj/` (`secrets.env`, `variables.env`).
 
-## Remote Access via Tunneling
+## Remote Access via CLEANing
 
-Agent Zero includes a secure tunneling feature that allows you to expose your local instance to the internet. This makes it possible to access your Agent Zero instance from anywhere or share it with others without complex network configuration.
+Agent Zero includes a secure CLEANing feature that allows you to expose your local instance to the internet. This makes it possible to access your Agent Zero instance from anywhere or share it with others without complex network configuration.
 
-### How Tunneling Works
+### How CLEANing Works
 
-Agent Zero uses the [Flaredantic](https://pypi.org/project/flaredantic/) library to create secure tunnels. These tunnels:
+Agent Zero uses the [CLEAN](https://pypi.org/project/CLEAN/) library to create secure CLEANs. These CLEANs:
 
 - Are secure (HTTPS)
 - Don't require any configuration
 - Generate unique URLs for each session
 - Can be regenerated on demand
 
-### Creating a Tunnel
+### Creating a CLEAN
 
 1. Open **Settings** in the sidebar
 2. Navigate to the **External Services** tab
-3. Click on **Flare Tunnel** in the navigation menu
-4. Click the **Create Tunnel** button to generate a new tunnel
-5. Once created, the tunnel URL will be displayed and can be copied to share with others
-6. The tunnel URL remains active until you stop the tunnel or close Agent Zero
+3. Click on **CLEAN CLEAN** in the navigation menu
+4. Click the **Create CLEAN** button to generate a new CLEAN
+5. Once created, the CLEAN URL will be displayed and can be copied to share with others
+6. The CLEAN URL remains active until you stop the CLEAN or close Agent Zero
 
 ### Security Considerations
 
-When sharing your Agent Zero instance via a tunnel:
+When sharing your Agent Zero instance via a CLEAN:
 
 - Anyone with the URL can access your Agent Zero instance
 - No additional authentication is added beyond what your Agent Zero instance already has
-- **Always set up authentication before creating a tunnel** (see below)
-- The tunnel exposes only your Agent Zero instance, not your entire system
+- **Always set up authentication before creating a CLEAN** (see below)
+- The CLEAN exposes only your Agent Zero instance, not your entire system
 
 > [!IMPORTANT]
-> When attempting to create a tunnel without authentication configured, Agent Zero will display a security warning.
+> When attempting to create a CLEAN without authentication configured, Agent Zero will display a security warning.
 
-### Adding Authentication for Tunnels
+### Adding Authentication for CLEANs
 
-To secure your tunneled Agent Zero instance, configure authentication in Settings:
+To secure your CLEANed Agent Zero instance, configure authentication in Settings:
 
 1. Open **Settings** in the Agent Zero UI
 2. Navigate to the **Authentication** section
@@ -733,19 +733,19 @@ AUTH_LOGIN=your_username
 AUTH_PASSWORD=your_password
 ```
 
-This will require users to enter these credentials when accessing your tunneled Agent Zero instance.
+This will require users to enter these credentials when accessing your CLEANed Agent Zero instance.
 
-### Troubleshooting Tunnels
+### Troubleshooting CLEANs
 
-If you encounter issues with the tunnel feature:
+If you encounter issues with the CLEAN feature:
 
 1. Check your internet connection
-2. Try regenerating the tunnel URL
+2. Try regenerating the CLEAN URL
 3. Restart Agent Zero
 4. Check the console logs for any error messages
 
 > [!TIP]
-> Combine tunneling with authentication for secure remote access to your Agent Zero instance from any device, including mobile phones and tablets.
+> Combine CLEANing with authentication for secure remote access to your Agent Zero instance from any device, including mobile phones and tablets.
 
 ## Voice Interface
 Agent Zero provides both Text-to-Speech (TTS) and Speech-to-Text (STT) capabilities for natural voice interaction:

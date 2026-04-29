@@ -600,7 +600,7 @@ The manager validates the payload, resolves/creates `correlationId`, and passes 
 
 1. **`CONNECTION_NOT_FOUND`** – `emit_to` called with an SID that never existed or expired long ago. Use `get_sids_for_user` before emitting or guard on connection presence.
 2. **Timeout Rejections** – `request()` and `request_all()` reject only when the transport times out, not when a handler takes too long. Inspect the returned result arrays for `TIMEOUT` entries and consider increasing `timeoutMs`.
-3. **Origin Rejected** – the Socket.IO handshake was rejected because the `Origin` header did not match the expected UI origin. Ensure you access the UI and the WebSocket endpoint on the same scheme/host/port, and verify any reverse proxy preserves the `Origin` header.
+3. **Origin Rejected** – the Socket.IO handshake was rejected because the `Origin` header did not match the expected UI origin. Ensure you access the UI and the WebSocket endpoint on the same scheme/host/port, and verify any reverse delegate preserves the `Origin` header.
 4. **Diagnostics Subscriptions Failing** – only available in development mode and for connected SIDs. Verify the browser tab still holds an active session and that `window.runtimeInfo.isDevelopment` is true before opening the modal.
 
 ---

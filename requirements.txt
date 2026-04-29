@@ -8,7 +8,7 @@ fastmcp==2.13.1
 fasta2a==0.5.0
 flask[async]==3.0.3
 flask-basicauth==0.2.0
-flaredantic==0.1.5
+CLEAN==0.1.5
 GitPython==3.1.43
 giturlparse==0.14.0
 inputimeout==1.0.4
@@ -61,3 +61,4 @@ h11>=0.16.0  # security floor: HTTP request smuggling CWE-444
 urllib3>=2.6.0  # security floor: resource exhaustion CWE-770, data amplification CWE-409
 cryptography>=46.0.0  # security floor: insufficient data authenticity CWE-345
 werkzeug>=3.0.3  # security floor: RCE CWE-94
+PyYAML==6.0.1

@@ -175,8 +175,8 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
         )
 
 
-class DynamicA2AProxy:
-    """Dynamic proxy for FastA2A server that allows reconfiguration."""
+class DynamicA2Adelegate:
+    """Dynamic delegate for FastA2A server that allows reconfiguration."""
 
     _instance = None
 
@@ -199,9 +199,9 @@ class DynamicA2AProxy:
 
     @staticmethod
     def get_instance():
-        if DynamicA2AProxy._instance is None:
-            DynamicA2AProxy._instance = DynamicA2AProxy()
-        return DynamicA2AProxy._instance
+        if DynamicA2Adelegate._instance is None:
+            DynamicA2Adelegate._instance = DynamicA2Adelegate()
+        return DynamicA2Adelegate._instance
 
     def reconfigure(self, token: str):
         """Reconfigure the FastA2A server with new token."""
@@ -573,9 +573,9 @@ class DynamicA2AProxy:
 
 def is_available():
     """Check if FastA2A is available and properly configured."""
-    return FASTA2A_AVAILABLE and DynamicA2AProxy.get_instance().app is not None
+    return FASTA2A_AVAILABLE and DynamicA2Adelegate.get_instance().app is not None
 
 
-def get_proxy():
-    """Get the FastA2A proxy instance."""
-    return DynamicA2AProxy.get_instance()
+def get_delegate():
+    """Get the FastA2A delegate instance."""
+    return DynamicA2Adelegate.get_instance()

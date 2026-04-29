@@ -30,7 +30,7 @@ def _normalize_project_summary(value: object) -> dict[str, str] | None:
 
 
 class Projects(connector_base.ProtectedConnectorApiHandler):
-    """Thin connector proxy around the core `api.projects.Projects` surface."""
+    """Thin connector delegate around the core `api.projects.Projects` surface."""
 
     async def process(self, input: dict, request: Request) -> dict | Response:
         action = _string(input.get("action")).lower() or "list"

@@ -575,9 +575,9 @@ def _apply_settings(previous: Settings | None):
         if not previous or current_token != previous["mcp_server_token"]:
 
             async def update_mcp_token(token: str):
-                from helpers.mcp_server import DynamicMcpProxy
+                from helpers.mcp_server import DynamicMcpdelegate
 
-                DynamicMcpProxy.get_instance().reconfigure(token=token)
+                DynamicMcpdelegate.get_instance().reconfigure(token=token)
 
             task3 = defer.DeferredTask().start_task(
                 update_mcp_token, current_token
@@ -587,9 +587,9 @@ def _apply_settings(previous: Settings | None):
         if not previous or current_token != previous["mcp_server_token"]:
 
             async def update_a2a_token(token: str):
-                from helpers.fasta2a_server import DynamicA2AProxy
+                from helpers.fasta2a_server import DynamicA2Adelegate
 
-                DynamicA2AProxy.get_instance().reconfigure(token=token)
+                DynamicA2Adelegate.get_instance().reconfigure(token=token)
 
             task4 = defer.DeferredTask().start_task(
                 update_a2a_token, current_token

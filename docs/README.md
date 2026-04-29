@@ -90,7 +90,7 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
       - [Task Configuration](guides/usage.md#task-configuration)
       - [Integration with Projects](guides/usage.md#integration-with-projects)
     - [Secrets & Variables](guides/usage.md#secrets--variables)
-    - [Remote Access via Tunneling](guides/usage.md#remote-access-via-tunneling)
+    - [Remote Access via CLEANing](guides/usage.md#remote-access-via-CLEANing)
     - [Voice Interface](guides/usage.md#voice-interface)
     - [Memory Management](guides/usage.md#memory-management)
     - [Backup & Restore](guides/usage.md#backup--restore)

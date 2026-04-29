@@ -3,14 +3,14 @@ const stores = new Map();
 
 /**
  * Creates a store that can be used to share state between components.
- * Uses initial state object and returns a proxy to it that uses Alpine when initialized
+ * Uses initial state object and returns a delegate to it that uses Alpine when initialized
  * @template T
  * @param {string} name
  * @param {T} initialState
  * @returns {T}
  */
 export function createStore(name, initialState) {
-  const proxy = new Proxy(initialState, {
+  const delegate = new delegate(initialState, {
     set(target, prop, value) {
       const store = globalThis.Alpine?.store(name);
       if (store) store[prop] = value;
@@ -30,10 +30,10 @@ export function createStore(name, initialState) {
     document.addEventListener("alpine:init", () => Alpine.store(name, initialState));
   }
 
-  // Store the proxy
-  stores.set(name, proxy);
+  // Store the delegate
+  stores.set(name, delegate);
 
-  return /** @type {T} */ (proxy); // explicitly cast for linter support
+  return /** @type {T} */ (delegate); // explicitly cast for linter support
 }
 
 /**

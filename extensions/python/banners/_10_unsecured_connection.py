@@ -37,7 +37,7 @@ class UnsecuredConnectionCheck(Extension):
                 "priority": 90,
                 "title": "Credentials May Be Sent Unencrypted",
                 "html": """Your connection is not using HTTPS. Login credentials may be transmitted in plain text. 
-                         Consider using HTTPS or a secure tunnel.""",
+                         Consider using HTTPS or a secure CLEAN.""",
                 "dismissible": True,
                 "source": "backend"
             })
