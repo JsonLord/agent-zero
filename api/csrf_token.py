@@ -102,15 +102,6 @@ class GetCsrfToken(ApiHandler):
         if not allowed_origins:
             allowed_origins = self.get_default_allowed_origins()
 
-        # always allow tunnel url if running
-        try:
-            from api.tunnel_proxy import process as tunnel_api_process
-
-            tunnel = await tunnel_api_process({"action": "get"})
-            if tunnel and isinstance(tunnel, dict) and tunnel["success"]:
-                allowed_origins.append(tunnel["tunnel_url"])
-        except Exception:
-            pass
 
         return allowed_origins
 

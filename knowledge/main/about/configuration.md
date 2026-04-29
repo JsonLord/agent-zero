@@ -98,4 +98,4 @@ These can be set in the `.env` file at the project root or passed as Docker `-e`
 | `auth_login` / `auth_password` | Web UI authentication credentials |
 | `agent_temperature` | LLM temperature for the chat model |
 
-Settings are stored in `usr/settings.json` and managed through the Settings page in the web UI. The settings page also provides: API key management (multiple keys per provider with round-robin), backup/restore, external services (tunnels, MCP, A2A), and memory management.
+Settings are stored in `usr/settings.json` and managed through the Settings page in the web UI. The settings page also provides: API key management (multiple keys per provider with round-robin), backup/restore, external services (CLEANs, MCP, A2A), and memory management.

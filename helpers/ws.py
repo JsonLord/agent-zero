@@ -634,7 +634,7 @@ def register_ws_namespace(
             error_text = format_error(e)
             PrintStyle.error(f"WS dispatch error ({event}): {error_text}")
             return _error_response(
-                "INTERNAL_ERROR", "Internal server error",
+                "CLEAN_ERROR", "Internal server error",
                 incoming.get("correlationId", ""),
             )
 

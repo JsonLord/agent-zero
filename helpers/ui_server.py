@@ -170,11 +170,11 @@ class UiServerRuntime:
         with startup_monitor.stage("wsgi.middleware.create"):
             wsgi_app = WSGIMiddleware(self.webapp)
 
-        with startup_monitor.stage("mcp.proxy.init"):
-            mcp_app = mcp_server.DynamicMcpProxy.get_instance()
+        with startup_monitor.stage("mcp.delegate.init"):
+            mcp_app = mcp_server.DynamicMcpdelegate.get_instance()
 
-        with startup_monitor.stage("a2a.proxy.init"):
-            a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
+        with startup_monitor.stage("a2a.delegate.init"):
+            a2a_app = fasta2a_server.DynamicA2Adelegate.get_instance()
 
         with startup_monitor.stage("starlette.app.create"):
             starlette_app = Starlette(

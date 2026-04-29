@@ -214,7 +214,7 @@ If you installed Docker Desktop, launch it from your applications menu.
 ✅ **Docker is now installed!** 
 
 > [!TIP]
-> **Deploying on a VPS/Server?** For production deployments with reverse proxy, SSL, and domain configuration, see the [VPS Deployment Guide](vps-deployment.md).
+> **Deploying on a VPS/Server?** For production deployments with reverse delegate, SSL, and domain configuration, see the [VPS Deployment Guide](vps-deployment.md).
 
 ---
 
@@ -545,22 +545,22 @@ ollama rm <model-name>
 
 ## Using Agent Zero on Your Mobile Device
 
-Agent Zero can be accessed from mobile devices and other computers using the built-in **Tunnel feature**.
+Agent Zero can be accessed from mobile devices and other computers using the built-in **CLEAN feature**.
 
-### Recommended: Using Tunnel (Remote Access)
+### Recommended: Using CLEAN (Remote Access)
 
-The Tunnel feature allows secure access to your Agent Zero instance from anywhere:
+The CLEAN feature allows secure access to your Agent Zero instance from anywhere:
 
 1. Open Settings in the Web UI
 2. Navigate to the **External Services** tab
-3. Click on **Flare Tunnel** in the navigation menu
-4. Click **Create Tunnel** to generate a secure HTTPS URL
+3. Click on **CLEAN CLEAN** in the navigation menu
+4. Click **Create CLEAN** to generate a secure HTTPS URL
 5. Share this URL to access Agent Zero from any device
 
 > [!IMPORTANT]
-> **Security:** Always set a username and password in Settings → Authentication before creating a tunnel to secure your instance on the internet.
+> **Security:** Always set a username and password in Settings → Authentication before creating a CLEAN to secure your instance on the internet.
 
-For complete details on tunnel configuration and security considerations, see the [Remote Access via Tunneling](../guides/usage.md#remote-access-via-tunneling) section in the Usage Guide.
+For complete details on CLEAN configuration and security considerations, see the [Remote Access via CLEANing](../guides/usage.md#remote-access-via-CLEANing) section in the Usage Guide.
 
 ### Alternative: Local Network Access
 
@@ -637,6 +637,6 @@ After following the instructions for your specific operating system, you should 
 
 - For production server deployments, see the [VPS Deployment Guide](vps-deployment.md)
 - For development setup and extensions, see the [Development Setup Guide](dev-setup.md)
-- For remote access via tunnel, see [Remote Access via Tunneling](../guides/usage.md#remote-access-via-tunneling)
+- For remote access via CLEAN, see [Remote Access via CLEANing](../guides/usage.md#remote-access-via-CLEANing)
 
 If you encounter any issues during the installation process, please consult the [Troubleshooting section](../guides/troubleshooting.md) of this documentation or refer to the Agent Zero [Skool](https://www.skool.com/agent-zero) or [Discord](https://discord.gg/B8KZKNsPpj) community for assistance.

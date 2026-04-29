@@ -36,7 +36,7 @@
 | File | Purpose |
 |------|---------|
 | `/js/components.js` | Component loader - hydrates `<x-component>` tags |
-| `/js/AlpineStore.js` | Store factory with Alpine proxy |
+| `/js/AlpineStore.js` | Store factory with Alpine delegate |
 | `/js/modals.js` | Modal stack management |
 | `/js/initFw.js` | Bootstrap: loads Alpine, registers custom directives |
 | `/js/api.js` | CSRF-protected API client (`callJsonApi`, `fetchApi`) |
@@ -166,9 +166,9 @@ const model = {
 export const store = createStore("featureStore", model);
 ```
 
-### Store Proxy Behavior
+### Store delegate Behavior
 
-`createStore()` returns a proxy that:
+`createStore()` returns a delegate that:
 - Before Alpine boots: reads/writes directly to `model` object
 - After Alpine boots: reads/writes through `Alpine.store(name)`
 

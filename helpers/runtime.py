@@ -28,10 +28,8 @@ def initialize():
     parser.add_argument("--port", type=int, default=None, help="Web UI port")
     parser.add_argument("--host", type=str, default=None, help="Web UI host")
     parser.add_argument(
-        "--cloudflare_tunnel",
         type=bool,
         default=False,
-        help="Use cloudflare tunnel for public URL",
     )
     parser.add_argument(
         "--development", type=bool, default=False, help="Development mode"
@@ -173,13 +171,6 @@ def get_web_ui_port():
     return web_ui_port
 
 
-def get_tunnel_api_port():
-    tunnel_api_port = (
-        get_arg("tunnel_api_port")
-        or int(dotenv.get_dotenv_value("TUNNEL_API_PORT", 0))
-        or 55520
-    )
-    return tunnel_api_port
 
 
 def get_platform():

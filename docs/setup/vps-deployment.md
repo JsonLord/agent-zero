@@ -12,7 +12,7 @@
 1. [Prerequisites](#prerequisites)
 2. [Docker Installation](#docker-installation)
 3. [Agent Zero Container Deployment](#agent-zero-container-deployment)
-4. [Apache Reverse Proxy Configuration](#apache-reverse-proxy-configuration)
+4. [Apache Reverse delegate Configuration](#apache-reverse-delegate-configuration)
 5. [SSL/TLS Configuration](#ssltls-configuration)
 6. [Authentication Setup](#authentication-setup)
 7. [Domain & DNS Setup](#domain--dns-setup)
@@ -45,7 +45,7 @@
 ### Software Dependencies
 
 - Docker Engine 24.0+
-- Apache 2.4+ with mod_proxy, mod_proxy_http, mod_proxy_wstunnel, mod_ssl, mod_rewrite
+- Apache 2.4+ with mod_delegate, mod_delegate_http, mod_delegate_wsCLEAN, mod_ssl, mod_rewrite
 - curl, git (optional)
 
 ---
@@ -157,7 +157,7 @@ EOF
 
 | Port | Use Case |
 |------|----------|
-| `50080` | Standard/recommended for reverse proxy setups |
+| `50080` | Standard/recommended for reverse delegate setups |
 | `50081`, `50082`... | Additional instances on same server |
 | `80` | Direct access (not recommended for production) |
 
@@ -193,17 +193,17 @@ Expected response: `HTTP/1.1 302 FOUND` with `Location: /login` (if auth enabled
 
 ---
 
-## Apache Reverse Proxy Configuration
+## Apache Reverse delegate Configuration
 
 ### Required Apache Modules
 
 ```bash
 # Debian/Ubuntu
-a2enmod proxy proxy_http proxy_wstunnel ssl rewrite headers
+a2enmod delegate delegate_http delegate_wsCLEAN ssl rewrite headers
 systemctl restart apache2
 
 # AlmaLinux/CentOS (usually pre-loaded)
-httpd -M | grep -E "proxy|rewrite|ssl"
+httpd -M | grep -E "delegate|rewrite|ssl"
 ```
 
 ### Configuration for Standard Apache (Debian/Ubuntu)
@@ -211,7 +211,7 @@ httpd -M | grep -E "proxy|rewrite|ssl"
 Create `/etc/apache2/sites-available/a0-instance.conf`:
 
 ```apache
-# Agent Zero Reverse Proxy Configuration
+# Agent Zero Reverse delegate Configuration
 # Instance: a0-instance
 # Domain: a0.example.com
 
@@ -225,7 +225,7 @@ Create `/etc/apache2/sites-available/a0-instance.conf`:
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </VirtualHost>
 
-# HTTPS - Proxy to Container
+# HTTPS - delegate to Container
 <VirtualHost *:443>
     ServerName a0.example.com
     ServerAlias www.a0.example.com
@@ -237,10 +237,10 @@ Create `/etc/apache2/sites-available/a0-instance.conf`:
     SSLCertificateKeyFile /path/to/private.key
     SSLCertificateChainFile /path/to/chain.crt
 
-    # Proxy Configuration
-    ProxyPreserveHost On
-    ProxyPass / http://127.0.0.1:50080/
-    ProxyPassReverse / http://127.0.0.1:50080/
+    # delegate Configuration
+    delegatePreserveHost On
+    delegatePass / http://127.0.0.1:50080/
+    delegatePassReverse / http://127.0.0.1:50080/
 
     # WebSocket Support (Required for real-time features)
     RewriteEngine On
@@ -269,7 +269,7 @@ systemctl reload apache2
 Edit `/etc/httpd/conf/extra/httpd-includes.conf`:
 
 ```apache
-# Agent Zero Proxy Configuration
+# Agent Zero delegate Configuration
 # Instance: a0-instance
 # Domain: a0.example.com
 # Note: Use specific IP, not wildcards, for DirectAdmin compatibility
@@ -293,9 +293,9 @@ Edit `/etc/httpd/conf/extra/httpd-includes.conf`:
     SSLCertificateFile /usr/local/directadmin/data/users/USERNAME/domains/example.com.cert.combined
     SSLCertificateKeyFile /usr/local/directadmin/data/users/USERNAME/domains/example.com.key
 
-    ProxyPreserveHost On
-    ProxyPass / http://127.0.0.1:50080/
-    ProxyPassReverse / http://127.0.0.1:50080/
+    delegatePreserveHost On
+    delegatePass / http://127.0.0.1:50080/
+    delegatePassReverse / http://127.0.0.1:50080/
 
     # WebSocket Support
     RewriteEngine On
@@ -453,7 +453,7 @@ Create an A record pointing to your server:
 1. Log into DirectAdmin
 2. Navigate to: **Domain Setup** → Select domain → **Subdomain Management**
 3. Create subdomain (e.g., `a0`)
-4. Note: You'll override the DocumentRoot with Apache proxy config
+4. Note: You'll override the DocumentRoot with Apache delegate config
 
 ### Verify DNS Propagation
 
@@ -485,7 +485,7 @@ curl -I http://127.0.0.1:50080/
 # 4. Test Apache config
 httpd -t   # or apache2ctl -t
 
-# 5. Check Apache is proxying correctly
+# 5. Check Apache is delegateing correctly
 curl -I http://127.0.0.1:80 -H "Host: a0.example.com"
 curl -Ik https://127.0.0.1:443 -H "Host: a0.example.com"
 
@@ -531,7 +531,7 @@ docker restart a0-instance
 
 ### Issue: 403 Forbidden
 
-**Cause:** DirectAdmin vhost overriding custom proxy config
+**Cause:** DirectAdmin vhost overriding custom delegate config
 
 **Fix:**
 ```bash
@@ -582,7 +582,7 @@ free -h
 
 ### Issue: WebSocket Connection Failed
 
-**Cause:** Missing WebSocket proxy rules
+**Cause:** Missing WebSocket delegate rules
 
 **Fix:**
 Ensure these lines are in your vhost config:

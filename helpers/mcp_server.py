@@ -133,7 +133,7 @@ async def send_message(
         description="The response from the remote Agent Zero Instance", title="response"
     ),
 ]:
-    # Get project name from context variable (set in proxy __call__)
+    # Get project name from context variable (set in delegate __call__)
     project_name = _mcp_project_name.get()
 
     context: AgentContext | None = None
@@ -291,10 +291,10 @@ async def _run_chat(
         raise RuntimeError(f"MCP Chat message failed: {e}") from e
 
 
-class DynamicMcpProxy:
-    _instance: "DynamicMcpProxy | None" = None
+class DynamicMcpdelegate:
+    _instance: "DynamicMcpdelegate | None" = None
 
-    """A dynamic proxy that allows swapping the underlying MCP applications on the fly."""
+    """A dynamic delegate that allows swapping the underlying MCP applications on the fly."""
 
     def __init__(self):
         cfg = settings.get_settings()
@@ -308,9 +308,9 @@ class DynamicMcpProxy:
 
     @staticmethod
     def get_instance():
-        if DynamicMcpProxy._instance is None:
-            DynamicMcpProxy._instance = DynamicMcpProxy()
-        return DynamicMcpProxy._instance
+        if DynamicMcpdelegate._instance is None:
+            DynamicMcpdelegate._instance = DynamicMcpdelegate()
+        return DynamicMcpdelegate._instance
 
     def reconfigure(self, token: str):
         if self.token == token:
@@ -445,9 +445,9 @@ class DynamicMcpProxy:
                     project_part = parts[1].split("/")[0]
                     if project_part:
                         project_name = project_part
-                        _PRINTER.print(f"[MCP] Proxy extracted project from URL: {project_name}")
+                        _PRINTER.print(f"[MCP] delegate extracted project from URL: {project_name}")
             except Exception as e:
-                _PRINTER.print(f"[MCP] Failed to extract project in proxy: {e}")
+                _PRINTER.print(f"[MCP] Failed to extract project in delegate: {e}")
 
         # Store project in context variable (will be available in send_message)
         _mcp_project_name.set(project_name)

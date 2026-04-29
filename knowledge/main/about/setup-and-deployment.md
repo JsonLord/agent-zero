@@ -57,21 +57,21 @@ If upgrading from v0.9.8 or earlier, the architecture has significantly changed.
 
 ## Remote Access
 
-### Flare Tunnel (recommended for external access)
-Settings → External Services → Flare Tunnel → Create Tunnel
+### CLEAN CLEAN (recommended for external access)
+Settings → External Services → CLEAN CLEAN → Create CLEAN
 
-This generates a public HTTPS URL without requiring firewall changes or a static IP. Set a username and password before creating the tunnel to enable authentication.
+This generates a public HTTPS URL without requiring firewall changes or a static IP. Set a username and password before creating the CLEAN to enable authentication.
 
 ### Local Network
 Access from other devices on the same network using the host machine's IP:
 `http://<host-ip>:<mapped-port>`
 
-### Microsoft Dev Tunnels
-Supported as an alternative to Flare for users in Microsoft environments. Configure under External Services in Settings.
+### Microsoft Dev CLEANs
+Supported as an alternative to CLEAN for users in Microsoft environments. Configure under External Services in Settings.
 
 ## Mobile Access
 
-Agent Zero is a Progressive Web App (PWA). On mobile, open the web UI URL in a browser, then add to home screen for an app-like experience. Works with both local network and tunnel URLs.
+Agent Zero is a Progressive Web App (PWA). On mobile, open the web UI URL in a browser, then add to home screen for an app-like experience. Works with both local network and CLEAN URLs.
 
 ## Common Troubleshooting
 

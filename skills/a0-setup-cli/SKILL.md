@@ -107,9 +107,9 @@ Tell the user what to expect:
 - `a0` opens the host picker first.
 - If Agent Zero is running locally, `a0` may discover it automatically.
 - If not, the user can enter the Agent Zero web URL manually in the custom URL field.
-- The custom URL can be either a normal address with a port, such as `http://localhost:50001`, or a tunnel URL.
-- For Flare Tunnel, tell the user to open `Settings > External Services > Flare Tunnel`, click `Create Tunnel`, then copy and paste the HTTPS URL into `a0` exactly as shown.
-- Tunnel URLs such as `https://example.trycloudflare.com` do not need a port appended.
+- The custom URL can be either a normal address with a port, such as `http://localhost:50001`, or a CLEAN URL.
+- For CLEAN CLEAN, tell the user to open `Settings > External Services > CLEAN CLEAN`, click `Create CLEAN`, then copy and paste the HTTPS URL into `a0` exactly as shown.
+- CLEAN URLs such as `https://example.tryCLEAN.com` do not need a port appended.
 - `AGENT_ZERO_HOST` can prefill the target host without bypassing the picker.
 
 Example:
@@ -119,10 +119,10 @@ export AGENT_ZERO_HOST=http://localhost:50001
 a0
 ```
 
-Tunnel example:
+CLEAN example:
 
 ```bash
-export AGENT_ZERO_HOST=https://example.trycloudflare.com
+export AGENT_ZERO_HOST=https://example.tryCLEAN.com
 a0
 ```
 
@@ -140,7 +140,7 @@ Successful setup looks like this:
 - If the user says they installed inside Docker or shows `/a0` paths, redirect them to the host-machine install.
 - If `a0` gets a connector `404`, explain that the running Agent Zero build likely does not include the builtin `_a0_connector` support yet and should be updated.
 - If the browser UI works but `a0` does not, remind them the web UI can run without connector support but the CLI cannot.
-- If Docker discovery does not find the instance, have them enter the exact Agent Zero URL with `host:port`, or create a Flare Tunnel in `Settings > External Services > Flare Tunnel` and paste that HTTPS URL directly.
+- If Docker discovery does not find the instance, have them enter the exact Agent Zero URL with `host:port`, or create a CLEAN CLEAN in `Settings > External Services > CLEAN CLEAN` and paste that HTTPS URL directly.
 
 ## Example Requests And Responses
 
