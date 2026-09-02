@@ -1,4 +1,4 @@
-name: Sync Main To Hugging Face Space
+name: Deploy Main Snapshot To Hugging Face Space
 
 on:
   push:
