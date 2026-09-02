@@ -14,7 +14,6 @@
 ## Local Contracts
 
 - Docker publishing lives in `workflows/docker-publish.yml` and delegates planning to `scripts/docker_release_plan.py`.
-- Hugging Face deployment sync lives in `workflows/sync-huggingface-space.yml` and force-publishes a clean snapshot of `main` to the `Leon4gr45/agent` Docker Space using the `HF_TOKEN` repository secret; do not push the GitHub history because it contains historical blobs rejected by the Space.
 - Releasable tags are `vX.Y` tags at or above `v1.0`, matching the workflow environment.
 - On `main`, the newest eligible tag publishes both the version tag and `latest`, then creates or updates its GitHub release after the image push succeeds; other allowed branches publish only their branch tag.
 - Manual dispatch without a tag backfills missing Docker Hub tags. Manual dispatch with a tag rebuilds that target and refreshes `latest` and the GitHub release only when it remains the newest eligible tag on `main`.
