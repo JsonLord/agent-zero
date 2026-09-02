@@ -1,0 +1,56 @@
+name: Sync Main To Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: huggingface-space-leon4gr45-agent
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          # The Space receives a clean deployment snapshot, not GitHub history.
+          # Historical blobs in this repository exceed Hugging Face's limits.
+          fetch-depth: 1
+
+      - name: Validate Hugging Face token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [[ -z "$HF_TOKEN" ]]; then
+            echo "::error::Add a write-scoped HF_TOKEN repository secret."
+            exit 1
+          fi
+
+      - name: Create clean Space snapshot
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          snapshot="$RUNNER_TEMP/huggingface-space"
+          mkdir -p "$snapshot"
+          git archive --format=tar HEAD | tar -xf - -C "$snapshot"
+
+          git -C "$snapshot" init --initial-branch=main
+          git -C "$snapshot" config user.name "github-actions[bot]"
+          git -C "$snapshot" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$snapshot" add --all
+          git -C "$snapshot" commit -m "Deploy GitHub main at ${SOURCE_SHA}"
+
+      - name: Push snapshot to the Docker Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          snapshot="$RUNNER_TEMP/huggingface-space"
+          git -C "$snapshot" remote add huggingface "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/Leon4gr45/agent"
+          git -C "$snapshot" push --force huggingface main:main

@@ -11,6 +11,7 @@
 - `docker-compose.yml` owns the local compose service example.
 - `build.txt` owns maintainer build and push command notes.
 - `fs/exe/` owns runtime entrypoint, supervisor, self-update, Node eval, and service scripts.
+- `fs/exe/huggingface-entrypoint.sh` owns Space-specific startup defaults, including disabling outbound Cloudflare tunnels and enabling A2A.
 - `fs/ins/` owns preinstall, installation, virtualenv, Playwright, SSH, and postinstall scripts.
 - Files under `fs/` are copied to container root during the runtime build.
 

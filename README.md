@@ -1,3 +1,13 @@
+---
+title: Agent Zero
+emoji: 🤖
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 <div align="center">
 
 <img src="docs/res/a0-vector-graphics/horizontal_banner.svg" alt="Agent Zero Banner" width="100%"/>
@@ -102,6 +112,28 @@ Open the Web UI, configure your LLM provider, and start with a concrete task. Fo
 - **Port 80 is already in use:** use the Launcher to pick another port, or run Docker directly with `-p 5080:80` and open `http://localhost:5080`.
 - **Installing on a server:** use the A0 Install Quick Start command with `--quick-start --name agent-zero --port 5080`.
 - **Still blocked:** see the [Troubleshooting guide](./docs/guides/troubleshooting.md).
+
+## Hugging Face Space Deployment
+
+This repository is configured as a Docker Space on port `7860`. Every push to
+`main` publishes a clean source snapshot to
+[`Leon4gr45/agent`](https://huggingface.co/spaces/Leon4gr45/agent) through the
+`Sync Main To Hugging Face Space` workflow. The snapshot intentionally excludes
+the GitHub commit history, which contains obsolete large media rejected by the
+Hugging Face pre-receive hook. Add a write-scoped Hugging Face user access token
+as the GitHub repository secret `HF_TOKEN`; do not commit the token.
+
+The Space is published at `https://leon4gr45-agent.hf.space`. Its deployment
+entrypoint enables the authenticated A2A server and the webhook-compatible
+incoming API while leaving Cloudflare tunneling disabled:
+
+- A2A: `https://leon4gr45-agent.hf.space/a2a/t-YOUR_API_TOKEN`
+- Incoming messages: `POST https://leon4gr45-agent.hf.space/api_message`
+
+Both integrations use the API token displayed in **Settings > External
+Services**. Send it as `X-API-KEY` for `/api_message`; keep it in a Hugging Face
+Space secret or the calling service's secret store. Set Web UI credentials and
+LLM-provider keys through Space secrets or the Web UI before production use.
 
 # Try These First
 
