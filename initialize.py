@@ -68,8 +68,7 @@ def initialize_job_loop():
 
 @extension.extensible
 def initialize_preload():
-    import preload
-    return defer.DeferredTask().start_task(preload.preload)
+    pass
 
 @extension.extensible
 def initialize_migration():

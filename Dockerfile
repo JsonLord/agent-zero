@@ -17,7 +17,8 @@ RUN mkdir -p /a0/usr /a0/logs /a0/tmp /a0/exe /a0/ins /a0/per && \
 
 # Install dependencies into the primary virtual environment
 RUN /opt/venv-a0/bin/pip install --upgrade pip && \
-    /opt/venv-a0/bin/pip install --no-cache-dir python-dotenv litellm PyYAML webcolors simpleeval flask-basicauth flask-socketio
+    /opt/venv-a0/bin/pip uninstall -y torchvision && \
+    /opt/venv-a0/bin/pip install --no-cache-dir "torch>=2.5.0" "sentence-transformers==3.0.1" -r /a0/requirements.txt
 
 COPY --chown=user:user docker/hf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 

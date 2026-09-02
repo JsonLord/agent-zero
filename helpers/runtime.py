@@ -28,8 +28,10 @@ def initialize():
     parser.add_argument("--port", type=int, default=None, help="Web UI port")
     parser.add_argument("--host", type=str, default=None, help="Web UI host")
     parser.add_argument(
+        "--dockerized",
         type=bool,
         default=False,
+        help="Dockerized mode"
     )
     parser.add_argument(
         "--development", type=bool, default=False, help="Development mode"
