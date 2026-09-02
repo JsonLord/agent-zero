@@ -11,25 +11,12 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Disable legacy Git push workflow
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # The legacy workflow pushes Git objects directly, which Hugging Face
-          # now rejects when the tree contains binary assets. This snapshot/Xet
-          # workflow replaces it.
-          gh api \
-            --method PUT \
-            "repos/${GITHUB_REPOSITORY}/actions/workflows/sync-huggingface-space.yml/disable" \
-            --silent || true
-
       - name: Check out main
         uses: actions/checkout@v4
         with:
