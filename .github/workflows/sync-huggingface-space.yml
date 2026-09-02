@@ -1,0 +1,39 @@
+name: Sync Main To Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: huggingface-space-leon4gr45-agent
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Hugging Face token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [[ -z "$HF_TOKEN" ]]; then
+            echo "::error::Add a write-scoped HF_TOKEN repository secret."
+            exit 1
+          fi
+
+      - name: Mirror main to the Docker Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add huggingface "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/Leon4gr45/agent"
+          git push --force huggingface HEAD:main
