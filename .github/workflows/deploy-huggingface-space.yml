@@ -41,28 +41,8 @@ jobs:
           mkdir -p "$snapshot"
           git archive --format=tar HEAD | tar -xf - -C "$snapshot"
 
-          # Hugging Face reads Space configuration from README frontmatter. Add
-          # it only to the deployment snapshot so upstream README updates do
-          # not conflict with this deployment branch.
-          python3 - "$snapshot/README.md" <<'PY'
-          from pathlib import Path
-          import sys
-
-          readme = Path(sys.argv[1])
-          content = readme.read_text(encoding="utf-8")
-          metadata = """---
-          title: Agent Zero
-          emoji: 🤖
-          colorFrom: indigo
-          colorTo: blue
-          sdk: docker
-          app_port: 7860
-          pinned: false
-          ---
-
-          """
-          readme.write_text(metadata + content, encoding="utf-8")
-          PY
+          # README.md already carries the Space frontmatter (title/sdk/app_port),
+          # so the snapshot is pushed as-is; nothing to inject here.
 
           git -C "$snapshot" init --initial-branch=main
           git -C "$snapshot" config user.name "github-actions[bot]"
