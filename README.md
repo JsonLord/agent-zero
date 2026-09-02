@@ -4,7 +4,7 @@ emoji: 🤖
 colorFrom: indigo
 colorTo: blue
 sdk: docker
-app_port: 7860
+app_port: 80
 pinned: false
 ---
 
@@ -115,7 +115,8 @@ Open the Web UI, configure your LLM provider, and start with a concrete task. Fo
 
 ## Hugging Face Space Deployment
 
-This repository is configured as a Docker Space on port `7860`. Every push to
+This repository is configured as a Docker Space on port `80`, matching the
+port Agent Zero's Docker runtime always binds to. Every push to
 `main` is mirrored to [`Leon4gr45/agent`](https://huggingface.co/spaces/Leon4gr45/agent)
 by the `Deploy Main Snapshot To Hugging Face Space` workflow. Add a write-scoped Hugging
 Face user access token as the GitHub repository secret `HF_TOKEN`; do not commit
