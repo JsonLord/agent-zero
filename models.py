@@ -653,6 +653,11 @@ class LocalSentenceTransformerWrapper(Embeddings):
         }
         st_kwargs = {k: v for k, v in (kwargs or {}).items() if k in st_allowed_keys}
 
+        # Ensure model_kwargs specifies low_cpu_mem_usage=False to prevent meta tensor errors on CPU/Hugging Face Spaces
+        model_kwargs = dict(st_kwargs.get("model_kwargs") or {})
+        model_kwargs.setdefault("low_cpu_mem_usage", False)
+        st_kwargs["model_kwargs"] = model_kwargs
+
         self.model = SentenceTransformer(model, **st_kwargs)
         self.model_name = model
         self.a0_model_conf = model_config
