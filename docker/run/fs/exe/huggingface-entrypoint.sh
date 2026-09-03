@@ -26,5 +26,5 @@ settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8"
 PY
 
 echo "Space URL: ${A0_PUBLIC_URL:-https://leon4gr45-agent.hf.space}"
-echo "A2A enabled at /a2a; authenticated incoming API enabled at /api_message."
+echo "A2A enabled at /a2a; authenticated incoming API enabled at /api/api_message."
 exec /exe/initialize.sh "${BRANCH:-local}"

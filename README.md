@@ -117,7 +117,7 @@ Open the Web UI, configure your LLM provider, and start with a concrete task. Fo
 
 This repository is configured as a Docker Space on port `7860`. Every push to
 `main` is mirrored to [`Leon4gr45/agent`](https://huggingface.co/spaces/Leon4gr45/agent)
-by the `Sync Main To Hugging Face Space` workflow. Add a write-scoped Hugging
+by the `Deploy Main Snapshot To Hugging Face Space` workflow. Add a write-scoped Hugging
 Face user access token as the GitHub repository secret `HF_TOKEN`; do not commit
 the token.
 
@@ -126,7 +126,7 @@ entrypoint enables the authenticated A2A server and the webhook-compatible
 incoming API while leaving Cloudflare tunneling disabled:
 
 - A2A: `https://leon4gr45-agent.hf.space/a2a/t-YOUR_API_TOKEN`
-- Incoming messages: `POST https://leon4gr45-agent.hf.space/api_message`
+- Incoming messages: `POST https://leon4gr45-agent.hf.space/api/api_message`
 
 Both integrations use the API token displayed in **Settings > External
 Services**. Send it as `X-API-KEY` for `/api_message`; keep it in a Hugging Face

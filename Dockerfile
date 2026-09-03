@@ -1,5 +1,8 @@
 # Hugging Face Spaces Docker SDK image.
-# Keep this build aligned with DockerfileLocal while binding the public Space port directly.
+# Keep this build aligned with DockerfileLocal while binding the public Space
+# port directly. Hugging Face requires app_port >= 1025, so the UI is started
+# on 7860 via WEB_UI_PORT (docker-run-ui reads this instead of its normal
+# port-80 default; see docker/run/fs/exe/self_update_manager.py).
 FROM agent0ai/agent-zero-base:latest
 
 ARG BRANCH=local

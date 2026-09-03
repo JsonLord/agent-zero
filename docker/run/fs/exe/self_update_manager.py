@@ -31,9 +31,10 @@ REPO_DIR = Path("/a0")
 TRIGGER_FILE = Path("/exe/a0-self-update.yaml")
 STATUS_FILE = Path("/exe/a0-self-update-status.yaml")
 LOG_FILE = Path("/exe/a0-self-update.log")
+UI_PORT = os.environ.get("WEB_UI_PORT", "80")
 DEFAULT_HEALTH_URL = os.environ.get(
     "A0_SELF_UPDATE_HEALTH_URL",
-    "http://127.0.0.1:80/api/health",
+    f"http://127.0.0.1:{UI_PORT}/api/health",
 )
 DEFAULT_HEALTH_TIMEOUT_SECONDS = int(
     os.environ.get("A0_SELF_UPDATE_HEALTH_TIMEOUT_SECONDS", "180")
@@ -949,7 +950,7 @@ def launch_ui_process(repo_dir: Path, logger: AttemptLogger) -> subprocess.Popen
             sys.executable,
             str(repo_dir / "run_ui.py"),
             "--dockerized=true",
-            "--port=80",
+            f"--port={UI_PORT}",
             "--host=0.0.0.0",
         ],
         cwd=repo_dir,
