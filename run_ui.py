@@ -73,8 +73,19 @@ def create_flush_callback():
 
 @extension.extensible
 def init_a0():
+    PrintStyle().print("Loading saved chats...")
     init_chats = initialize.initialize_chats()
-    init_chats.result_sync()
+    try:
+        # Chat restore normally finishes in well under a second; a bound here
+        # keeps a stuck restore (bad/huge tmp state, a wedged background event
+        # loop, etc.) from silently hanging the whole startup forever -- there
+        # is no watchdog protecting this stage yet, unlike the uvicorn phase
+        # that follows.
+        init_chats.result_sync(timeout=60)
+    except TimeoutError:
+        PrintStyle.error(
+            "Loading saved chats timed out after 60s; continuing startup without them."
+        )
 
     initialize.initialize_mcp()
     initialize.initialize_job_loop()
