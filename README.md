@@ -126,7 +126,7 @@ entrypoint enables the authenticated A2A server and the webhook-compatible
 incoming API while leaving Cloudflare tunneling disabled:
 
 - A2A: `https://leon4gr45-agent.hf.space/a2a/t-YOUR_API_TOKEN`
-- Incoming messages: `POST https://leon4gr45-agent.hf.space/api_message`
+- Incoming messages: `POST https://leon4gr45-agent.hf.space/api/api_message`
 
 Both integrations use the API token displayed in **Settings > External
 Services**. Send it as `X-API-KEY` for `/api_message`; keep it in a Hugging Face

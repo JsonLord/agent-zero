@@ -24,11 +24,11 @@ Common external endpoints include:
 
 | Endpoint | Use it for |
 | --- | --- |
-| `POST /api_message` | Send a message to Agent Zero. |
-| `GET/POST /api_log_get` | Read chat logs. |
-| `POST /api_terminate_chat` | Stop a running chat. |
-| `POST /api_reset_chat` | Reset a chat. |
-| `POST /api_files_get` | Retrieve files. |
+| `POST /api/api_message` | Send a message to Agent Zero. |
+| `GET/POST /api/api_log_get` | Read chat logs. |
+| `POST /api/api_terminate_chat` | Stop a running chat. |
+| `POST /api/api_reset_chat` | Reset a chat. |
+| `POST /api/api_files_get` | Retrieve files. |
 
 External API calls use the `X-API-KEY` header.
 
