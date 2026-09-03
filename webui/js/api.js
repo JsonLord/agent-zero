@@ -217,9 +217,14 @@ export async function getCsrfToken() {
           : null;
       const cookieRuntimeId = runtimeId || injectedRuntimeId;
       if (cookieRuntimeId) {
-        const _secureFlag =
-          window.location.protocol === "https:" ? "; Secure" : "";
-        document.cookie = `csrf_token_${cookieRuntimeId}=${csrfToken}; SameSite=Lax; Path=/${_secureFlag}`;
+        // Hosts like Hugging Face render the app inside a cross-site iframe,
+        // where a SameSite=Lax cookie is dropped. SameSite=None (paired with
+        // Secure, which HTTPS requires anyway) keeps it working there while
+        // CSRF protection still comes from the token check itself.
+        const isHttps = window.location.protocol === "https:";
+        const _sameSite = isHttps ? "None" : "Lax";
+        const _secureFlag = isHttps ? "; Secure" : "";
+        document.cookie = `csrf_token_${cookieRuntimeId}=${csrfToken}; SameSite=${_sameSite}; Path=/${_secureFlag}`;
       } else {
         console.warn("CSRF runtime id missing; skipping cookie name binding.");
       }
