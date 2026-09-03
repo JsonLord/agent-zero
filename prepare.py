@@ -30,6 +30,40 @@ def _apply_space_secrets() -> None:
         PrintStyle.standard(f"Applied {env_name} secret to {dotenv_key}.")
 
 
+def _apply_default_compatible_model() -> None:
+    """Point the "Default" model preset at an OpenAI-compatible endpoint
+    named by Space secrets, without touching a preset file a user already
+    customized (including one this function wrote on an earlier boot)."""
+    url = os.environ.get("COMPATIBLE_URL")
+    model = os.environ.get("COMPATIBLE_MODEL")
+    if not url or not model:
+        return
+
+    from helpers import files
+    from plugins._model_config.helpers import model_config
+
+    presets_path = model_config._get_presets_path()
+    if files.exists(presets_path):
+        return
+
+    presets = model_config.get_presets()
+    for preset in presets:
+        if str(preset.get("name") or "").strip() != model_config.DEFAULT_PRESET_NAME:
+            continue
+        for slot in ("chat", "utility"):
+            slot_cfg = preset.get(slot)
+            if isinstance(slot_cfg, dict):
+                slot_cfg["provider"] = "other"
+                slot_cfg["name"] = model
+                slot_cfg["api_base"] = url
+        break
+
+    model_config.save_presets(presets)
+    PrintStyle.standard(
+        f"Applied COMPATIBLE_URL/COMPATIBLE_MODEL secrets to the Default model preset ({model})."
+    )
+
+
 def _retire_legacy_collabora_runtime() -> None:
     if not any(arg.lower() == "--dockerized=true" for arg in sys.argv):
         return
@@ -56,6 +90,7 @@ try:
     runtime.initialize()
 
     _apply_space_secrets()
+    _apply_default_compatible_model()
 
     # generate random root password if not set (for SSH)
     root_pass = dotenv.get_dotenv_value(dotenv.KEY_ROOT_PASSWORD)
