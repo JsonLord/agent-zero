@@ -541,10 +541,15 @@ def _write_sensitive_settings(settings: Settings):
         dotenv.save_dotenv_value(dotenv.KEY_AUTH_PASSWORD, settings["auth_password"])
     if settings["rfc_password"] != PASSWORD_PLACEHOLDER:
         dotenv.save_dotenv_value(dotenv.KEY_RFC_PASSWORD, settings["rfc_password"])
-    if settings["root_password"] != PASSWORD_PLACEHOLDER:
+    if settings["root_password"] and settings["root_password"] != PASSWORD_PLACEHOLDER:
         if runtime.is_dockerized():
-            dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
-            set_root_password(settings["root_password"])
+            try:
+                set_root_password(settings["root_password"])
+                dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
+            except Exception as e:
+                # A non-root container (e.g. some Hugging Face Space images) cannot run
+                # chpasswd. Don't let that block saving the rest of the settings.
+                PrintStyle.error(f"Failed to set root password: {e}")
 
     # Handle secrets separately - merge with existing preserving comments/order and support deletions
     secrets_manager = get_default_secrets_manager()
