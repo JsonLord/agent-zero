@@ -75,6 +75,20 @@
                 :name="$store.browserPage.annotating ? 'rate_review' : 'edit_note'"></x-icon>
               <span x-text="$store.browserPage.annotating ? 'Annotating' : 'Annotate'"></span>
             </button>
+            <button type="button" class="btn btn-icon-action browser-cursor-toggle"
+              title="Show pointer" aria-label="Show pointer"
+              :aria-pressed="$store.browserPage.showCursor.toString()"
+              :class="{ 'is-active': $store.browserPage.showCursor }"
+              @click="$store.browserPage.toggleCursorOverlay()">
+              <x-icon aria-hidden="true" name="mouse"></x-icon>
+            </button>
+            <button type="button" class="btn btn-icon-action browser-magnifier-toggle"
+              title="Pointer magnifier" aria-label="Pointer magnifier"
+              :aria-pressed="$store.browserPage.showMagnifier.toString()"
+              :class="{ 'is-active': $store.browserPage.showMagnifier }"
+              @click="$store.browserPage.toggleMagnifier()">
+              <x-icon aria-hidden="true" name="zoom_in"></x-icon>
+            </button>
             <div class="browser-extension-menu" @click.outside="$store.browserPage.closeExtensionsMenu()"
               @keydown.escape.window="$store.browserPage.closeExtensionsMenu()">
               <button type="button" class="btn btn-icon-action browser-extensions" title="Browser settings"
@@ -190,7 +204,10 @@
         </div>
 
         <div class="browser-stage" tabindex="0" @click="$el.focus()"
-          :class="{ 'is-annotating': $store.browserPage.annotating }"
+          :class="{
+            'is-annotating': $store.browserPage.annotating,
+            'has-magnifier': $store.browserPage.showMagnifier && !$store.browserPage.usesInteractiveTransport(),
+          }"
           @wheel.prevent="$store.browserPage.handleStageWheel($event)">
           <template x-if="$store.browserPage.isInteractiveSurface($el.parentElement)">
             <iframe class="browser-interactive-frame"
@@ -208,6 +225,10 @@
             <img class="browser-frame browser-frame-image" :src="$store.browserPage.frameSrc"
               @click="$store.browserPage.sendMouse('click', $event)"
               @mousemove.throttle.250ms="$store.browserPage.sendMouse('move', $event)" draggable="false" />
+          </template>
+          <canvas class="browser-magnifier-canvas" aria-label="Pointer magnifier"></canvas>
+          <template x-if="$store.browserPage.showCursor && $store.browserPage.cursorLabel()">
+            <div class="browser-cursor-readout" x-text="$store.browserPage.cursorLabel()"></div>
           </template>
 	          <template x-if="$store.browserPage.annotating && $store.browserPage.hasFrame()">
 	            <div class="browser-annotation-layer"
@@ -1068,6 +1089,46 @@
       image-rendering: auto;
       user-select: none;
       background: #fff;
+    }
+
+    /* With the magnifier open the stage becomes two panes side by side. */
+    .browser-stage.has-magnifier .browser-frame {
+      width: 62%;
+    }
+
+    .browser-magnifier-canvas {
+      display: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 38%;
+      height: 100%;
+      box-sizing: border-box;
+      border-left: 1px solid rgba(0, 0, 0, 0.18);
+      background: #0b0b0c;
+      image-rendering: pixelated;
+      z-index: 3;
+    }
+
+    .browser-stage.has-magnifier .browser-magnifier-canvas {
+      display: block;
+    }
+
+    .browser-cursor-readout {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      z-index: 14;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #fff;
+      background: rgba(17, 17, 19, 0.72);
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .browser-interactive-frame {

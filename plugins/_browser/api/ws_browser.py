@@ -788,6 +788,12 @@ class WsBrowser(WsHandler):
             "mime": frame.get("mime") or "image/jpeg",
             "frame_source": VIEWER_TRANSPORT_SCREENCAST,
             "viewer_transport": VIEWER_TRANSPORT_SCREENCAST,
+            # Pointer position captured with this frame. Rides on the frame
+            # rather than the 0.75s state refresh so the overlay tracks live.
+            "cursor": frame.get("cursor"),
+            # CSS-pixel viewport the cursor coordinates are relative to. Frames
+            # may be captured at another scale, so the viewer needs both.
+            "viewport": WsBrowser._frame_viewport(frame.get("metadata")),
         }
         dimensions = WsBrowser._frame_dimensions(frame.get("metadata"))
         if dimensions:
@@ -803,6 +809,19 @@ class WsBrowser(WsHandler):
             payload["image"] = image
             payload["encoding"] = "base64"
         return payload
+
+    @staticmethod
+    def _frame_viewport(metadata: Any) -> dict[str, int] | None:
+        if not isinstance(metadata, dict):
+            return None
+        try:
+            width = int(metadata.get("expectedWidth") or 0)
+            height = int(metadata.get("expectedHeight") or 0)
+        except (TypeError, ValueError):
+            return None
+        if width > 0 and height > 0:
+            return {"width": width, "height": height}
+        return None
 
     @staticmethod
     def _frame_dimensions(metadata: Any) -> dict[str, int]:

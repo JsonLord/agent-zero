@@ -375,6 +375,9 @@ class BrowserPage:
     id: int
     page: Any
     context_id: str = ""
+    # Last pointer position placed on this page. Playwright exposes no cursor
+    # getter, so every mouse call records its own destination here.
+    cursor: dict[str, Any] | None = None
 
 
 class _BrowserScreencast:
@@ -385,11 +388,13 @@ class _BrowserScreencast:
         browser_id: int,
         session: Any,
         mime: str,
+        cursor_provider: Any | None = None,
     ):
         self.id = stream_id
         self.browser_id = browser_id
         self.session = session
         self.mime = mime
+        self.cursor_provider = cursor_provider
         self.frame_consumer: Any | None = None
         self.stop_callback: Any | None = None
         self.queue = asyncio.Queue(maxsize=1)
@@ -494,6 +499,14 @@ class _BrowserScreencast:
         with contextlib.suppress(Exception):
             await self.session.detach()
 
+    def _current_cursor(self) -> dict[str, Any] | None:
+        if not self.cursor_provider:
+            return None
+        try:
+            return self.cursor_provider()
+        except Exception:
+            return None
+
     def _on_frame(self, params: dict[str, Any]) -> None:
         if self.stopped:
             return
@@ -519,6 +532,7 @@ class _BrowserScreencast:
                         "mime": self.mime,
                         "image": data,
                         "metadata": metadata,
+                        "cursor": self._current_cursor(),
                     }
                 )
         except asyncio.CancelledError:
@@ -1758,6 +1772,9 @@ class _BrowserRuntimeCore:
                         await page.keyboard.down(mod)
                         pressed.append(mod)
                     await page.mouse.click(cx, cy)
+                    self._note_cursor(
+                        resolved_id, cx, cy, selector=box_selector, ref=reference_id
+                    )
                 finally:
                     for mod in reversed(pressed):
                         with contextlib.suppress(Exception):
@@ -2055,6 +2072,7 @@ class _BrowserRuntimeCore:
             browser_id=resolved_id,
             session=session,
             mime="image/jpeg",
+            cursor_provider=lambda: self._cursor_for(resolved_id),
         )
         self.screencasts[stream_id] = screencast
         try:
@@ -2279,6 +2297,10 @@ class _BrowserRuntimeCore:
             offset_y=offset_y,
         )
         await page.mouse.move(float(point["x"]), float(point["y"]))
+        self._note_cursor(
+            resolved_id, point["x"], point["y"],
+            selector=point.get("selector"), ref=ref,
+        )
         self._maybe_promote(resolved_id)
         return {
             "action": {
@@ -2318,6 +2340,10 @@ class _BrowserRuntimeCore:
                     await page.keyboard.down(mod)
                     pressed.append(mod)
             await page.mouse.dblclick(float(point["x"]), float(point["y"]), button=button or "left")
+            self._note_cursor(
+                resolved_id, point["x"], point["y"],
+                selector=point.get("selector"), ref=ref,
+            )
         finally:
             for mod in reversed(pressed):
                 with contextlib.suppress(Exception):
@@ -2363,6 +2389,10 @@ class _BrowserRuntimeCore:
                     await page.keyboard.down(mod)
                     pressed.append(mod)
             await page.mouse.click(float(point["x"]), float(point["y"]), button="right")
+            self._note_cursor(
+                resolved_id, point["x"], point["y"],
+                selector=point.get("selector"), ref=ref,
+            )
         finally:
             for mod in reversed(pressed):
                 with contextlib.suppress(Exception):
@@ -2416,6 +2446,10 @@ class _BrowserRuntimeCore:
         await page.mouse.down()
         await page.mouse.move(float(end_point["x"]), float(end_point["y"]), steps=12)
         await page.mouse.up()
+        self._note_cursor(
+            resolved_id, end_point["x"], end_point["y"],
+            selector=end_point.get("selector"),
+        )
         await self._settle(page, short=True)
         self._maybe_promote(resolved_id)
         return {
@@ -2538,6 +2572,7 @@ class _BrowserRuntimeCore:
         page = self._page(resolved_id)
         if event_type_lower == "move":
             await page.mouse.move(float(x), float(y))
+            self._note_cursor(resolved_id, x, y)
         elif event_type_lower == "down":
             await page.mouse.down(button=button)
         elif event_type_lower == "up":
@@ -2550,6 +2585,7 @@ class _BrowserRuntimeCore:
                         await page.keyboard.down(mod)
                         pressed.append(mod)
                 await page.mouse.click(float(x), float(y), button=button)
+                self._note_cursor(resolved_id, x, y)
             finally:
                 for mod in reversed(pressed):
                     with contextlib.suppress(Exception):
@@ -2571,6 +2607,7 @@ class _BrowserRuntimeCore:
         page = self._page(resolved_id)
         await page.mouse.move(float(x), float(y))
         await page.mouse.wheel(float(delta_x), float(delta_y))
+        self._note_cursor(resolved_id, x, y)
         self._maybe_promote(resolved_id)
         return await self._state(resolved_id)
 
@@ -2704,6 +2741,38 @@ class _BrowserRuntimeCore:
             pass
         await asyncio.sleep(0.1 if short else 0.35)
 
+    def _note_cursor(
+        self,
+        browser_id: int | str | None,
+        x: float,
+        y: float,
+        *,
+        selector: str | None = None,
+        ref: int | str | None = None,
+    ) -> None:
+        """Record where a mouse call just placed the pointer.
+
+        The viewer draws its cursor from this and the agent reads it back
+        through page state, so both see the same position the page saw.
+        """
+        try:
+            browser_page = self.pages.get(int(browser_id))  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return
+        if not browser_page:
+            return
+        browser_page.cursor = {
+            "x": round(float(x), 1),
+            "y": round(float(y), 1),
+            "selector": selector or None,
+            "ref": ref if ref not in ("", None) else None,
+            "at": round(time.time(), 3),
+        }
+
+    def _cursor_for(self, browser_id: int) -> dict[str, Any] | None:
+        browser_page = self.pages.get(browser_id)
+        return browser_page.cursor if browser_page else None
+
     async def _state(self, browser_id: int) -> dict[str, Any]:
         browser_page = self.pages.get(int(browser_id))
         if not browser_page:
@@ -2728,6 +2797,7 @@ class _BrowserRuntimeCore:
             "canGoBack": bool(history_length and int(history_length) > 1),
             "canGoForward": False,
             "loading": False,
+            "cursor": browser_page.cursor,
         }
 
     def _register_page_locked(

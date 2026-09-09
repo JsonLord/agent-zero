@@ -69,6 +69,7 @@ Screenshot args include `quality`, `full_page`, and optional `path`. Without `pa
 - `key_chord` presses keys in order and releases in reverse.
 - `clipboard` actions are copy, cut, or paste.
 - `set_viewport` resizes the page viewport.
+- Page `state` reports `cursor` as `{x, y, selector, ref, at}` for the last pointer position, or `null` before anything has moved it. Use it to confirm where a `hover` or coordinate click actually landed, and which element ended up under the pointer, without taking a screenshot.
 
 ## Tabs And Popups
 

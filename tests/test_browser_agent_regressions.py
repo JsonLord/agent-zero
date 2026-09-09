@@ -1849,6 +1849,46 @@ def test_browser_viewer_frame_payload_supports_binary_slim_frames():
     assert "state" not in payload
 
 
+def test_browser_viewer_frame_payload_carries_cursor_and_viewport():
+    cursor = {"x": 120.5, "y": 88.0, "selector": "#buy", "ref": 4, "at": 1.0}
+    payload = ws_browser_module.WsBrowser._frame_payload(
+        {
+            "image": SMALL_JPEG_10X10,
+            "mime": "image/jpeg",
+            "metadata": {"expectedWidth": 900, "expectedHeight": 600},
+            "cursor": cursor,
+        },
+        context_id="ctx",
+        viewer_id="viewer",
+        browser_id=1,
+        sequence=1,
+        binary_frames=False,
+    )
+
+    # The viewer needs both the pointer and the viewport it is relative to,
+    # because frames may be captured at another scale.
+    assert payload["cursor"] == cursor
+    assert payload["viewport"] == {"width": 900, "height": 600}
+
+
+def test_browser_viewer_frame_payload_cursor_absent_when_untracked():
+    payload = ws_browser_module.WsBrowser._frame_payload(
+        {
+            "image": SMALL_JPEG_10X10,
+            "mime": "image/jpeg",
+            "metadata": {},
+        },
+        context_id="ctx",
+        viewer_id="viewer",
+        browser_id=1,
+        sequence=1,
+        binary_frames=False,
+    )
+
+    assert payload["cursor"] is None
+    assert payload["viewport"] is None
+
+
 def test_browser_viewer_frame_dimensions_reject_crops_but_allow_uniform_scaling():
     dimensions = ws_browser_module.WsBrowser._frame_dimensions
 
@@ -4582,6 +4622,68 @@ async def test_browser_runtime_ref_point_resolution_applies_offsets():
             "useOffsets": True,
         },
     }
+
+
+@pytest.mark.anyio
+async def test_browser_runtime_hover_records_cursor_for_viewer_and_agent():
+    class FakeMouse:
+        async def move(self, x, y, **kwargs):
+            return None
+
+    class FakePage:
+        url = "about:blank"
+
+        def __init__(self):
+            self.mouse = FakeMouse()
+
+        async def evaluate(self, script, payload=None, **kwargs):
+            if payload and "offsets" in payload:
+                return {
+                    "x": 42.0,
+                    "y": 17.0,
+                    "rect": {"x": 40, "y": 15, "width": 60, "height": 20},
+                    "selector": "#checkout",
+                }
+            return 1
+
+        async def title(self):
+            return "Blank"
+
+    core = _BrowserRuntimeCore("ctx")
+    core.context = object()
+    core.pages[7] = browser_runtime_module.BrowserPage(id=7, page=FakePage())
+    core._ensure_content_helper = lambda _page: asyncio.sleep(0)
+
+    await core.hover(7, ref=4)
+
+    # Playwright exposes no cursor getter, so the runtime remembers the move.
+    assert core.pages[7].cursor["x"] == 42.0
+    assert core.pages[7].cursor["y"] == 17.0
+    assert core.pages[7].cursor["selector"] == "#checkout"
+    assert core.pages[7].cursor["ref"] == 4
+
+    # Page state is what both the viewer and the agent read back.
+    state = await core._state(7)
+    assert state["cursor"] == core.pages[7].cursor
+
+
+@pytest.mark.anyio
+async def test_browser_runtime_state_cursor_is_none_before_any_pointer_move():
+    class FakePage:
+        url = "about:blank"
+
+        async def evaluate(self, script, payload=None, **kwargs):
+            return 1
+
+        async def title(self):
+            return "Blank"
+
+    core = _BrowserRuntimeCore("ctx")
+    core.context = object()
+    core.pages[3] = browser_runtime_module.BrowserPage(id=3, page=FakePage())
+
+    state = await core._state(3)
+    assert state["cursor"] is None
 
 
 def test_browser_runtime_upload_path_normalization(monkeypatch, tmp_path):

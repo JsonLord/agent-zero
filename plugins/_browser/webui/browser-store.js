@@ -186,6 +186,12 @@ const model = {
   frameSrc: "",
   frameCanvasReady: false,
   frameState: null,
+  // Pointer position reported by the runtime, in page CSS pixels.
+  cursor: null,
+  cursorViewport: null,
+  showCursor: true,
+  showMagnifier: false,
+  magnifierZoom: 2.5,
   viewerTransport: BROWSER_VIEWER_TRANSPORT_INTERACTIVE,
   interactiveViewUrl: "",
   viewerFallbackReason: "",
@@ -1262,6 +1268,12 @@ const model = {
         if (data.state) {
           this.frameState = data.state;
         }
+        if ("cursor" in data) {
+          this.cursor = data.cursor || null;
+        }
+        if (data.viewport?.width && data.viewport?.height) {
+          this.cursorViewport = data.viewport;
+        }
         if (!this.addressFocused && data.state?.currentUrl) {
           this.address = data.state.currentUrl;
         }
@@ -1514,6 +1526,132 @@ const model = {
     return Boolean(this.interactiveViewUrl || this.frameSrc || this.frameCanvasReady);
   },
 
+  // ── Pointer overlay ───────────────────────────────────────────────────────
+  // The screencast never contains the OS cursor - it is composited above the
+  // page - so the runtime reports where it put the pointer and we draw it.
+
+  activeCursor() {
+    // Screencast frames carry the cursor; snapshot transport carries it on state.
+    return this.cursor || this.frameState?.cursor || null;
+  },
+
+  cursorCanvasPoint(canvas) {
+    const cursor = this.activeCursor();
+    if (!cursor || !canvas?.width || !canvas?.height) return null;
+    const viewportWidth = Number(this.cursorViewport?.width) || 0;
+    const viewportHeight = Number(this.cursorViewport?.height) || 0;
+    // Frames may be captured at a different scale than the CSS viewport.
+    const scaleX = viewportWidth > 0 ? canvas.width / viewportWidth : 1;
+    const scaleY = viewportHeight > 0 ? canvas.height / viewportHeight : 1;
+    const x = Number(cursor.x) * scaleX;
+    const y = Number(cursor.y) * scaleY;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  },
+
+  cursorLabel() {
+    const cursor = this.activeCursor();
+    if (!cursor) return "";
+    const x = Math.round(Number(cursor.x) || 0);
+    const y = Math.round(Number(cursor.y) || 0);
+    const target = cursor.selector ? ` · ${cursor.selector}` : "";
+    return `${x}, ${y}${target}`;
+  },
+
+  drawCursorMark(context, x, y, radius) {
+    context.save();
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fillStyle = "rgba(255, 68, 68, 0.45)";
+    context.fill();
+    context.lineWidth = Math.max(2, radius / 4);
+    context.strokeStyle = "rgba(255, 255, 255, 0.95)";
+    context.stroke();
+    context.beginPath();
+    context.moveTo(x - radius * 1.9, y);
+    context.lineTo(x + radius * 1.9, y);
+    context.moveTo(x, y - radius * 1.9);
+    context.lineTo(x, y + radius * 1.9);
+    context.lineWidth = 1;
+    context.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    context.stroke();
+    context.restore();
+  },
+
+  paintCursorOverlay(context, canvas) {
+    if (!this.showCursor) return;
+    const point = this.cursorCanvasPoint(canvas);
+    if (!point) return;
+    this.drawCursorMark(
+      context,
+      point.x,
+      point.y,
+      Math.max(6, Math.round(canvas.width / 130)),
+    );
+  },
+
+  currentMagnifierCanvas() {
+    const canvas = this._stageElement?.querySelector?.(".browser-magnifier-canvas");
+    return canvas?.isConnected ? canvas : null;
+  },
+
+  paintMagnifier(bitmap, sourceCanvas) {
+    if (!this.showMagnifier) return;
+    const canvas = this.currentMagnifierCanvas();
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect?.();
+    const width = Math.max(1, Math.round(rect?.width || canvas.width || 1));
+    const height = Math.max(1, Math.round(rect?.height || canvas.height || 1));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const zoom = Math.max(1.2, Number(this.magnifierZoom) || 2.5);
+    const cropWidth = Math.min(bitmap.width, canvas.width / zoom);
+    const cropHeight = Math.min(bitmap.height, canvas.height / zoom);
+    const point = this.cursorCanvasPoint(sourceCanvas);
+    const centerX = point ? point.x : bitmap.width / 2;
+    const centerY = point ? point.y : bitmap.height / 2;
+    // Keep the crop inside the frame so the pane never shows dead space.
+    const cropX = Math.max(0, Math.min(bitmap.width - cropWidth, centerX - cropWidth / 2));
+    const cropY = Math.max(0, Math.min(bitmap.height - cropHeight, centerY - cropHeight / 2));
+
+    context.imageSmoothingEnabled = false;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      bitmap,
+      cropX, cropY, cropWidth, cropHeight,
+      0, 0, canvas.width, canvas.height,
+    );
+
+    if (this.showCursor && point) {
+      // Cursor sits wherever the clamped crop actually placed it.
+      this.drawCursorMark(
+        context,
+        (point.x - cropX) * (canvas.width / cropWidth),
+        (point.y - cropY) * (canvas.height / cropHeight),
+        Math.max(8, Math.round(canvas.width / 40)),
+      );
+    }
+  },
+
+  clearMagnifierCanvas() {
+    const canvas = this.currentMagnifierCanvas();
+    if (canvas?.width && canvas?.height) {
+      canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  },
+
+  toggleMagnifier() {
+    this.showMagnifier = !this.showMagnifier;
+    if (!this.showMagnifier) this.clearMagnifierCanvas();
+  },
+
+  toggleCursorOverlay() {
+    this.showCursor = !this.showCursor;
+  },
+
   paintFrameBitmap(bitmap) {
     const canvas = this.currentFrameCanvas();
     if (!canvas || !bitmap?.width || !bitmap?.height) return false;
@@ -1522,6 +1660,9 @@ const model = {
     const context = canvas.getContext("2d");
     if (!context) return false;
     context.drawImage(bitmap, 0, 0);
+    // Magnifier crops the clean bitmap, so run it before the overlay lands.
+    this.paintMagnifier(bitmap, canvas);
+    this.paintCursorOverlay(context, canvas);
     this.frameCanvasReady = true;
     return true;
   },
@@ -1531,6 +1672,7 @@ const model = {
     if (canvas?.width && canvas?.height) {
       canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
     }
+    this.clearMagnifierCanvas();
     this.frameCanvasReady = false;
   },
 
