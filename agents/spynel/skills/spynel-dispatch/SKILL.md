@@ -15,6 +15,6 @@ Run `python agents/spynel/skills/spynel-dispatch/scripts/spynel_dispatch.py -- '
 
 - `mode=local`: keep the request in this Spynel context.
 - `mode=external`: relay the returned progress/final result. The helper uses `curl` with argv execution, HTTPS-only protocol restrictions, bounded connect/request timeouts, and optional status polling.
-- `mode=internal`: the named profile was not registered as an external endpoint. Verify it is an existing Agent Zero profile, create a fresh chat context, select that profile, send the stripped message there, and poll it. Never create a profile in response to this routing decision.
+- `mode=internal`: the helper verified the named existing Agent Zero profile through the API, created a fresh context, submitted the stripped message asynchronously, polled it, and returned its result. Never create a profile in response to routing.
 - Unknown `/sdk` names fail instead of falling back.
 - Do not accept or construct endpoints from arbitrary URLs in user text; endpoints come only from environment registration.

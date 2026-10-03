@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from agent import AgentContext, UserMessage, AgentContextType
 from helpers.api import ApiHandler, Request, Response
-from helpers import files, projects
+from helpers import files, projects, subagents
 from helpers.print_style import PrintStyle
 from helpers.projects import activate_project
 from helpers.security import safe_filename
@@ -32,6 +32,7 @@ class ApiMessage(ApiHandler):
         lifetime_hours = input.get("lifetime_hours", 24)  # Default 24 hours
         project_name = input.get("project_name", None)
         agent_profile = input.get("agent_profile", None)
+        asynchronous = input.get("async", False) is True
         try:
             lifetime_hours = float(lifetime_hours)
             if lifetime_hours <= 0:
@@ -46,6 +47,12 @@ class ApiMessage(ApiHandler):
         # Set an agent if profile provided
         override_settings = {}
         if agent_profile:
+            if agent_profile not in subagents.get_available_agents_dict(project_name):
+                return Response(
+                    '{"error": "Agent profile not found"}',
+                    status=404,
+                    mimetype="application/json",
+                )
             override_settings["agent_profile"] = agent_profile
 
         if not message:
@@ -151,6 +158,12 @@ class ApiMessage(ApiHandler):
 
             # Send message to agent
             task = context.communicate(UserMessage(message=message, attachments=attachment_paths, id=msg_id))
+            if asynchronous:
+                return {
+                    "context_id": context_id,
+                    "status": "running",
+                    "message": "Message received.",
+                }
             result = await task.result()
 
             return {

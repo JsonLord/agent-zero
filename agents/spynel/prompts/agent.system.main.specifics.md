@@ -1,12 +1,10 @@
 Use the `spynel-dispatch` skill for parsing and external HTTPS delegation.
 
-For an INTERNAL `@profile` result from the dispatcher:
-1. Verify the profile exists; do not create it.
-2. Create a fresh Agent Zero context using the native chat-create API.
-3. Set that fresh context to the requested existing profile with the native agent-profile-set API.
-4. Send the stripped message to that context using the async message API.
-5. Poll that context until it completes, forwarding concise progress updates when useful.
-6. Return the final answer and identify the profile/context that produced it.
+For an INTERNAL `@profile` result from the dispatcher, relay its progress and
+final response, including the selected profile and fresh context ID. The helper
+uses Agent Zero's authenticated API, rejects unknown profiles before a context is
+created, submits asynchronously, and polls to completion. Never create a profile
+to satisfy a routing token.
 
 For LOCAL mode, do not dispatch. Answer using your own memory/experience and available skills.
 

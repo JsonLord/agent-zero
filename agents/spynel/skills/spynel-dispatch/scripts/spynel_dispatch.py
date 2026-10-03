@@ -40,6 +40,17 @@ def _https_url(value: str, label: str) -> str:
     return value.rstrip("/")
 
 
+def _internal_url(value: str) -> str:
+    url = value.rstrip("/")
+    parsed = urlparse(url)
+    loopback = parsed.hostname in {"127.0.0.1", "localhost", "::1"}
+    if not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError("SPYNEL_AGENT_ZERO_URL must be a credential-free URL")
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and loopback):
+        raise ValueError("SPYNEL_AGENT_ZERO_URL must use HTTPS (HTTP is allowed only for loopback)")
+    return url
+
+
 def _env_key(prefix: str, name: str) -> str:
     return f"SPYNEL_{prefix}_{re.sub(r'[^A-Z0-9]+', '_', name.upper())}_URL"
 
@@ -62,15 +73,30 @@ def resolve_external(route: Route) -> tuple[str, str] | None:
     return None
 
 
-async def _curl_json(url: str, payload: dict[str, Any], timeout: float) -> tuple[int, Any, str]:
+async def _curl_json(
+    url: str,
+    payload: dict[str, Any],
+    timeout: float,
+    *,
+    https_only: bool = True,
+    api_key: str = "",
+) -> tuple[int, Any, str]:
     body = json.dumps(payload, ensure_ascii=False).encode()
-    proc = await asyncio.create_subprocess_exec(
+    command = [
         "curl", "--silent", "--show-error", "--fail-with-body",
-        "--proto", "=https", "--proto-redir", "=https",
+        "--proto", "=https" if https_only else "=http,https",
+        "--proto-redir", "=https" if https_only else "=http,https",
         "--connect-timeout", str(min(timeout, 20)), "--max-time", str(timeout),
         "-H", "Content-Type: application/json",
         "-H", "Accept: application/json",
+    ]
+    if api_key:
+        command += ["-H", f"X-API-KEY: {api_key}"]
+    command += [
         "-X", "POST", "--data-binary", "@-", "--write-out", "\n%{http_code}", url,
+    ]
+    proc = await asyncio.create_subprocess_exec(
+        *command,
         stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
     )
     try:
@@ -88,7 +114,7 @@ async def _curl_json(url: str, payload: dict[str, Any], timeout: float) -> tuple
     try:
         data: Any = json.loads(response_text) if response_text.strip() else {}
     except json.JSONDecodeError:
-        data = {"text": response_text}
+        data = {"malformed_json": True, "text": response_text}
     return code, data, err.decode(errors="replace").strip()
 
 
@@ -100,13 +126,78 @@ async def _curl_get(url: str, timeout: float) -> tuple[int, Any, str]:
         "-H", "Accept: application/json", "--write-out", "\n%{http_code}", url,
         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
     )
-    out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout + 5)
+    try:
+        out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout + 5)
+    except asyncio.TimeoutError:
+        proc.terminate()
+        try:
+            await asyncio.wait_for(proc.wait(), 3)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+        raise TimeoutError(f"poll request timed out after {timeout}s")
     text = out.decode(errors="replace")
     response_text, _, code_text = text.rpartition("\n")
     code = int(code_text) if code_text.isdigit() else 0
     try: data = json.loads(response_text) if response_text.strip() else {}
-    except json.JSONDecodeError: data = {"text": response_text}
+    except json.JSONDecodeError: data = {"malformed_json": True, "text": response_text}
     return code, data, err.decode(errors="replace").strip()
+
+
+async def _internal_delegate(
+    route: Route, *, timeout: float, poll_interval: float, events: list[dict[str, Any]]
+) -> dict[str, Any]:
+    base = _internal_url(os.getenv("SPYNEL_AGENT_ZERO_URL", "http://127.0.0.1:7860"))
+    api_key = os.getenv("SPYNEL_AGENT_ZERO_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("Internal profile delegation requires SPYNEL_AGENT_ZERO_API_KEY")
+
+    events.append({"state": "creating_context", "profile": route.profile})
+    try:
+        code, data, error = await _curl_json(
+            f"{base}/api/api_message",
+            {"message": route.message, "agent_profile": route.profile, "async": True},
+            min(timeout, 60),
+            https_only=urlparse(base).scheme == "https",
+            api_key=api_key,
+        )
+    except TimeoutError as exc:
+        events.append({"state": "timeout"})
+        return {"mode": "internal", "ok": False, "state": "timeout", "error": str(exc), "events": events}
+    if code == 404:
+        return {"mode": "internal", "ok": False, "state": "failed", "error": "Unknown Agent Zero profile", "events": events}
+    if code < 200 or code >= 300 or not isinstance(data, dict) or not data.get("context_id"):
+        return {"mode": "internal", "ok": False, "state": "failed", "error": error or data, "events": events}
+
+    context_id = str(data["context_id"])
+    events.append({"state": "submitted", "context_id": context_id})
+    deadline = asyncio.get_running_loop().time() + timeout
+    log_from = 0
+    while asyncio.get_running_loop().time() < deadline:
+        await asyncio.sleep(max(0.25, poll_interval))
+        try:
+            code, status, error = await _curl_json(
+                f"{base}/api/api_poll",
+                {"context_id": context_id, "log_from": log_from},
+                min(30, timeout),
+                https_only=urlparse(base).scheme == "https",
+                api_key=api_key,
+            )
+        except TimeoutError as exc:
+            events.append({"state": "timeout", "context_id": context_id})
+            return {"mode": "internal", "ok": False, "state": "timeout", "profile": route.profile, "context_id": context_id, "error": str(exc), "events": events}
+        if code < 200 or code >= 300 or not isinstance(status, dict):
+            return {"mode": "internal", "ok": False, "state": "failed", "context_id": context_id, "error": error or status, "events": events}
+        if status.get("malformed_json"):
+            return {"mode": "internal", "ok": False, "state": "failed", "context_id": context_id, "error": "Agent Zero poll returned malformed JSON", "events": events}
+        log_from = int(status.get("log_from", log_from) or log_from)
+        events.append({"state": "polling", "context_id": context_id, "progress": status.get("log_progress")})
+        if status.get("status") == "failed":
+            return {"mode": "internal", "ok": False, "state": "failed", "profile": route.profile, "context_id": context_id, "events": events}
+        if status.get("status") == "completed":
+            events.append({"state": "completed", "context_id": context_id})
+            return {"mode": "internal", "ok": True, "state": "completed", "profile": route.profile, "context_id": context_id, "response": status.get("result"), "events": events}
+    return {"mode": "internal", "ok": False, "state": "timeout", "profile": route.profile, "context_id": context_id, "events": events}
 
 
 def _state(data: Any) -> str:
@@ -129,16 +220,23 @@ async def dispatch(text: str, *, timeout: float, poll_interval: float) -> dict[s
 
     external = resolve_external(route)
     if external is None:
-        return {"mode": "internal", "profile": route.profile, "message": route.message,
-                "events": events + [{"state": "internal_profile", "detail": "create fresh Agent Zero chat context; do not create a profile"}]}
+        return await _internal_delegate(
+            route, timeout=timeout, poll_interval=poll_interval, events=events
+        )
 
     url, registry_key = external
     events.append({"state": "dispatching", "target": registry_key})
     payload = {"message": route.message, "agent_profile": route.profile, "agent_sdk": route.sdk}
-    code, data, stderr = await _curl_json(url, payload, timeout)
+    try:
+        code, data, stderr = await _curl_json(url, payload, timeout)
+    except TimeoutError as exc:
+        events.append({"state": "timeout"})
+        return {"mode": "external", "ok": False, "state": "timeout", "error": str(exc), "events": events}
     events.append({"state": "sent", "http_status": code})
     if code < 200 or code >= 300:
         return {"mode": "external", "ok": False, "state": "failed", "error": stderr or data, "events": events}
+    if isinstance(data, dict) and data.get("malformed_json"):
+        return {"mode": "external", "ok": False, "state": "failed", "error": "Remote endpoint returned malformed JSON", "events": events}
 
     state = _state(data)
     poll_url = _poll_url(data)
@@ -148,11 +246,17 @@ async def dispatch(text: str, *, timeout: float, poll_interval: float) -> dict[s
         while asyncio.get_running_loop().time() < deadline:
             events.append({"state": "waiting"})
             await asyncio.sleep(max(0.25, poll_interval))
-            pcode, pdata, perr = await _curl_get(poll_url, min(30, timeout))
+            try:
+                pcode, pdata, perr = await _curl_get(poll_url, min(30, timeout))
+            except TimeoutError as exc:
+                events.append({"state": "timeout"})
+                return {"mode": "external", "ok": False, "state": "timeout", "error": str(exc), "events": events}
             state = _state(pdata)
             events.append({"state": "polling", "http_status": pcode, "remote_state": state or None})
             if pcode < 200 or pcode >= 300:
                 return {"mode": "external", "ok": False, "state": "failed", "error": perr or pdata, "events": events}
+            if isinstance(pdata, dict) and pdata.get("malformed_json"):
+                return {"mode": "external", "ok": False, "state": "failed", "error": "Remote poll endpoint returned malformed JSON", "events": events}
             data = pdata
             if state in DONE: break
             if state in FAILED:

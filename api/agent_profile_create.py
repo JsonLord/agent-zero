@@ -45,8 +45,16 @@ class CreateAgentProfile(ApiHandler):
         prompts: dict[str, str] = {}
         for key, value in prompts_in.items():
             key_s = str(key or "").strip()
-            if not key_s or len(key_s) > 160:
+            if (
+                not key_s
+                or len(key_s) > 160
+                or "/" in key_s
+                or "\\" in key_s
+                or key_s in {".", ".."}
+            ):
                 return Response(status=400, response="Invalid prompt filename")
+            if not isinstance(value, str):
+                return Response(status=400, response="Prompt content must be a string")
             prompts[key_s] = str(value or "")
 
         profile = subagents.SubAgent(

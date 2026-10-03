@@ -8,6 +8,24 @@ app_port: 7860
 pinned: false
 ---
 
+## Hugging Face Space and Colab smoke testing
+
+The root `Dockerfile` is the Hugging Face Docker Space build. It runs the WebUI
+as UID 1000 on `0.0.0.0:7860`, installs Kokoro/spaCy dependencies during the
+image build, and disables runtime Python package mutation. Set
+`SPYNEL_AGENT_ZERO_API_KEY` to the configured Agent Zero API token when Spynel
+must delegate to a bundled or user profile. The Space entrypoint applies this
+secret to Agent Zero's existing API-key verifier without logging it.
+
+For a Colab checkout, the lifecycle helper starts Agent Zero in the background,
+checks `/api/health`, and stops its process group cleanly:
+
+```bash
+python scripts/colab_a0.py start
+python scripts/colab_a0.py health
+python scripts/colab_a0.py stop
+```
+
 <div align="center">
 
 <img src="docs/res/a0-vector-graphics/horizontal_banner.svg" alt="Agent Zero Banner" width="100%"/>
