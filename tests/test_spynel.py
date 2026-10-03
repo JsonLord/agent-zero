@@ -232,6 +232,27 @@ def test_huggingface_image_is_non_root_and_direct_startup():
     assert 'settings["mcp_server_token"] = api_key' in entrypoint
 
 
+def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():
+    dockerfile = (ROOT / "Dockerfile").read_text()
+    assert "COPY ./docker/run/fs/ /" not in dockerfile
+    assert "COPY ./ /git/agent-zero" in dockerfile
+    assert (
+        "COPY ./docker/run/fs/exe/huggingface-entrypoint.sh "
+        "/exe/huggingface-entrypoint.sh"
+    ) in dockerfile
+    for path in (
+        "/ins/pre_install.sh",
+        "/ins/install_A0.sh",
+        "/ins/install_additional.sh",
+        "/ins/install_A02.sh",
+        "/ins/post_install.sh",
+        "/exe/huggingface-entrypoint.sh",
+    ):
+        assert path in dockerfile
+    assert "version https://git-lfs.github.com/spec/v1" in dockerfile
+    assert "Required script has no shebang" in dockerfile
+
+
 def test_colab_cli_has_lifecycle_commands():
     script = (ROOT / "scripts/colab_a0.py").read_text()
     assert 'choices=("start", "health", "stop")' in script

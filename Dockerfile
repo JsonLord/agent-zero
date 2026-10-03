@@ -15,17 +15,29 @@ ENV BRANCH=${BRANCH} \
     MPLCONFIGDIR=/home/a0space/.cache/matplotlib \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-COPY ./docker/run/fs/ /
 COPY ./ /git/agent-zero
+COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
 
-RUN bash /ins/pre_install.sh "${BRANCH}" \
+RUN set -eu; \
+    for script in \
+        /ins/pre_install.sh \
+        /ins/install_A0.sh \
+        /ins/install_additional.sh \
+        /ins/install_A02.sh \
+        /ins/post_install.sh \
+        /exe/huggingface-entrypoint.sh; \
+    do \
+        test -f "$script" || { echo "Required script is missing: $script" >&2; exit 1; }; \
+        first_line="$(head -n 1 "$script")"; \
+        test "$first_line" != "version https://git-lfs.github.com/spec/v1" || { echo "Git LFS pointer found instead of executable script: $script" >&2; exit 1; }; \
+        case "$first_line" in '#!'*) ;; *) echo "Required script has no shebang: $script" >&2; exit 1;; esac; \
+    done; \
+    bash /ins/pre_install.sh "${BRANCH}" \
     && bash /ins/install_A0.sh "${BRANCH}" \
     && bash /ins/install_additional.sh "${BRANCH}" \
     && bash /ins/install_A02.sh "${BRANCH}" \
     && bash /ins/post_install.sh "${BRANCH}" \
     && /opt/venv-a0/bin/python -m spacy download en_core_web_sm \
-    && chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh \
-       /exe/huggingface-entrypoint.sh \
     && python3 - <<'PY'
 from pathlib import Path
 

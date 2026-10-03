@@ -12,6 +12,10 @@ must remain modular and minimize invasive changes to Agent Zero core behavior.
   required published port.
 - Startup must not require `chpasswd`, SSH, cron, supervisor, sudo, privileged
   Docker flags, or another root-only service.
+- The Space image must retain the base image's `/ins/*` installers and copy only
+  the HF-specific entrypoint from `docker/run/fs/`; installer and entrypoint
+  scripts must fail build-time integrity checks for Git LFS pointer text or a
+  missing shebang before any installer executes.
 - Agent Zero application files must be readable by UID 1000. Runtime state and
   Hugging Face, XDG, and Matplotlib cache directories must be writable by UID
   1000.
