@@ -1,0 +1,4 @@
+title: Spynel Dispatcher
+description: Routes work to configured HTTPS agents/SDKs or fresh internal Agent Zero profile contexts, while reporting progress and final state.
+context: ''
+enabled: true
