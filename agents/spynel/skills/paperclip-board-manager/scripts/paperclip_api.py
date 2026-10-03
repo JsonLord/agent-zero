@@ -6,7 +6,7 @@ import json
 import os
 import subprocess
 import sys
-from urllib.parse import urljoin, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 
 def base_url() -> str:
@@ -19,9 +19,25 @@ def base_url() -> str:
 
 def safe_path(path: str) -> str:
     path = "/" + path.lstrip("/")
-    if not path.startswith("/api/") or ".." in path.split("/"):
+    parsed = urlparse(path)
+    if (
+        parsed.scheme
+        or parsed.netloc
+        or not parsed.path.startswith("/api/")
+        or ".." in unquote(parsed.path).split("/")
+    ):
         raise SystemExit("Only /api/* Paperclip paths are allowed")
     return path
+
+
+def request_timeout() -> float:
+    try:
+        timeout = float(os.getenv("PAPERCLIP_TIMEOUT", "60"))
+    except ValueError as exc:
+        raise SystemExit("PAPERCLIP_TIMEOUT must be a number") from exc
+    if not 1 <= timeout <= 300:
+        raise SystemExit("PAPERCLIP_TIMEOUT must be between 1 and 300 seconds")
+    return timeout
 
 
 def request(method: str, path: str, body: object | None) -> int:
@@ -29,7 +45,7 @@ def request(method: str, path: str, body: object | None) -> int:
     cmd = [
         "curl", "--silent", "--show-error", "--fail-with-body",
         "--proto", "=https", "--proto-redir", "=https",
-        "--connect-timeout", "15", "--max-time", os.getenv("PAPERCLIP_TIMEOUT", "60"),
+        "--connect-timeout", "15", "--max-time", str(request_timeout()),
         "-H", "Accept: application/json", "-X", method.upper(), url,
     ]
     token = os.getenv("PAPERCLIP_API_TOKEN", "").strip()

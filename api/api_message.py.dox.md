@@ -26,6 +26,8 @@
 - `ApiMessage` defines `requires_auth(...)`.
 - `ApiMessage` defines `requires_csrf(...)`.
 - `ApiMessage` defines `requires_api_key(...)`.
+- Explicit agent profiles must already exist; unknown profiles fail before context creation.
+- Boolean `async: true` returns a fresh context ID immediately while processing continues; `api_poll` exposes its status.
 - Observed side-effect areas: filesystem reads, filesystem writes, settings/state persistence, secret handling, scheduler state.
 - Imported dependency areas include: `agent`, `base64`, `datetime`, `helpers`, `helpers.api`, `helpers.print_style`, `helpers.projects`, `helpers.security`, `initialize`, `os`, `uuid`.
 
