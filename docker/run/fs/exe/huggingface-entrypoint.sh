@@ -40,4 +40,5 @@ echo "Starting Agent Zero as uid=$(id -u) on ${WEB_UI_HOST:-0.0.0.0}:${WEB_UI_PO
 # password initialization. Space dependencies and model data are installed at
 # image-build time, so runtime package installation is disabled by the image.
 cd /a0
+/opt/venv-a0/bin/python -m helpers.hf_space_defaults || true
 exec /opt/venv-a0/bin/python run_ui.py
