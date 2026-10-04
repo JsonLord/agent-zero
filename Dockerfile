@@ -17,10 +17,9 @@ ENV BRANCH=${BRANCH} \
 
 COPY ./ /git/agent-zero
 COPY ./docker/run/fs/ins /ins
-COPY ./docker/run/fs/exe /exe
 COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
 
-RUN chmod -R +x /exe /ins
+RUN chmod +x /exe/huggingface-entrypoint.sh /ins/*.sh
 
 RUN set -eu; \
     for script in \

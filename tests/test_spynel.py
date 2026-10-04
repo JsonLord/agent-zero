@@ -235,7 +235,9 @@ def test_huggingface_image_is_non_root_and_direct_startup():
 def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():
     dockerfile = (ROOT / "Dockerfile").read_text()
     assert "COPY ./docker/run/fs/ /" not in dockerfile
+    assert "COPY ./docker/run/fs/exe /exe" not in dockerfile
     assert "COPY ./ /git/agent-zero" in dockerfile
+    assert "COPY ./docker/run/fs/ins /ins" in dockerfile
     assert (
         "COPY ./docker/run/fs/exe/huggingface-entrypoint.sh "
         "/exe/huggingface-entrypoint.sh"
