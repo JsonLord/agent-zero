@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 from typing import Any, Literal, TypedDict, cast, TypeVar
 
@@ -154,6 +155,8 @@ class SettingsOutputAdditional(TypedDict):
     timezones: list[FieldOption]
     resolved_timezone: str
     is_dockerized: bool
+    can_manage_root_password: bool
+    root_password_supported: bool
     runtime_settings: dict[str, Any]
 
 
@@ -257,13 +260,25 @@ def _timezone_options() -> list[FieldOption]:
     return [{"value": timezone, "label": timezone} for timezone in pytz.common_timezones]
 
 
+def can_manage_root_password() -> bool:
+    """Return True if this process is running in a Docker container as root (EUID 0) with chpasswd available."""
+    if not runtime.is_dockerized():
+        return False
+    if hasattr(os, "geteuid") and os.geteuid() != 0:
+        return False
+    return shutil.which("chpasswd") is not None
+
+
 def convert_out(settings: Settings) -> SettingsOutput:
+    can_manage_root = can_manage_root_password()
     out = SettingsOutput(
         settings = settings.copy(),
         additional = SettingsOutputAdditional(
             chat_providers=get_providers("chat"),
             embedding_providers=get_providers("embedding"),
             is_dockerized=runtime.is_dockerized(),
+            can_manage_root_password=can_manage_root,
+            root_password_supported=can_manage_root,
             agent_subdirs=[
                 {"value": key, "label": item.title or key}
                 for key, item in sorted(
@@ -541,10 +556,13 @@ def _write_sensitive_settings(settings: Settings):
         dotenv.save_dotenv_value(dotenv.KEY_AUTH_PASSWORD, settings["auth_password"])
     if settings["rfc_password"] != PASSWORD_PLACEHOLDER:
         dotenv.save_dotenv_value(dotenv.KEY_RFC_PASSWORD, settings["rfc_password"])
-    if settings["root_password"] != PASSWORD_PLACEHOLDER:
-        if runtime.is_dockerized():
-            dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
-            set_root_password(settings["root_password"])
+    if settings.get("root_password") and settings["root_password"] != PASSWORD_PLACEHOLDER:
+        if can_manage_root_password():
+            try:
+                dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
+                set_root_password(settings["root_password"])
+            except Exception as e:
+                PrintStyle.warning(f"Unable to update root password: {e}")
 
     # Handle secrets separately - merge with existing preserving comments/order and support deletions
     secrets_manager = get_default_secrets_manager()
@@ -797,8 +815,10 @@ def _dict_to_env(data_dict):
 
 
 def set_root_password(password: str):
-    if not runtime.is_dockerized():
-        raise Exception("root password can only be set in dockerized environments")
+    if not can_manage_root_password():
+        raise Exception("Root password management is unavailable in this runtime environment.")
+    if not password:
+        return
     _result = subprocess.run(
         ["chpasswd"],
         input=f"root:{password}".encode(),

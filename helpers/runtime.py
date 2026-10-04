@@ -1,5 +1,6 @@
 import argparse
 import inspect
+import os
 import secrets
 from pathlib import Path
 from typing import TypeVar, Callable, Awaitable, Union, overload, cast
@@ -57,7 +58,10 @@ def has_arg(name: str):
 
 
 def is_dockerized() -> bool:
-    return bool(get_arg("dockerized"))
+    val = get_arg("dockerized")
+    if val is True or (isinstance(val, str) and val.lower() in ("true", "1", "yes")):
+        return True
+    return os.environ.get("HF_SPACE") == "true" or bool(os.environ.get("SPACE_ID"))
 
 
 def is_development() -> bool:

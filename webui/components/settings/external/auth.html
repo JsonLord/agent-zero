@@ -45,7 +45,7 @@
             </button>
 
             <div class="settings-advanced-body" x-show="advOpen" x-transition.opacity>
-              <template x-if="additional.is_dockerized">
+              <template x-if="additional.can_manage_root_password">
                 <div class="field">
                   <div class="field-label">
                     <div class="field-title">Container root password</div>
