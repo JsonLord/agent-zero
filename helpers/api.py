@@ -205,6 +205,16 @@ def csrf_protect(f):
 
 def register_api_route(app: Flask, lock: ThreadLockType) -> None:
     from helpers.modules import load_classes_from_file
+
+    @app.route("/health", methods=["GET", "POST"])
+    def _root_health():
+        return Response('{"status":"ok"}', status=200, mimetype="application/json")
+
+    @app.route("/api-docs", methods=["GET"])
+    def _root_api_docs():
+        from helpers.modules import import_module
+        api_docs_mod = import_module(files.get_abs_path("api/api_docs.py"))
+        return Response(json.dumps(api_docs_mod.API_DOCS_PAYLOAD, indent=2), status=200, mimetype="application/json")
     from helpers import plugins
 
     async def _dispatch(path: str) -> BaseResponse:

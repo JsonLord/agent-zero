@@ -7,6 +7,7 @@ if [ "${A0_CLOUDFLARE_DISABLED:-true}" != "true" ]; then
     exit 1
 fi
 
+bash /ins/copy_A0.sh
 mkdir -p /a0/usr
 
 # Settings normalization fills all other defaults. This deployment default makes
@@ -30,7 +31,7 @@ if api_key := os.environ.get("SPYNEL_AGENT_ZERO_API_KEY", "").strip():
 settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
 PY
 
-echo "Space URL: ${A0_PUBLIC_URL:-https://leon4gr45-agent.hf.space}"
+echo "Space URL: ${A0_PUBLIC_URL:-https://leon4gr45-openoperator.hf.space}"
 echo "A2A enabled at /a2a; authenticated incoming API enabled at /api_message."
 echo "Starting Agent Zero as uid=$(id -u) on ${WEB_UI_HOST:-0.0.0.0}:${WEB_UI_PORT:-7860}."
 

@@ -23,20 +23,15 @@ if [ "$arch" = "arm64" ]; then
 fi
 
 LIBREOFFICE_PACKAGES=(
-  "libreoffice-core=$LIBREOFFICE_VERSION"
-  "libreoffice-writer=$LIBREOFFICE_VERSION"
-  "libreoffice-calc=$LIBREOFFICE_VERSION"
-  "libreoffice-impress=$LIBREOFFICE_VERSION"
-  "libreoffice-gtk3=$LIBREOFFICE_VERSION"
-  "python3-uno=$LIBREOFFICE_VERSION"
+  "libreoffice-core"
+  "libreoffice-writer"
+  "libreoffice-calc"
+  "libreoffice-impress"
+  "libreoffice-gtk3"
+  "python3-uno"
 )
 XPRA_PACKAGES=(
-  "xpra-common=$XPRA_VERSION"
-  "xpra-server=$XPRA_VERSION"
-  "xpra-client=$XPRA_VERSION"
-  "xpra-client-gtk3=$XPRA_VERSION"
-  "xpra-x11=$XPRA_VERSION"
-  "xpra-html5=$XPRA_HTML5_VERSION"
+  "xpra"
 )
 
 apt-get update
@@ -44,21 +39,8 @@ ATK_VERSION="$(dpkg-query -W -f='${Version}' libatk1.0-0t64)"
 ATK_GIR_PACKAGE="/tmp/gir1.2-atk-1.0_${ATK_VERSION}_${arch}.deb"
 (cd /tmp && apt-get download "gir1.2-atk-1.0=$ATK_VERSION")
 
-for source in /etc/apt/sources.list /etc/apt/sources.list.d/kali.sources; do
-  [ ! -f "$source" ] || sed -i "s/kali-rolling/$KALI_SUITE/g" "$source"
-done
+XPRA_PACKAGES=()
 
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates wget
-wget -O /usr/share/keyrings/xpra.asc https://xpra.org/xpra.asc
-cat >/etc/apt/sources.list.d/xpra.sources <<EOF
-Types: deb
-URIs: https://xpra.org
-Suites: trixie
-Components: main
-Signed-By: /usr/share/keyrings/xpra.asc
-Architectures: $arch
-EOF
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   "$ATK_GIR_PACKAGE" \

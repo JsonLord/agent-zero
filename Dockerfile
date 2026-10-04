@@ -6,7 +6,7 @@ ARG BRANCH=local
 ENV BRANCH=${BRANCH} \
     WEB_UI_HOST=0.0.0.0 \
     WEB_UI_PORT=7860 \
-    A0_PUBLIC_URL=https://leon4gr45-agent.hf.space \
+    A0_PUBLIC_URL=https://leon4gr45-openoperator.hf.space \
     A0_CLOUDFLARE_DISABLED=true \
     SPYNEL_AGENT_ZERO_URL=http://127.0.0.1:7860 \
     HOME=/home/a0space \
@@ -16,7 +16,11 @@ ENV BRANCH=${BRANCH} \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 COPY ./ /git/agent-zero
+COPY ./docker/run/fs/ins /ins
+COPY ./docker/run/fs/exe /exe
 COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
+
+RUN chmod -R +x /exe /ins
 
 RUN set -eu; \
     for script in \
@@ -42,10 +46,12 @@ RUN set -eu; \
 from pathlib import Path
 
 path = Path("/etc/supervisor/conf.d/supervisord.conf")
-text = path.read_text(encoding="utf-8")
-start = text.index("[program:run_tunnel_api]")
-end = text.index("[eventlistener:the_listener]", start)
-path.write_text(text[:start] + text[end:], encoding="utf-8")
+if path.exists():
+    text = path.read_text(encoding="utf-8")
+    if "[program:run_tunnel_api]" in text:
+        start = text.index("[program:run_tunnel_api]")
+        end = text.index("[eventlistener:the_listener]", start) if "[eventlistener:the_listener]" in text else len(text)
+        path.write_text(text[:start] + text[end:], encoding="utf-8")
 PY
 
 RUN if ! getent group 1000 >/dev/null; then groupadd --gid 1000 a0space; fi \

@@ -236,8 +236,21 @@ class UiServerRuntime:
             a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
 
         with startup_monitor.stage("starlette.app.create"):
+            from starlette.responses import JSONResponse
+            from starlette.routing import Route
+
+            async def _starlette_health(request):
+                return JSONResponse({"status": "ok"})
+
+            async def _starlette_api_docs(request):
+                from helpers.modules import import_module
+                api_docs_mod = import_module(get_abs_path("api/api_docs.py"))
+                return JSONResponse(api_docs_mod.API_DOCS_PAYLOAD)
+
             starlette_app = Starlette(
                 routes=[
+                    Route("/health", endpoint=_starlette_health, methods=["GET", "POST"]),
+                    Route("/api-docs", endpoint=_starlette_api_docs, methods=["GET"]),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),
