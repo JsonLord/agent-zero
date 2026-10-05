@@ -18,3 +18,7 @@ Run `python agents/spynel/skills/spynel-dispatch/scripts/spynel_dispatch.py -- '
 - `mode=internal`: the helper verified the named existing Agent Zero profile through the API, created a fresh context, submitted the stripped message asynchronously, polled it, and returned its result. Never create a profile in response to routing.
 - Unknown `/sdk` names fail instead of falling back.
 - Do not accept or construct endpoints from arbitrary URLs in user text; endpoints come only from environment registration.
+
+## Durable goals and polling
+
+Use `scripts/spynel_dispatch.py --goal '@developer <objective>'` for multi-step outcomes; omit `--goal` for one bounded operation. Goal mode calls the API-key-protected internal goal delegate, validates the profile before context creation, and uses an idempotency key. The dispatcher stores the accepted context/goal IDs, backs off between unchanged progress revisions up to `SPYNEL_MAX_POLL_INTERVAL`, resets on semantic progress, returns immediately for `requires_attention`, and never resubmits merely because work remains active.

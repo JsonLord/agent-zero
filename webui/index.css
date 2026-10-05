@@ -10,7 +10,7 @@
   --color-background-dark: #131313;
   --color-text-dark: #ffffff;
   --color-text-muted-dark: #d4d4d4e4;
-  --color-primary-dark: #e0e0e0;
+  --color-primary-dark: #737a81;
   --color-secondary-dark: #656565;
   --color-accent-dark: #cf6679;
   --color-message-bg-dark: #2d2d2d;
@@ -48,6 +48,7 @@
   /* Default to dark mode */
   --color-background: var(--color-background-dark);
   --color-text: var(--color-text-dark);
+  --color-icon: var(--color-text);
   --color-text-muted: var(--color-text-muted-dark);
   --color-primary: var(--color-primary-dark);
   --color-secondary: var(--color-secondary-dark);
@@ -99,6 +100,7 @@
 .light-mode {
   --color-background: var(--color-background-light);
   --color-text: var(--color-text-light);
+  --color-icon: var(--color-text);
   --color-text-muted: var(--color-text-muted-light);
   --color-primary: var(--color-primary-light);
   --color-secondary: var(--color-secondary-light);
