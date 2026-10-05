@@ -14,6 +14,8 @@
         <div class="goal-strip-copy">
           <span class="goal-strip-status" x-text="$store.goalBar.statusLabel"></span>
           <span class="goal-strip-objective" x-text="$store.goalBar.goal?.objective || ''"></span>
+          <span class="goal-strip-milestone" x-show="$store.goalBar.goal?.current_milestone" x-text="`• ${$store.goalBar.goal?.current_milestone}`"></span>
+          <span class="goal-strip-attention" x-show="$store.goalBar.goal?.requires_attention" x-text="`• Attention: ${$store.goalBar.goal?.attention_reason || 'required'}`"></span>
           <span class="goal-strip-time" x-text="`• ${$store.goalBar.elapsedLabel}`"></span>
         </div>
       </template>
@@ -47,6 +49,9 @@
         </button>
         <button type="button" class="goal-strip-action" title="Delete goal" @click="$confirmClick($event, () => $store.goalBar.deleteGoal())" :disabled="$store.goalBar.saving">
           <x-icon aria-hidden="true" name="delete"></x-icon>
+        </button>
+        <button type="button" class="goal-strip-action" title="Cancel goal" @click="$confirmClick($event, () => $store.goalBar.cancelGoal())" :disabled="$store.goalBar.saving">
+          <x-icon aria-hidden="true" name="cancel"></x-icon>
         </button>
       </div>
     </div>
@@ -187,7 +192,8 @@
     color: var(--color-warning, var(--color-text));
   }
 
-  .goal-strip.is-complete .goal-strip-icon {
+  .goal-strip.is-completed .goal-strip-icon,
+  .goal-strip.is-partially_verified .goal-strip-icon {
     color: var(--color-success, var(--color-text));
   }
 

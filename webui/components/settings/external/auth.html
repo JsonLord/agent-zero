@@ -58,6 +58,16 @@
                   </div>
                 </div>
               </template>
+              <template x-if="additional.can_manage_root_password === false">
+                <div class="field">
+                  <div class="field-label">
+                    <div class="field-title">Container root password</div>
+                    <div class="field-description">
+                      Root password management is unavailable in this runtime.
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>

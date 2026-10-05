@@ -1,7 +1,14 @@
-## current goal
-status: {{status}}
-objective: {{objective}}
-created by: {{created_by}}
-updated: {{updated_at}}
+## ACTIVE GOAL
 
-Keep working autonomously while this goal is active. Treat ordinary choices, confirmations, and recoverable external gates as yours to resolve safely within the user's scope; do not hand them back to the user. A `response` call is only an intermediate update and will not end the run. Call `goal` with `action="update"` and `status="complete"` once you judge the objective achieved. Use `status="blocked"` only after retrying viable alternatives and no safe, in-scope action can continue without unavailable information or an external-state change.
+Goal ID: {{goal_id}}
+Objective: {{objective}}
+Current milestone: {{milestone}}
+Remaining success criteria:
+{{remaining_criteria}}
+Constraints:
+{{constraints}}
+Autonomy: {{autonomy}}
+Last checkpoint: {{last_checkpoint}}
+Attention required: {{requires_attention}} {{attention_reason}}
+
+Continue autonomously. Do not request routine guidance or narrate normal inspect/edit/test cycles. Persist semantic checkpoints only when a milestone changes, evidence is established, a blocker/approval/scope issue needs attention, or work completes. External writes and other protected actions still require their normal approval. Completion is evidence-based; NOT VERIFIED is not PASS.

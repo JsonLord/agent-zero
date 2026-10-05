@@ -21,7 +21,7 @@ const model = {
   now: Date.now(),
 
   get visible() {
-    return Boolean(this.goal?.objective && this.goal.status !== "complete");
+    return Boolean(this.goal?.objective && !["completed", "cancelled"].includes(this.goal.status));
   },
 
   get contextId() {
@@ -31,7 +31,10 @@ const model = {
   get statusLabel() {
     const status = this.goal?.status || "active";
     if (status === "paused") return "Goal paused";
-    if (status === "complete") return "Goal complete";
+    if (status === "completed") return "Goal complete";
+    if (status === "partially_verified") return "Goal partially verified";
+    if (status === "failed" || status === "cancelled") return `Goal ${status}`;
+    if (status === "interrupted") return "Goal interrupted";
     if (status === "blocked") return "Goal blocked";
     return "Pursuing goal";
   },
@@ -39,7 +42,9 @@ const model = {
   get statusIcon() {
     const status = this.goal?.status || "active";
     if (status === "paused") return "pause_circle";
-    if (status === "complete") return "check_circle";
+    if (status === "completed") return "check_circle";
+    if (status === "partially_verified") return "fact_check";
+    if (status === "failed" || status === "cancelled") return "cancel";
     if (status === "blocked") return "error";
     return "track_changes";
   },
@@ -172,6 +177,10 @@ const model = {
 
   async deleteGoal() {
     await this.update({ action: "delete" }, "Goal deleted.");
+  },
+
+  async cancelGoal() {
+    await this.update({ action: "cancel" }, "Goal cancelled.");
   },
 
   async update(payload, successMessage) {
