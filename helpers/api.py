@@ -144,9 +144,9 @@ def get_current_request_next_url() -> str:
 def requires_api_key(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
-        from helpers.settings import get_settings
+        from helpers.settings import get_settings, resolve_api_token
 
-        valid_api_key = get_settings()["mcp_server_token"]
+        valid_api_key = resolve_api_token(get_settings().get("mcp_server_token"))
 
         if api_key := request.headers.get("X-API-KEY"):
             if api_key != valid_api_key:

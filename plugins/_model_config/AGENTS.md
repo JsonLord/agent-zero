@@ -50,6 +50,7 @@
 - Preset rename, delete, and reset actions must repair scoped config and durable/live chat references; removed definitions fall back to `Default`.
 - Migration must preserve existing definitions and distinct scoped model choices, back up replaced user files once, strip inline secrets, and remain idempotent.
 - On every startup after migration, short-circuit when `usr/plugins/_model_config/presets.yaml` exists. Only a missing collection may fetch `agent0ai/a0-presets`; parse remote and plugin-local fallback YAML through the same validator, strip secrets before persistence, and persist `mode_presets_fallback.yaml` when download or validation fails.
+- The optional Tiny Coder startup binding uses `TINY_CODER_PROVIDER`, `TINY_CODER_MODEL`, `TINY_CODER_API_BASE`, and `TINY_CODER_API_KEY`. It creates a secret-free agent-profile preset only when provider and model are both present; otherwise Tiny Coder inherits normal model selection without startup failure.
 - Model-name catalogs open below the input from either a field click or the embedded magnifier.
 
 ## Work Guidance

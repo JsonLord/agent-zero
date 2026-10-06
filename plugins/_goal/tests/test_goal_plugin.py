@@ -52,7 +52,7 @@ def test_goal_storage_round_trip(context_id: str):
     assert updated["active_since"] == ""
     paused_seconds = updated["elapsed_seconds"]
 
-    resumed = goal.update_goal(context_id, status="active")
+    resumed = goal.resume_goal(context_id)
     assert resumed["status"] == "active"
     assert resumed["active_since"]
     assert resumed["elapsed_seconds"] == paused_seconds
@@ -203,8 +203,8 @@ async def test_goal_api_and_agent_tools(context_id: str):
     assert "Exercise API path" in get_response.message
 
     update_tool = GoalTool(fake_agent, "goal", None, {}, "", None)
-    update_response = await update_tool.execute(action="update", status="complete")
-    assert "Status: complete" in update_response.message
+    update_response = await update_tool.execute(action="update", status="completed")
+    assert "Status: completed" in update_response.message
 
     create_tool = GoalTool(fake_agent, "goal", None, {}, "", None)
     create_response = await create_tool.execute(action="create", objective="Exercise tool path")
@@ -212,7 +212,7 @@ async def test_goal_api_and_agent_tools(context_id: str):
     assert goal.get_goal(context_id)["created_by"] == "model"
 
 
-@pytest.mark.parametrize("terminal_status", ["blocked", "complete"])
+@pytest.mark.parametrize("terminal_status", ["blocked", "completed"])
 @pytest.mark.asyncio
 async def test_editing_terminal_goal_requests_agent_reactivation(
     context_id: str,
@@ -265,7 +265,7 @@ async def test_active_goal_keeps_response_tool_running(context_id: str):
         )
     ]
 
-    goal.update_goal(context_id, status="complete")
+    goal.update_goal(context_id, status="cancelled")
     response = await tool.execute()
     assert response.break_loop is True
     assert response.message == "Can you decide?"
@@ -311,10 +311,95 @@ async def test_native_responses_text_uses_active_goal_response_override(
     assert recorded[0][0][1].startswith("Goal still active.")
     assert recorded[0][1] == {}
 
-    goal.update_goal(context_id, status="complete")
+    goal.update_goal(context_id, status="cancelled")
     result = await Agent.process_llm_result_tools(
         agent,
         LLMResult(response="Finished."),
     )
 
     assert result == "Finished."
+
+
+def test_structured_goal_revision_checkpoint_and_evidence_completion(context_id: str):
+    current=goal.create_goal(
+        context_id,"Ship safely",owner_profile="developer",
+        success_criteria=["tests pass","live verified"],constraints=["no secrets"],
+        evidence_required=["test report"],autonomy={"level":"implementation"},
+    )
+    assert current["goal_id"].startswith("goal_")
+    assert current["goal_revision"]==1 and current["progress_revision"]==1
+    unchanged=goal.checkpoint_goal(context_id)
+    assert unchanged["progress_revision"]==1
+    checkpoint=goal.checkpoint_goal(context_id,milestone="testing",note="suite running",evidence=["pytest.xml"])
+    assert checkpoint["progress_revision"]==2
+    revised=goal.revise_goal(context_id,constraints=["no secrets","no PR"])
+    assert revised["goal_revision"]==2 and revised["history"][0]["revision"]==1
+    partial=goal.complete_goal(context_id)
+    assert partial["status"]=="partially_verified" and partial["requires_attention"] is True
+    goal.checkpoint_goal(context_id,criterion_updates=[
+        {"criterion":"tests pass","state":"PASS","evidence":["38 passed"]},
+        {"criterion":"live verified","state":"PASS","evidence":["smoke.json"]},
+    ])
+    completed=goal.complete_goal(context_id)
+    assert completed["status"]=="completed" and completed["requires_attention"] is False
+
+
+def test_attention_pause_resume_cancel_and_idempotency(context_id: str):
+    first=goal.create_goal(context_id,"Need approval",idempotency_key="request-1",idempotency_scope="submission")
+    replay=goal.create_goal("different-context","Duplicate",idempotency_key="request-1",idempotency_scope="submission")
+    assert replay["goal_id"]==first["goal_id"] and replay["context_id"]==context_id
+    attention=goal.checkpoint_goal(context_id,requires_attention=True,attention_reason="approval_required",attention_message="deploy ready")
+    assert attention["requires_attention"] is True
+    assert goal.update_goal(context_id,status="paused")["status"]=="paused"
+    assert goal.resume_goal(context_id)["status"]=="active"
+    assert goal.update_goal(context_id,status="cancelled")["status"]=="cancelled"
+
+
+def test_subgoal_linkage_dependencies_and_resource_state(context_id: str):
+    parent=goal.create_goal(context_id,"Parent")
+    dependency=goal.create_goal(context_id+"-dependency","Diagnose",parent_goal_id=parent["goal_id"],success_criteria=["diagnosed"])
+    child=goal.create_goal(context_id+"-child","Patch",parent_goal_id=parent["goal_id"],depends_on=[dependency["goal_id"]])
+    assert child["parent_goal_id"]==parent["goal_id"] and goal.dependencies_ready(child) is False
+    goal.checkpoint_goal(dependency["context_id"],criterion_updates=[{"criterion":"diagnosed","state":"PASS"}])
+    goal.complete_goal(dependency["context_id"])
+    assert goal.dependencies_ready(goal.get_goal(child["context_id"])) is True
+    children={item["goal_id"] for item in goal.list_child_goals(parent["goal_id"])}
+    assert children=={dependency["goal_id"],child["goal_id"]}
+    goal.delete_goal(dependency["context_id"]); goal.delete_goal(child["context_id"])
+
+
+def test_internal_delegate_endpoint_requires_api_key_not_browser_csrf():
+    from plugins._goal.api.delegate import Delegate
+    assert Delegate.requires_auth() is False
+    assert Delegate.requires_csrf() is False
+    assert Delegate.requires_api_key() is True
+
+
+@pytest.mark.asyncio
+async def test_internal_delegate_rejects_unknown_profile_before_context_creation(monkeypatch):
+    from plugins._goal.api import delegate
+    monkeypatch.setattr(delegate.subagents,"get_available_agents_dict",lambda project:{"reviewer":object()})
+    initialize=MagicMock()
+    monkeypatch.setattr(delegate,"initialize_agent",initialize)
+    response=await object.__new__(delegate.Delegate).process({"agent_profile":"definitely-not-real","objective":"inspect"},None)
+    assert response.status_code==404
+    initialize.assert_not_called()
+
+
+def test_dependency_aware_swarm_transitions_and_keeps_child_evidence(context_id: str):
+    parent=goal.create_goal(context_id,"Fix feature",success_criteria=["tests pass","review passes"])
+    debugger=goal.create_goal(context_id+"-debugger","Diagnose",owner_profile="debugger",parent_goal_id=parent["goal_id"],success_criteria=["diagnosed"])
+    security=goal.create_goal(context_id+"-security","Review boundary",owner_profile="security",parent_goal_id=parent["goal_id"])
+    patch=goal.create_goal(context_id+"-patch","Implement",owner_profile="tiny-coder",parent_goal_id=parent["goal_id"],depends_on=[debugger["goal_id"]],success_criteria=["implemented"])
+    tester=goal.create_goal(context_id+"-tester","Test",owner_profile="tester",parent_goal_id=parent["goal_id"],depends_on=[patch["goal_id"]])
+    reviewer=goal.create_goal(context_id+"-reviewer","Review",owner_profile="reviewer",parent_goal_id=parent["goal_id"],depends_on=[patch["goal_id"]])
+    assert debugger["context_id"]!=security["context_id"]
+    goal.checkpoint_goal(debugger["context_id"],criterion_updates=[{"criterion":"diagnosed","state":"PASS","evidence":["root cause"]}])
+    goal.complete_goal(debugger["context_id"],result={"evidence":["root cause"]})
+    assert goal.get_goal(patch["context_id"])["status"]=="interrupted"
+    goal.checkpoint_goal(patch["context_id"],criterion_updates=[{"criterion":"implemented","state":"PASS","evidence":["feature.py"]}])
+    goal.complete_goal(patch["context_id"],result={"changes":["feature.py"]})
+    assert goal.get_goal(tester["context_id"])["status"]=="interrupted"
+    assert goal.get_goal(reviewer["context_id"])["status"]=="interrupted"
+    assert goal.get_goal(debugger["context_id"])["result"]["evidence"]==["root cause"]
+    for child in (debugger,security,patch,tester,reviewer): goal.delete_goal(child["context_id"])

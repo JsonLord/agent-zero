@@ -8,6 +8,7 @@ import sys
 from types import SimpleNamespace
 
 import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -56,7 +57,10 @@ def test_sdk_requires_registered_https_endpoint(monkeypatch):
 
 def test_registered_profile_precedes_internal(monkeypatch):
     monkeypatch.setenv("SPYNEL_AGENT_RESEARCHER_URL", "https://example.test/run")
-    assert dispatch.resolve_external(dispatch.parse_route("@researcher work"))[0] == "https://example.test/run"
+    assert (
+        dispatch.resolve_external(dispatch.parse_route("@researcher work"))[0]
+        == "https://example.test/run"
+    )
 
 
 def test_user_embedded_url_cannot_override_registered_destination(monkeypatch):
@@ -67,7 +71,7 @@ def test_user_embedded_url_cannot_override_registered_destination(monkeypatch):
 
 
 def test_local_route_never_dispatches():
-    result = asyncio.run(dispatch.dispatch("local work", timeout=1, poll_interval=.25))
+    result = asyncio.run(dispatch.dispatch("local work", timeout=1, poll_interval=0.25))
     assert result["mode"] == "local"
 
 
@@ -78,7 +82,9 @@ def test_internal_unknown_profile_fails_explicitly(monkeypatch):
         return 404, {"error": "Agent profile not found"}, ""
 
     monkeypatch.setattr(dispatch, "_curl_json", fake)
-    result = asyncio.run(dispatch.dispatch("@missing task", timeout=1, poll_interval=.25))
+    result = asyncio.run(
+        dispatch.dispatch("@missing task", timeout=1, poll_interval=0.25)
+    )
     assert result["mode"] == "internal"
     assert result["ok"] is False
     assert "Unknown" in result["error"]
@@ -86,11 +92,31 @@ def test_internal_unknown_profile_fails_explicitly(monkeypatch):
 
 def test_internal_delegation_polls_to_result(monkeypatch):
     monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
-    replies = iter([
-        (200, {"context_id": "fresh", "status": "running"}, ""),
-        (200, {"context_id": "fresh", "status": "running", "log_from": 2, "log_progress": "thinking"}, ""),
-        (200, {"context_id": "fresh", "status": "completed", "log_from": 3, "result": "done"}, ""),
-    ])
+    replies = iter(
+        [
+            (200, {"context_id": "fresh", "status": "running"}, ""),
+            (
+                200,
+                {
+                    "context_id": "fresh",
+                    "status": "running",
+                    "log_from": 2,
+                    "log_progress": "thinking",
+                },
+                "",
+            ),
+            (
+                200,
+                {
+                    "context_id": "fresh",
+                    "status": "completed",
+                    "log_from": 3,
+                    "result": "done",
+                },
+                "",
+            ),
+        ]
+    )
 
     async def fake(*args, **kwargs):
         return next(replies)
@@ -100,11 +126,13 @@ def test_internal_delegation_polls_to_result(monkeypatch):
 
     monkeypatch.setattr(dispatch, "_curl_json", fake)
     monkeypatch.setattr(dispatch.asyncio, "sleep", no_sleep)
-    result = asyncio.run(dispatch.dispatch("@researcher task", timeout=2, poll_interval=.25))
+    result = asyncio.run(
+        dispatch.dispatch("@researcher task", timeout=2, poll_interval=0.25)
+    )
     assert result["ok"] is True
     assert result["context_id"] == "fresh"
     assert result["response"] == "done"
-    assert any(event["state"] == "polling" for event in result["events"])
+    assert any(event["state"] in {"running", "completed"} for event in result["events"])
 
 
 def test_external_poll_timeout(monkeypatch):
@@ -123,8 +151,14 @@ def test_external_poll_timeout(monkeypatch):
     monkeypatch.setattr(dispatch, "_curl_json", post)
     monkeypatch.setattr(dispatch, "_curl_get", get)
     monkeypatch.setattr(dispatch.asyncio, "sleep", no_sleep)
-    monkeypatch.setattr(dispatch.asyncio, "get_running_loop", lambda: SimpleNamespace(time=lambda: next(times)))
-    result = asyncio.run(dispatch.dispatch("/hermes task", timeout=1, poll_interval=.25))
+    monkeypatch.setattr(
+        dispatch.asyncio,
+        "get_running_loop",
+        lambda: SimpleNamespace(time=lambda: next(times)),
+    )
+    result = asyncio.run(
+        dispatch.dispatch("/hermes task", timeout=1, poll_interval=0.25)
+    )
     assert result["state"] == "timeout"
 
 
@@ -135,7 +169,9 @@ def test_external_malformed_json_fails(monkeypatch):
         return 200, {"malformed_json": True, "text": "not-json"}, ""
 
     monkeypatch.setattr(dispatch, "_curl_json", post)
-    result = asyncio.run(dispatch.dispatch("/hermes task", timeout=1, poll_interval=.25))
+    result = asyncio.run(
+        dispatch.dispatch("/hermes task", timeout=1, poll_interval=0.25)
+    )
     assert result["ok"] is False
     assert result["state"] == "failed"
     assert "malformed JSON" in result["error"]
@@ -148,10 +184,34 @@ def test_external_request_timeout_is_structured(monkeypatch):
         raise TimeoutError("request timed out")
 
     monkeypatch.setattr(dispatch, "_curl_json", post)
-    result = asyncio.run(dispatch.dispatch("/hermes task", timeout=1, poll_interval=.25))
+    result = asyncio.run(
+        dispatch.dispatch("/hermes task", timeout=1, poll_interval=0.25)
+    )
     assert result["ok"] is False
     assert result["state"] == "timeout"
     assert result["events"][-1]["state"] == "timeout"
+
+
+def test_external_goal_route_is_explicitly_unsupported(monkeypatch):
+    monkeypatch.setenv("SPYNEL_AGENT_REVIEWER_URL", "https://example.test/run")
+
+    async def must_not_send(*args, **kwargs):
+        raise AssertionError(
+            "external goal mode must not degrade to a one-shot request"
+        )
+
+    monkeypatch.setattr(dispatch, "_curl_json", must_not_send)
+    result = asyncio.run(
+        dispatch.dispatch(
+            "@reviewer inspect",
+            timeout=1,
+            poll_interval=0.25,
+            goal_mode=True,
+        )
+    )
+    assert result["mode"] == "external"
+    assert result["ok"] is False
+    assert result["state"] == "goal_unsupported"
 
 
 def test_curl_uses_argv_and_kills_after_timeout(monkeypatch):
@@ -159,10 +219,19 @@ def test_curl_uses_argv_and_kills_after_timeout(monkeypatch):
 
     class Proc:
         stdin = stdout = stderr = object()
-        def __init__(self): self.waits = 0
-        async def communicate(self, body): await asyncio.Future()
-        def terminate(self): calls.append("terminate")
-        def kill(self): calls.append("kill")
+
+        def __init__(self):
+            self.waits = 0
+
+        async def communicate(self, body):
+            await asyncio.Future()
+
+        def terminate(self):
+            calls.append("terminate")
+
+        def kill(self):
+            calls.append("kill")
+
         async def wait(self):
             self.waits += 1
             if "kill" not in calls:
@@ -188,7 +257,7 @@ def test_profile_creation_api_is_protected_and_path_safe():
     source = (ROOT / "api/agent_profile_create.py").read_text()
     assert "class CreateAgentProfile(ApiHandler)" in source
     assert "subagents.save_agent_data(name, profile)" in source
-    assert 'name.lower() in _RESERVED' in source
+    assert "name.lower() in _RESERVED" in source
     assert '"/" in key_s' in source and '"\\\\" in key_s' in source
     # The endpoint intentionally keeps ApiHandler's authenticated + CSRF defaults.
     assert "requires_auth" not in source and "requires_csrf" not in source
@@ -227,9 +296,11 @@ def test_huggingface_image_is_non_root_and_direct_startup():
     assert "PIP_NO_INDEX=1" in dockerfile
     assert "spacy download en_core_web_sm" in dockerfile
     assert "/exe/initialize.sh" not in entrypoint
-    assert "run_ui.py" in entrypoint
+    assert "run_ui.py --dockerized=true" in entrypoint
+    assert "Runtime mode: dockerized production" in entrypoint
     assert "chpasswd" not in entrypoint
-    assert 'settings["mcp_server_token"] = api_key' in entrypoint
+    assert 'settings["mcp_server_token"] = api_key' not in entrypoint
+    assert "SPYNEL_AGENT_ZERO_API_KEY" not in entrypoint
 
 
 def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():
@@ -237,28 +308,252 @@ def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():
     assert "COPY ./docker/run/fs/ /" not in dockerfile
     assert "COPY ./docker/run/fs/exe /exe" not in dockerfile
     assert "COPY ./ /git/agent-zero" in dockerfile
-    assert "COPY ./docker/run/fs/ins /ins" in dockerfile
+    assert "COPY ./docker/run/fs/ins /ins" not in dockerfile
+    assert "COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh" in dockerfile
     assert (
         "COPY ./docker/run/fs/exe/huggingface-entrypoint.sh "
         "/exe/huggingface-entrypoint.sh"
     ) in dockerfile
-    for path in (
-        "/ins/pre_install.sh",
-        "/ins/install_A0.sh",
-        "/ins/install_additional.sh",
-        "/ins/install_A02.sh",
-        "/ins/post_install.sh",
-        "/exe/huggingface-entrypoint.sh",
-    ):
-        assert path in dockerfile
+    assert "/exe/huggingface-entrypoint.sh" in dockerfile
     assert "version https://git-lfs.github.com/spec/v1" in dockerfile
     assert "Required script has no shebang" in dockerfile
 
 
 def test_colab_cli_has_lifecycle_commands():
     script = (ROOT / "scripts/colab_a0.py").read_text()
-    assert 'choices=("start", "health", "stop")' in script
+    assert 'choices=("start", "health", "stop", "exec")' in script
     assert 'default="0.0.0.0"' in script
     assert "default=7860" in script
     assert 'fields[2] == "Z"' in script
     assert 'b"run_ui.py" not in command' in script
+
+
+def test_goal_polling_backs_off_resets_on_revision_and_stops(monkeypatch):
+    monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
+    monkeypatch.setenv("SPYNEL_MAX_POLL_INTERVAL", "8")
+    replies = iter(
+        [
+            (200, {"context_id": "ctx", "goal_id": "goal_1", "status": "active"}, ""),
+            (200, {"status": "working", "progress_revision": 1, "log_from": 1}, ""),
+            (200, {"status": "working", "progress_revision": 1, "log_from": 1}, ""),
+            (
+                200,
+                {
+                    "status": "working",
+                    "progress_revision": 2,
+                    "milestone": "tests",
+                    "log_from": 2,
+                },
+                "",
+            ),
+            (
+                200,
+                {
+                    "status": "completed",
+                    "progress_revision": 3,
+                    "result": "done",
+                    "log_from": 3,
+                },
+                "",
+            ),
+        ]
+    )
+    sleeps = []
+
+    async def fake(*args, **kwargs):
+        return next(replies)
+
+    async def sleep(value):
+        sleeps.append(value)
+
+    monkeypatch.setattr(dispatch, "_curl_json", fake)
+    monkeypatch.setattr(dispatch.asyncio, "sleep", sleep)
+    result = asyncio.run(
+        dispatch.dispatch(
+            "@developer deliver", timeout=30, poll_interval=1, goal_mode=True
+        )
+    )
+    assert result["ok"] is True and result["goal_id"] == "goal_1"
+    assert sleeps == [1, 1, 2, 1]
+    assert [
+        event.get("progress_revision")
+        for event in result["events"]
+        if "progress_revision" in event
+    ] == [1, 2, 3]
+
+
+def test_goal_polling_returns_attention_without_duplicate_submission(monkeypatch):
+    monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
+    posts = []
+
+    async def fake(url, payload, *args, **kwargs):
+        posts.append((url, payload))
+        if url.endswith("/delegate"):
+            return 200, {"context_id": "ctx", "goal_id": "goal_1"}, ""
+        return (
+            200,
+            {
+                "status": "working",
+                "progress_revision": 2,
+                "requires_attention": True,
+                "attention_reason": "approval_required",
+                "attention_message": "approve",
+            },
+            "",
+        )
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(dispatch, "_curl_json", fake)
+    monkeypatch.setattr(dispatch.asyncio, "sleep", no_sleep)
+    result = asyncio.run(
+        dispatch.dispatch(
+            "@shipper deploy", timeout=3, poll_interval=0.25, goal_mode=True
+        )
+    )
+    assert (
+        result["state"] == "attention"
+        and result["attention_reason"] == "approval_required"
+    )
+    assert sum(url.endswith("/delegate") for url, _ in posts) == 1
+
+
+@pytest.mark.parametrize(
+    ("request_id", "request_scope", "expected"),
+    [
+        (None, None, {}),
+        (
+            "request-123",
+            None,
+            {"idempotency_key": "request-123", "idempotency_scope": "spynel"},
+        ),
+        (
+            "request-123",
+            "parent:goal-9",
+            {"idempotency_key": "request-123", "idempotency_scope": "parent:goal-9"},
+        ),
+    ],
+)
+def test_goal_idempotency_is_caller_scoped(
+    monkeypatch, request_id, request_scope, expected
+):
+    monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
+    payloads = []
+
+    async def fake(url, payload, *args, **kwargs):
+        payloads.append(payload)
+        if url.endswith("/delegate"):
+            return 200, {"context_id": "ctx", "goal_id": "goal_1"}, ""
+        return (
+            200,
+            {"status": "completed", "progress_revision": 2, "result": "done"},
+            "",
+        )
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(dispatch, "_curl_json", fake)
+    monkeypatch.setattr(dispatch.asyncio, "sleep", no_sleep)
+    result = asyncio.run(
+        dispatch.dispatch(
+            "@reviewer inspect",
+            timeout=2,
+            poll_interval=0.25,
+            goal_mode=True,
+            request_id=request_id,
+            request_scope=request_scope,
+        )
+    )
+    assert result["ok"] is True
+    submission = payloads[0]
+    assert {
+        key: submission[key]
+        for key in ("idempotency_key", "idempotency_scope")
+        if key in submission
+    } == expected
+
+
+def test_parallel_internal_submissions_keep_profile_context_association(monkeypatch):
+    monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
+
+    async def fake(url, payload, *args, **kwargs):
+        if url.endswith("api_message"):
+            profile = payload["agent_profile"]
+            return 200, {"context_id": f"ctx-{profile}"}, ""
+        context = payload["context_id"]
+        return 200, {"status": "completed", "result": context}, ""
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(dispatch, "_curl_json", fake)
+    monkeypatch.setattr(dispatch.asyncio, "sleep", no_sleep)
+
+    async def run():
+        return await asyncio.gather(
+            dispatch.dispatch("@reviewer inspect", timeout=2, poll_interval=0.25),
+            dispatch.dispatch("@security inspect", timeout=2, poll_interval=0.25),
+        )
+
+    reviewer, security = asyncio.run(run())
+    assert (
+        reviewer["context_id"] == "ctx-reviewer"
+        and reviewer["response"] == "ctx-reviewer"
+    )
+    assert (
+        security["context_id"] == "ctx-security"
+        and security["response"] == "ctx-security"
+    )
+
+
+@pytest.mark.parametrize("iteration", range(5))
+def test_polling_stress_emits_semantic_events_not_transport_noise(
+    monkeypatch, iteration
+):
+    monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "secret")
+    monkeypatch.setenv("SPYNEL_MAX_POLL_INTERVAL", "16")
+    polls = 0
+    sleeps = []
+
+    async def fake(url, payload, *args, **kwargs):
+        nonlocal polls
+        if url.endswith("/delegate"):
+            return (
+                200,
+                {"context_id": f"ctx-{iteration}", "goal_id": f"goal-{iteration}"},
+                "",
+            )
+        polls += 1
+        revision = 1 if polls < 60 else 2 if polls < 105 else 3
+        status = "completed" if polls >= 105 else "working"
+        return (
+            200,
+            {
+                "status": status,
+                "progress_revision": revision,
+                "milestone": f"revision-{revision}",
+                "result": "done" if status == "completed" else None,
+                "log_from": polls * 1000,
+            },
+            "",
+        )
+
+    async def no_wait(value):
+        sleeps.append(value)
+
+    monkeypatch.setattr(dispatch, "_curl_json", fake)
+    monkeypatch.setattr(dispatch.asyncio, "sleep", no_wait)
+    result = asyncio.run(
+        dispatch.dispatch(
+            "@developer long goal", timeout=30, poll_interval=0.25, goal_mode=True
+        )
+    )
+
+    semantic = [event for event in result["events"] if "progress_revision" in event]
+    assert polls == 105
+    assert [event["progress_revision"] for event in semantic] == [1, 2, 3]
+    assert max(sleeps) <= 16
+    assert all("logs" not in event for event in result["events"])
+    assert result["state"] == "completed"
