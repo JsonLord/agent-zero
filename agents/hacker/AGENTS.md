@@ -15,6 +15,7 @@
 - Keep the profile focused on authorized security analysis, vulnerability research, and defensive audit tasks.
 - Do not add secrets, target-specific credentials, or local environment assumptions.
 - Preserve the framework tool-call contract and safety expectations.
+- Hacker owns exploratory hypothesis swarms and evidence synthesis while keeping destructive actions and external writes approval-gated.
 
 ## Work Guidance
 

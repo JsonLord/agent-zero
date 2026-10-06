@@ -1,24 +1,13 @@
 ### goal
-Inspect, create, or finish the current chat goal.
-
-Use this only when the user asks for a goal or asks you to manage one. Do not create goals for casual replies or ordinary one-shot answers.
+Manage the durable execution contract for this context.
 
 Actions:
-- `get`: inspect the current goal; use this before creating one when its state is unknown.
-- `create`: make the given concise `objective` active; optional positive `token_budget`.
-- `update`: mark the current goal with `status` `complete` or `blocked`; optional revised `objective` and `note`.
+- `get`: inspect compact state.
+- `create`: set objective plus optional title, criteria, constraints, evidence, autonomy, and token budget.
+- `checkpoint`: record a meaningful milestone/evidence/attention transition.
+- `revise`: preserve the old definition and revise the contract.
+- `subgoal`: delegate one bounded child outcome to an existing profile in a fresh context; declare dependencies and keep parallel writers isolated.
+- `complete`: evaluate all criteria; NOT VERIFIED is never PASS.
+- `blocked`: use only after viable alternatives fail; include an attention reason.
 
-Pause, resume, edit, and delete are user controls. Mark `complete` only after achieving the objective; mark `blocked` only after viable alternatives are exhausted and work cannot continue without user input or an external-state change.
-
-Example:
-~~~json
-{
-  "thoughts": ["The user asked me to manage this task as a goal."],
-  "headline": "Creating goal",
-  "tool_name": "goal",
-  "tool_args": {
-    "action": "create",
-    "objective": "Add the built-in goal plugin with a Web UI strip and slash command"
-  }
-}
-~~~
+Do not checkpoint every command. While active, continue autonomously without routine narration. Permissions and approval gates remain authoritative at every autonomy level.

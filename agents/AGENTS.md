@@ -44,3 +44,18 @@ Direct child DOX files:
 | [researcher/AGENTS.md](researcher/AGENTS.md) | Research, data analysis, and reporting specialist profile. |
 | [spynel/AGENTS.md](spynel/AGENTS.md) | Safe internal/external routing and Paperclip board coordination profile. |
 | [tiny-local/AGENTS.md](tiny-local/AGENTS.md) | Small/local model profile with an action-first communication prompt. |
+| [reviewer/AGENTS.md](reviewer/AGENTS.md) | Reviewer specialist profile. |
+| [tester/AGENTS.md](tester/AGENTS.md) | Tester specialist profile. |
+| [tiny-coder/AGENTS.md](tiny-coder/AGENTS.md) | Tiny Coder specialist profile. |
+| [debugger/AGENTS.md](debugger/AGENTS.md) | Debugger specialist profile. |
+| [integrator/AGENTS.md](integrator/AGENTS.md) | Integrator specialist profile. |
+| [frontend-qa/AGENTS.md](frontend-qa/AGENTS.md) | Frontend QA specialist profile. |
+| [evals/AGENTS.md](evals/AGENTS.md) | Evals specialist profile. |
+| [shipper/AGENTS.md](shipper/AGENTS.md) | Shipper specialist profile. |
+| [launch/AGENTS.md](launch/AGENTS.md) | Launch specialist profile. |
+| [performance/AGENTS.md](performance/AGENTS.md) | Performance specialist profile. |
+| [security/AGENTS.md](security/AGENTS.md) | Security specialist profile. |
+| [refactorer/AGENTS.md](refactorer/AGENTS.md) | Refactorer specialist profile. |
+| [maintainer/AGENTS.md](maintainer/AGENTS.md) | Maintainer specialist profile. |
+| [data-engineer/AGENTS.md](data-engineer/AGENTS.md) | Data Engineer specialist profile. |
+| [docs/AGENTS.md](docs/AGENTS.md) | Docs specialist profile. |

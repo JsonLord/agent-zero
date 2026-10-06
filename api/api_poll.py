@@ -40,12 +40,45 @@ class ApiPoll(ApiHandler):
                 result = context.task.result_sync(timeout=0)
             except Exception:
                 status = "failed"
-        return {
+        goal_status = None
+        try:
+            from plugins._goal.tools import goal
+
+            goal_status = goal.get_goal(context_id)
+            if goal_status and goal_status.get("status") == "active" and not running:
+                goal_status = goal.reconcile_goal(context_id, running=False)
+        except Exception:
+            goal_status = None
+        semantic_status = status
+        if goal_status:
+            semantic_status = (
+                "working"
+                if running and goal_status["status"] == "active"
+                else goal_status["status"]
+            )
+        response = {
             "context_id": context.id,
-            "status": status,
+            "status": semantic_status,
             "running": running,
             "log_progress": context.log.progress,
             "log_from": output.end,
-            "logs": output.items,
             "result": result if not running else None,
+            "goal_id": goal_status.get("goal_id") if goal_status else None,
+            "milestone": goal_status.get("current_milestone") if goal_status else "",
+            "progress_revision": goal_status.get("progress_revision")
+            if goal_status
+            else 0,
+            "requires_attention": bool(
+                goal_status and goal_status.get("requires_attention")
+            ),
+            "attention_reason": goal_status.get("attention_reason")
+            if goal_status
+            else "",
+            "attention_message": goal_status.get("attention_message")
+            if goal_status
+            else "",
+            "next_poll_after": 2,
         }
+        if input.get("include_logs") is True:
+            response["logs"] = output.items
+        return response

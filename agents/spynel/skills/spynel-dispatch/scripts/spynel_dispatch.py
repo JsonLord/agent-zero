@@ -145,7 +145,14 @@ async def _curl_get(url: str, timeout: float) -> tuple[int, Any, str]:
 
 
 async def _internal_delegate(
-    route: Route, *, timeout: float, poll_interval: float, events: list[dict[str, Any]]
+    route: Route,
+    *,
+    timeout: float,
+    poll_interval: float,
+    events: list[dict[str, Any]],
+    goal_mode: bool = False,
+    request_id: str | None = None,
+    request_scope: str | None = None,
 ) -> dict[str, Any]:
     base = _internal_url(os.getenv("SPYNEL_AGENT_ZERO_URL", "http://127.0.0.1:7860"))
     api_key = os.getenv("SPYNEL_AGENT_ZERO_API_KEY", "").strip()
@@ -154,9 +161,26 @@ async def _internal_delegate(
 
     events.append({"state": "creating_context", "profile": route.profile})
     try:
+        if goal_mode:
+            payload: dict[str, Any] = {
+                "objective": route.message,
+                "agent_profile": route.profile,
+            }
+            # Only a caller-generated request ID identifies a retry. Deriving a
+            # durable key from the message would incorrectly merge independent
+            # requests that happen to contain the same text.
+            if request_id:
+                payload["idempotency_key"] = request_id
+                payload["idempotency_scope"] = request_scope or "spynel"
+        else:
+            payload = {
+                "message": route.message,
+                "agent_profile": route.profile,
+                "async": True,
+            }
         code, data, error = await _curl_json(
-            f"{base}/api/api_message",
-            {"message": route.message, "agent_profile": route.profile, "async": True},
+            f"{base}/api/plugins/_goal/delegate" if goal_mode else f"{base}/api/api_message",
+            payload,
             min(timeout, 60),
             https_only=urlparse(base).scheme == "https",
             api_key=api_key,
@@ -170,11 +194,16 @@ async def _internal_delegate(
         return {"mode": "internal", "ok": False, "state": "failed", "error": error or data, "events": events}
 
     context_id = str(data["context_id"])
-    events.append({"state": "submitted", "context_id": context_id})
+    goal_id = str(data.get("goal_id") or "")
+    events.append({"state": "submitted", "context_id": context_id, "goal_id": goal_id or None})
     deadline = asyncio.get_running_loop().time() + timeout
     log_from = 0
+    last_revision = None
+    last_state = None
+    interval = max(0.25, poll_interval)
+    max_interval = max(interval, float(os.getenv("SPYNEL_MAX_POLL_INTERVAL", "60")))
     while asyncio.get_running_loop().time() < deadline:
-        await asyncio.sleep(max(0.25, poll_interval))
+        await asyncio.sleep(interval)
         try:
             code, status, error = await _curl_json(
                 f"{base}/api/api_poll",
@@ -191,13 +220,22 @@ async def _internal_delegate(
         if status.get("malformed_json"):
             return {"mode": "internal", "ok": False, "state": "failed", "context_id": context_id, "error": "Agent Zero poll returned malformed JSON", "events": events}
         log_from = int(status.get("log_from", log_from) or log_from)
-        events.append({"state": "polling", "context_id": context_id, "progress": status.get("log_progress")})
-        if status.get("status") == "failed":
-            return {"mode": "internal", "ok": False, "state": "failed", "profile": route.profile, "context_id": context_id, "events": events}
-        if status.get("status") == "completed":
-            events.append({"state": "completed", "context_id": context_id})
-            return {"mode": "internal", "ok": True, "state": "completed", "profile": route.profile, "context_id": context_id, "response": status.get("result"), "events": events}
-    return {"mode": "internal", "ok": False, "state": "timeout", "profile": route.profile, "context_id": context_id, "events": events}
+        revision = status.get("progress_revision")
+        semantic_state = str(status.get("status") or "working")
+        changed = revision != last_revision or semantic_state != last_state
+        if changed:
+            events.append({"state": semantic_state, "context_id": context_id, "goal_id": status.get("goal_id") or goal_id or None, "progress_revision": revision, "milestone": status.get("milestone") or None})
+            interval = max(0.25, poll_interval)
+            last_revision, last_state = revision, semantic_state
+        else:
+            interval = min(max_interval, max(interval + poll_interval, interval * 2))
+        if status.get("requires_attention"):
+            return {"mode": "internal", "ok": False, "state": "attention", "profile": route.profile, "context_id": context_id, "goal_id": status.get("goal_id") or goal_id or None, "requires_attention": True, "attention_reason": status.get("attention_reason"), "message": status.get("attention_message"), "events": events}
+        if semantic_state in {"failed", "cancelled", "blocked"}:
+            return {"mode": "internal", "ok": False, "state": semantic_state, "profile": route.profile, "context_id": context_id, "goal_id": status.get("goal_id") or goal_id or None, "events": events}
+        if semantic_state in {"completed", "complete", "partially_verified"}:
+            return {"mode": "internal", "ok": semantic_state == "completed" or (semantic_state == "complete" and not goal_id), "state": semantic_state, "profile": route.profile, "context_id": context_id, "goal_id": status.get("goal_id") or goal_id or None, "response": status.get("result"), "events": events}
+    return {"mode": "internal", "ok": False, "state": "timeout", "profile": route.profile, "context_id": context_id, "goal_id": goal_id or None, "events": events}
 
 
 def _state(data: Any) -> str:
@@ -212,7 +250,15 @@ def _poll_url(data: Any) -> str | None:
     return str(value).strip() if value else None
 
 
-async def dispatch(text: str, *, timeout: float, poll_interval: float) -> dict[str, Any]:
+async def dispatch(
+    text: str,
+    *,
+    timeout: float,
+    poll_interval: float,
+    goal_mode: bool = False,
+    request_id: str | None = None,
+    request_scope: str | None = None,
+) -> dict[str, Any]:
     route = parse_route(text)
     events: list[dict[str, Any]] = [{"state": "parsed", "profile": route.profile, "sdk": route.sdk}]
     if not route.profile and not route.sdk:
@@ -221,10 +267,30 @@ async def dispatch(text: str, *, timeout: float, poll_interval: float) -> dict[s
     external = resolve_external(route)
     if external is None:
         return await _internal_delegate(
-            route, timeout=timeout, poll_interval=poll_interval, events=events
+            route,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            events=events,
+            goal_mode=goal_mode,
+            request_id=request_id,
+            request_scope=request_scope,
         )
 
     url, registry_key = external
+    if goal_mode:
+        events.append({"state": "goal_unsupported", "target": registry_key})
+        return {
+            "mode": "external",
+            "ok": False,
+            "state": "goal_unsupported",
+            "profile": route.profile,
+            "sdk": route.sdk,
+            "error": (
+                "The registered external route does not advertise the Agent Zero "
+                "goal protocol; use one-shot dispatch or an internal profile"
+            ),
+            "events": events,
+        }
     events.append({"state": "dispatching", "target": registry_key})
     payload = {"message": route.message, "agent_profile": route.profile, "agent_sdk": route.sdk}
     try:
@@ -273,10 +339,26 @@ async def amain() -> int:
     ap.add_argument("message", nargs="?", help="message containing optional @profile and /sdk")
     ap.add_argument("--timeout", type=float, default=float(os.getenv("SPYNEL_REQUEST_TIMEOUT", "300")))
     ap.add_argument("--poll-interval", type=float, default=float(os.getenv("SPYNEL_POLL_INTERVAL", "2")))
+    ap.add_argument("--goal", action="store_true", help="assign a durable goal instead of a one-shot message")
+    ap.add_argument(
+        "--request-id",
+        help="stable caller-generated ID used only to deduplicate retries of this goal submission",
+    )
+    ap.add_argument(
+        "--request-scope",
+        help="optional parent/workspace scope for --request-id (defaults to spynel)",
+    )
     ns = ap.parse_args()
     text = ns.message if ns.message is not None else sys.stdin.read()
     try:
-        result = await dispatch(text, timeout=max(1, ns.timeout), poll_interval=max(.25, ns.poll_interval))
+        result = await dispatch(
+            text,
+            timeout=max(1, ns.timeout),
+            poll_interval=max(.25, ns.poll_interval),
+            goal_mode=ns.goal,
+            request_id=ns.request_id,
+            request_scope=ns.request_scope,
+        )
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result.get("ok", True) else 2
     except Exception as exc:

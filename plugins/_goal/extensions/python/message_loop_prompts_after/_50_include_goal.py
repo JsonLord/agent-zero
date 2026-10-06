@@ -19,10 +19,17 @@ class IncludeGoal(Extension):
             loop_data.extras_temporary.pop("current_goal", None)
             return
 
+        remaining = [item["criterion"] for item in current_goal.get("success_criteria", []) if item.get("state") != "PASS"]
+        checkpoint = current_goal.get("last_checkpoint") or {}
         loop_data.extras_temporary["current_goal"] = self.agent.read_prompt(
             "agent.extras.goal.md",
-            status=current_goal.get("status", ""),
+            goal_id=current_goal.get("goal_id", ""),
             objective=current_goal.get("objective", ""),
-            created_by=current_goal.get("created_by", ""),
-            updated_at=current_goal.get("updated_at", ""),
+            milestone=current_goal.get("current_milestone", "not set"),
+            remaining_criteria="\n".join(f"- {item}" for item in remaining) or "- none defined",
+            constraints="\n".join(f"- {item}" for item in current_goal.get("constraints", [])) or "- repository and permission contracts",
+            autonomy=(current_goal.get("autonomy") or {}).get("level", "bounded"),
+            last_checkpoint=checkpoint.get("note") or checkpoint.get("milestone") or "none",
+            requires_attention=str(bool(current_goal.get("requires_attention"))).lower(),
+            attention_reason=current_goal.get("attention_reason", ""),
         )
