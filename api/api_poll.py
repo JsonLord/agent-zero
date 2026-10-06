@@ -43,7 +43,7 @@ class ApiPoll(ApiHandler):
         goal_status = None
         goal_error = ""
         try:
-            from plugins._goal.tools import goal
+            import plugins._goal.tools.goal as goal
 
             goal_status = goal.get_goal(context_id)
             if goal_status and goal_status.get("status") == "active" and not running:

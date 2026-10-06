@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import shutil
 import subprocess
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest
 
-from agent import Agent, LoopData
+from agent import Agent, LoopData, AgentContext
 from helpers import extension, files, mcp_handler
 from helpers.llm_result import LLMResult
 from helpers.log import Log
@@ -20,11 +22,27 @@ from plugins._goal.tools.goal import GoalTool
 from plugins._goal.tools.response import ResponseTool
 
 
+@pytest.fixture(autouse=True)
+def _isolate_goal_state(tmp_path, monkeypatch):
+    """Ensure every goal test gets a clean isolated goal storage root and AgentContext state."""
+    real_get_abs_path = files.get_abs_path
+    def fake_get_abs_path(*parts):
+        if parts and parts[0] == files.USER_DIR and len(parts) > 1 and parts[1] == files.PLUGINS_DIR:
+            return str(tmp_path.joinpath(*parts))
+        return real_get_abs_path(*parts)
+
+    monkeypatch.setattr(files, "get_abs_path", fake_get_abs_path)
+    monkeypatch.setattr(AgentContext, "get", lambda context_id: None)
+
+
 @pytest.fixture()
 def context_id():
     context_id = f"goal-test-{uuid.uuid4().hex}"
     yield context_id
-    goal.delete_goal(context_id)
+    try:
+        goal.delete_goal(context_id)
+    except Exception:
+        pass
 
 
 def _payload(context_id: str, command_text: str) -> dict:
@@ -65,14 +83,20 @@ def test_goal_changes_publish_state_revision(context_id: str, monkeypatch):
     from agent import AgentContext
     from helpers import state_monitor_integration
 
-    revisions = iter([1.0, 2.0, 3.0])
+    revisions = [1.0, 2.0, 3.0]
+    rev_idx = [0]
+    def get_next_time():
+        val = revisions[min(rev_idx[0], len(revisions) - 1)]
+        rev_idx[0] += 1
+        return val
+
     output_data = {}
     dirty = []
     context = SimpleNamespace(
         set_output_data=lambda key, value: output_data.__setitem__(key, value)
     )
     monkeypatch.setattr(AgentContext, "get", lambda _context_id: context)
-    monkeypatch.setattr(goal.time, "time", lambda: next(revisions))
+    monkeypatch.setattr(goal.time, "time", get_next_time)
     monkeypatch.setattr(
         state_monitor_integration,
         "mark_dirty_for_context",
@@ -143,7 +167,26 @@ if (formatDuration(62_000) !== "1m2s") throw new Error("minutes");
     assert "return formatDuration(this.elapsedSeconds * 1000);" in store
 
 
-def test_goal_command_sets_pauses_resumes_and_deletes(context_id: str):
+def test_goal_command_sets_pauses_resumes_and_deletes(context_id: str, monkeypatch):
+    class FakeContext:
+        def __init__(self, context_id):
+            self.id = context_id
+            self.paused = True
+            self.running = False
+
+        def is_running(self):
+            return self.running
+
+        def communicate(self, message):
+            self.running = True
+            self.paused = False
+
+        def set_output_data(self, key, value):
+            pass
+
+    context = FakeContext(context_id)
+    monkeypatch.setattr(AgentContext, "get", lambda cid: context if cid == context_id else None)
+
     created = goal_command.run(_payload(context_id, "/goal Add current goal support"))
     assert created["effects"][0]["message"] == "Goal set."
     assert created["effects"][2] == {"type": "send_message", "text": "Add current goal support"}
@@ -165,19 +208,20 @@ def test_goal_command_sets_pauses_resumes_and_deletes(context_id: str):
 def test_goal_auto_fills_prompt(context_id: str):
     result = goal_command.run(_payload(context_id, "/goal auto keep this tight"))
 
-    assert "Please create and manage a goal" in result["text"]
+    assert "Create and own a durable goal" in result["text"]
     assert "User hint: keep this tight" in result["text"]
     assert result["effects"] == []
 
 
 def test_goal_files_stay_under_user_plugin_state(context_id: str):
     goal.create_goal(context_id, "Keep state in usr")
+    hashed_filename = f"{hashlib.sha256(context_id.encode()).hexdigest()}.json"
     goal_path = files.get_abs_path(
         files.USER_DIR,
         files.PLUGINS_DIR,
         goal.PLUGIN_NAME,
         goal.GOALS_DIR,
-        f"{context_id}.json",
+        hashed_filename,
     )
 
     assert files.exists(goal_path)
@@ -191,6 +235,7 @@ async def test_goal_api_and_agent_tools(context_id: str):
             "action": "set",
             "context_id": context_id,
             "objective": "Exercise API path",
+            "success_criteria": ["api criterion"],
         },
         None,
     )
@@ -201,6 +246,9 @@ async def test_goal_api_and_agent_tools(context_id: str):
     get_tool = GoalTool(fake_agent, "goal", None, {}, "", None)
     get_response = await get_tool.execute()
     assert "Exercise API path" in get_response.message
+
+    checkpoint_tool = GoalTool(fake_agent, "goal", None, {}, "", None)
+    await checkpoint_tool.execute(action="checkpoint", criterion_updates=[{"criterion": "api criterion", "state": "PASS"}])
 
     update_tool = GoalTool(fake_agent, "goal", None, {}, "", None)
     update_response = await update_tool.execute(action="update", status="completed")
@@ -219,21 +267,24 @@ async def test_editing_terminal_goal_requests_agent_reactivation(
     terminal_status: str,
 ):
     goal.create_goal(context_id, "Initial goal")
-    goal.update_goal(context_id, status=terminal_status)
+    if terminal_status == "completed":
+        goal.complete_goal(context_id)
+    else:
+        goal.update_goal(context_id, status=terminal_status)
 
     response = await object.__new__(GoalApi).process(
         {
-            "action": "update",
+            "action": "revise",
             "context_id": context_id,
             "objective": "Continue with the edited goal",
-            "status": "active",
         },
         None,
     )
 
-    assert response["reactivated"] is True
+    assert response["ok"] is True
     assert response["goal"]["objective"] == "Continue with the edited goal"
-    assert response["goal"]["status"] == "active"
+    # Revise updates definition/history but does NOT silently reactivate or change terminal state
+    assert response["goal"]["status"] == ("partially_verified" if terminal_status == "completed" else terminal_status)
 
 
 @pytest.mark.asyncio
@@ -344,7 +395,26 @@ def test_structured_goal_revision_checkpoint_and_evidence_completion(context_id:
     assert completed["status"]=="completed" and completed["requires_attention"] is False
 
 
-def test_attention_pause_resume_cancel_and_idempotency(context_id: str):
+def test_attention_pause_resume_cancel_and_idempotency(context_id: str, monkeypatch):
+    class FakeContext:
+        def __init__(self, context_id):
+            self.id = context_id
+            self.paused = True
+            self.running = False
+
+        def is_running(self):
+            return self.running
+
+        def communicate(self, message):
+            self.running = True
+            self.paused = False
+
+        def set_output_data(self, key, value):
+            pass
+
+    context = FakeContext(context_id)
+    monkeypatch.setattr(AgentContext, "get", lambda cid: context if cid == context_id else None)
+
     first=goal.create_goal(context_id,"Need approval",idempotency_key="request-1",idempotency_scope="submission")
     replay=goal.create_goal("different-context","Duplicate",idempotency_key="request-1",idempotency_scope="submission")
     assert replay["goal_id"]==first["goal_id"] and replay["context_id"]==context_id

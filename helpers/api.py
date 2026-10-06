@@ -148,11 +148,12 @@ def requires_api_key(f):
 
         valid_api_key = resolve_api_token(get_settings().get("mcp_server_token"))
 
+        req_json = request.get_json(silent=True) if request.is_json else None
         if api_key := request.headers.get("X-API-KEY"):
             if api_key != valid_api_key:
                 return Response("Invalid API key", 401)
-        elif request.json and request.json.get("api_key"):
-            api_key = request.json.get("api_key")
+        elif req_json and isinstance(req_json, dict) and req_json.get("api_key"):
+            api_key = req_json.get("api_key")
             if api_key != valid_api_key:
                 return Response("Invalid API key", 401)
         else:

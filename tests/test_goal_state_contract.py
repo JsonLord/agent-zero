@@ -356,6 +356,8 @@ def test_goal_startup_hook_runs_reconciliation(monkeypatch):
     fake_goal.reconcile_persisted_goals = lambda: calls.append("reconciled") or []
     monkeypatch.setitem(sys.modules, "helpers.extension", fake_extension)
     monkeypatch.setitem(sys.modules, "plugins._goal.tools.goal", fake_goal)
+    if "plugins._goal.tools" in sys.modules:
+        monkeypatch.setattr(sys.modules["plugins._goal.tools"], "goal", fake_goal, raising=False)
     spec = importlib.util.spec_from_file_location(
         "isolated_goal_startup",
         ROOT
@@ -564,6 +566,8 @@ def test_api_poll_reconciles_stopped_goal_workers(
     monkeypatch.setitem(sys.modules, "agent", fake_agent)
     monkeypatch.setitem(sys.modules, "helpers.api", fake_api)
     monkeypatch.setitem(sys.modules, "plugins._goal.tools.goal", goal_module)
+    if "plugins._goal.tools" in sys.modules:
+        monkeypatch.setattr(sys.modules["plugins._goal.tools"], "goal", goal_module, raising=False)
     spec = importlib.util.spec_from_file_location(
         f"isolated_api_poll_{context_id}", ROOT / "api/api_poll.py"
     )
