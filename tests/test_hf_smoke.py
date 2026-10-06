@@ -55,7 +55,7 @@ def test_smoke_uses_only_named_environment_and_never_prints_values(monkeypatch, 
                 "data": [{"key": name} for name in smoke.REQUIRED_PROFILES],
             }
         if path.endswith("skills_catalog"):
-            return 200, {"ok": True, "skills": [{"name": "paperclip-board-manager"}]}
+            return 200, {"ok": True, "skills": [{"name": name} for name in smoke.CRITICAL_SKILLS]}
         if path.endswith("agent_profile_create"):
             return 403, {"error": "protected"}
         raise AssertionError(path)
@@ -82,7 +82,7 @@ def test_smoke_uses_only_named_environment_and_never_prints_values(monkeypatch, 
         "profile-create protection: PASS",
         "specialist profiles: PASS",
         "Spynel: PASS",
-        "Paperclip skill: PASS",
+        "required skills: PASS",
     ):
         assert label in captured.out
 
@@ -120,7 +120,7 @@ def test_smoke_polls_delegated_goal_and_reports_attention(monkeypatch, capsys):
         if path == "/api/agents":
             return 200, {"data": [{"key": name} for name in smoke.REQUIRED_PROFILES]}
         if path.endswith("skills_catalog"):
-            return 200, {"skills": [{"name": "paperclip-board-manager"}]}
+            return 200, {"skills": [{"name": name} for name in smoke.CRITICAL_SKILLS]}
         if path.endswith("agent_profile_create"):
             return 403, {}
         raise AssertionError(path)

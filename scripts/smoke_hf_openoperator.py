@@ -39,6 +39,32 @@ REQUIRED_PROFILES = {
     "docs",
 }
 
+CRITICAL_SKILLS = {
+    "colab-execute",
+    "golive",
+    "brag",
+    "playwright",
+    "hf-space",
+    "test-evidence",
+    "api-contract",
+    "benchmark",
+    "compile-check",
+    "context-packager",
+    "dependency-doctor",
+    "diff-self-review",
+    "docker-diagnose",
+    "failure-to-next-patch",
+    "git-worktree",
+    "github-pr",
+    "patch-small",
+    "repo-map",
+    "secret-safe-env",
+    "spec-check",
+    "symbol-locator",
+    "task-slicer",
+    "test-targeted",
+}
+
 
 def request(path, payload=None, *, api=False):
     headers = {"Accept": "application/json"}
@@ -124,10 +150,11 @@ def discover():
     """Use existing read-only authenticated catalogs; never mutate for discovery."""
     code, agents = request("/api/agents", {"action": "list"}, api=True)
     names = _names(agents)
+    missing_profiles = REQUIRED_PROFILES - names
     report(
         "specialist profiles",
-        "PASS" if code == 200 and REQUIRED_PROFILES <= names else "FAIL",
-        "authenticated profile catalog",
+        "PASS" if code == 200 and not missing_profiles else "FAIL",
+        f"missing: {sorted(missing_profiles)}" if missing_profiles else f"{len(names)} profiles cataloged",
     )
     report("Spynel", "PASS" if "spynel" in names else "FAIL")
 
@@ -135,11 +162,11 @@ def discover():
         "/api/plugins/_skills/skills_catalog", {"action": "list"}, api=True
     )
     skill_names = _names(skills)
+    missing_skills = CRITICAL_SKILLS - skill_names
     report(
-        "Paperclip skill",
-        "PASS"
-        if code == 200 and any(name.startswith("paperclip") for name in skill_names)
-        else "FAIL",
+        "required skills",
+        "PASS" if code == 200 and not missing_skills else "FAIL",
+        f"missing: {sorted(missing_skills)}" if missing_skills else f"{len(skill_names)} skills cataloged",
     )
 
 

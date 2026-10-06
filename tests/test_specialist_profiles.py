@@ -69,3 +69,9 @@ def test_colab_skill_reuses_actual_lifecycle_helper():
     for action in ("start", "health", "stop"):
         assert action in skill
         assert action in helper
+
+
+def test_docker_copy_a0_sync_preserves_user_directory():
+    copy_script = (ROOT / "docker/run/fs/ins/copy_A0.sh").read_text()
+    assert "rsync" in copy_script
+    assert "--exclude='/usr'" in copy_script or "--exclude=/usr" in copy_script

@@ -209,7 +209,17 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
 
     @app.route("/health", methods=["GET", "POST"])
     def _root_health():
-        return Response('{"status":"ok"}', status=200, mimetype="application/json")
+        sha = os.environ.get("OPENOPERATOR_SOURCE_SHA", "").strip()
+        if not sha:
+            try:
+                from helpers.git import get_git_info
+                sha = str(get_git_info().get("commit_hash") or "").strip()
+            except Exception:
+                sha = ""
+        payload = {"status": "ok"}
+        if sha:
+            payload["sha"] = sha
+        return Response(json.dumps(payload), status=200, mimetype="application/json")
 
     @app.route("/api-docs", methods=["GET"])
     def _root_api_docs():

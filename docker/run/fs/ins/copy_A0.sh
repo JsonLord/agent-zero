@@ -5,8 +5,9 @@ set -e
 SOURCE_DIR="/git/agent-zero"
 TARGET_DIR="/a0"
 
-# Copy repository files if run_ui.py is missing in /a0 (if the volume is mounted)
-if [ ! -f "$TARGET_DIR/run_ui.py" ]; then
-    echo "Copying files from $SOURCE_DIR to $TARGET_DIR..."
-    cp -rn --no-preserve=ownership,mode "$SOURCE_DIR/." "$TARGET_DIR"
+# Deterministically synchronize application code while excluding persistent user state (/a0/usr)
+if [ -d "$SOURCE_DIR" ]; then
+    echo "Synchronizing application code from $SOURCE_DIR to $TARGET_DIR..."
+    mkdir -p "$TARGET_DIR"
+    rsync -a --no-owner --no-group --exclude='/usr' "$SOURCE_DIR/" "$TARGET_DIR/"
 fi

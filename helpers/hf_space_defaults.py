@@ -2,9 +2,87 @@ import os
 from helpers import dotenv
 from helpers.print_style import PrintStyle
 
+REQUIRED_PROFILES = {
+    "developer",
+    "hacker",
+    "spynel",
+    "reviewer",
+    "tester",
+    "tiny-coder",
+    "debugger",
+    "integrator",
+    "frontend-qa",
+    "evals",
+    "shipper",
+    "launch",
+    "performance",
+    "security",
+    "refactorer",
+    "maintainer",
+    "data-engineer",
+    "docs",
+}
+
+REQUIRED_SKILLS = {
+    "api-contract",
+    "benchmark",
+    "brag",
+    "colab-execute",
+    "compile-check",
+    "context-packager",
+    "dependency-doctor",
+    "diff-self-review",
+    "docker-diagnose",
+    "failure-to-next-patch",
+    "git-worktree",
+    "github-pr",
+    "golive",
+    "hf-space",
+    "patch-small",
+    "playwright",
+    "repo-map",
+    "secret-safe-env",
+    "spec-check",
+    "symbol-locator",
+    "task-slicer",
+    "test-evidence",
+    "test-targeted",
+}
+
+
+def assert_profiles_and_skills() -> None:
+    """Verify that all required OpenOperator specialist profiles and skills exist and discover natively."""
+    from helpers import subagents
+
+    catalog = subagents.get_available_agents_dict(None)
+    discovered_profiles = set(catalog.keys())
+    missing_profiles = REQUIRED_PROFILES - discovered_profiles
+    if missing_profiles:
+        PrintStyle.error(f"OpenOperator profile discovery failed: missing profiles {sorted(missing_profiles)}")
+        raise RuntimeError(f"OpenOperator profile assertion failed: missing profiles {sorted(missing_profiles)}")
+
+    for profile_name in REQUIRED_PROFILES:
+        try:
+            agent_data = subagents.load_agent_data(profile_name)
+            if not agent_data:
+                raise ValueError(f"Profile {profile_name} returned empty data")
+        except Exception as error:
+            PrintStyle.error(f"OpenOperator profile load failed for {profile_name}: {error}")
+            raise RuntimeError(f"OpenOperator profile load assertion failed for {profile_name}: {error}")
+
+    from helpers import files
+    skills_dir = files.get_abs_path("skills")
+    existing_skills = set(files.get_subdirectories(skills_dir))
+    missing_skills = REQUIRED_SKILLS - existing_skills
+    if missing_skills:
+        PrintStyle.error(f"OpenOperator skills assertion failed: missing skills {sorted(missing_skills)}")
+        raise RuntimeError(f"OpenOperator skills assertion failed: missing skills {sorted(missing_skills)}")
+
 
 def apply_hf_space_defaults() -> dict[str, bool]:
     """Apply only non-empty Space defaults and return a secret-free summary."""
+    assert_profiles_and_skills()
+
     compatible_url = os.environ.get("COMPATIBLE_URL", "").strip()
     compatible_model = os.environ.get("COMPATIBLE_MODEL", "").strip()
     blablador_api_key = os.environ.get("BLABLADOR_API_KEY", "").strip()
