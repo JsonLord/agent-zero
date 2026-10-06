@@ -17,10 +17,41 @@ class Goal(ApiHandler):
                 return self._set(context_id, input)
             if action == "update":
                 return self._update(context_id, input)
+            if action == "revise":
+                current_goal = goal.revise_goal(
+                    context_id,
+                    objective=input.get("objective"),
+                    title=input.get("title"),
+                    success_criteria=input.get("success_criteria"),
+                    constraints=input.get("constraints"),
+                    evidence_required=input.get("evidence_required"),
+                    autonomy=input.get("autonomy"),
+                )
+                return {"ok": True, "goal": goal.public_goal(current_goal)}
+            if action == "checkpoint":
+                current_goal = goal.checkpoint_goal(
+                    context_id,
+                    milestone=input.get("milestone"),
+                    note=str(input.get("note") or ""),
+                    evidence=input.get("evidence"),
+                    criterion_updates=input.get("criterion_updates"),
+                    requires_attention=input.get("requires_attention"),
+                    attention_reason=input.get("attention_reason"),
+                    attention_message=input.get("attention_message"),
+                )
+                return {"ok": True, "goal": goal.public_goal(current_goal)}
             if action == "pause":
                 return self._status(context_id, "paused")
             if action == "resume":
-                return self._status(context_id, "active")
+                current_goal = goal.resume_goal(context_id)
+                return {"ok": True, "goal": goal.public_goal(current_goal)}
+            if action == "complete":
+                current_goal = goal.complete_goal(
+                    context_id, note=input.get("note"), result=input.get("result")
+                )
+                return {"ok": True, "goal": goal.public_goal(current_goal)}
+            if action == "cancel":
+                return self._status(context_id, "cancelled")
             if action == "delete":
                 goal.delete_goal(context_id)
                 return {"ok": True, "goal": None}
@@ -37,6 +68,13 @@ class Goal(ApiHandler):
             str(input.get("objective") or ""),
             created_by=str(input.get("created_by") or "user"),
             token_budget=input.get("token_budget"),
+            title=str(input.get("title") or ""),
+            owner_profile=str(input.get("owner_profile") or ""),
+            success_criteria=input.get("success_criteria"),
+            constraints=input.get("constraints"),
+            evidence_required=input.get("evidence_required"),
+            autonomy=input.get("autonomy"),
+            idempotency_key=str(input.get("idempotency_key") or ""),
         )
         return {"ok": True, "goal": goal.public_goal(current_goal)}
 
@@ -54,7 +92,7 @@ class Goal(ApiHandler):
             "goal": goal.public_goal(updated_goal),
             "reactivated": (
                 current is not None
-                and current.get("status") in goal.FINAL_STATUSES
+                and current.get("status") in goal.FINAL_STATUSES | {"blocked"}
                 and updated_goal.get("status") == "active"
             ),
         }

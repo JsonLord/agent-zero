@@ -109,3 +109,26 @@ def test_x_icon_is_font_backed_and_keeps_legacy_plugin_compatibility() -> None:
         'document.addEventListener("DOMContentLoaded", loadMaterialIcons, { once: true })'
         in index_html
     )
+
+
+def test_icon_controls_follow_semantic_theme_foreground() -> None:
+    index_css = (WEBUI_ROOT / "index.css").read_text(encoding="utf-8")
+    buttons_css = (WEBUI_ROOT / "css" / "buttons.css").read_text(encoding="utf-8")
+
+    assert "--color-text-dark: #ffffff" in index_css
+    assert "--color-text-light: #333333" in index_css
+    assert index_css.count("--color-icon: var(--color-text)") == 2
+    assert "color: var(--color-icon)" in buttons_css
+    assert "button x-icon," in buttons_css
+    assert "color: currentColor" in buttons_css
+    assert "button:disabled x-icon" in buttons_css
+    assert "opacity: 0.5" in buttons_css
+
+
+def test_openoperator_navigation_surfaces_use_shared_icons() -> None:
+    labels = ("chat", "plugins", "settings", "workdir", "skills", "mcp", "a2a", "developer")
+    source = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in first_party_icon_sources())
+    lowered = source.lower()
+    for label in labels:
+        assert label in lowered
+    assert "<x-icon" in source

@@ -28,6 +28,7 @@
 - `_normalize_ui_control_visibility(value: Any) -> dict[str, dict[str, bool]]`
 - `_resolve_runtime_timezone(setting_value: str, browser_timezone: str | None=...) -> str`
 - `_timezone_options() -> list[FieldOption]`
+- `can_manage_root_password() -> bool`: Reports whether the process is containerized, has effective UID 0, and can resolve `chpasswd`.
 - `convert_out(settings: Settings) -> SettingsOutput`
 - `_get_api_key_field(settings: Settings, provider: str, title: str) -> SettingsField`
 - `convert_in(settings: Settings) -> Settings`
@@ -65,6 +66,8 @@
 - Important called helpers/classes observed in the source: `TypeVar`, `files.get_abs_path`, `dotenv.get_dotenv_value`, `opts.insert`, `str.strip`, `_is_valid_timezone`, `str.strip.lower`, `_normalize_timezone_setting`, `SettingsOutput`, `get_default_settings`, `_ensure_option_present`, `_resolve_runtime_timezone`, `get_default_secrets_manager`, `get_settings`, `get_settings_for_prompt`, `normalize_settings`, `_load_sensitive_settings`, `deepcopy`, `settings.copy`, `_write_settings_file`, `reload_settings`, `set_settings`, `initialize_agent`.
 - Applying settings refreshes active context configs while preserving each subordinate agent's own profile.
 - Applying settings starts a deferred `MCPConfig.update(...)` with the current `mcp_servers` string when global MCP server settings change.
+- Root-password management is a capability distinct from container detection. Empty and masked submissions are no-ops; unsupported runtimes ignore only that field, while supported runtimes run `chpasswd` before persisting the password. Failures in supported password changes or other sensitive-setting persistence continue to propagate.
+- Public settings metadata reports both Dockerized and development classification plus the independent root-password capability; it never returns secret values.
 - `get_settings()` retains normalize-on-read behavior. Prompt-building callers
   explicitly use `get_settings_for_prompt()` to reuse one task-local snapshot
   within each `Agent.prepare_prompt()` call.

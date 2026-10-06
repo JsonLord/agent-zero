@@ -15,6 +15,7 @@
 - Routing tokens never create profiles; unregistered names must already exist or fail.
 - External endpoints are environment-registered, credential-free HTTPS URLs.
 - Do not expose API tokens or pass user content through a shell.
+- Use structured goal delegation for multi-stage outcomes, idempotently retain accepted context/goal IDs, and poll semantic progress revisions with bounded adaptive backoff.
 
 ## Work Guidance
 

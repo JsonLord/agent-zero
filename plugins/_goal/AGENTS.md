@@ -2,46 +2,35 @@
 
 ## Purpose
 
-- Own the built-in chat goal strip, `/goal` slash command, goal state API, and agent-facing goal tools.
-- Keep chat goals scoped to the active chat context and stored as user data outside tracked plugin code.
+- Own durable per-context execution goals, `/goal`, authenticated orchestration APIs, compact prompt injection, and the goal strip.
 
 ## Ownership
 
-- `plugin.yaml` owns the always-enabled `_goal` plugin metadata.
-- `tools/goal.py` owns the single agent-facing goal tool, file-backed state under `usr/plugins/_goal/goals/`, and goal status normalization.
-- `api/goal.py` owns the WebUI JSON API for reading, editing, pausing, resuming, and deleting goals.
-- `commands/` owns the `/goal` slash command contributed to `_commands`.
-- `webui/` and `extensions/webui/` own the composer goal strip, Goal mode shortcut, and inline controls.
-- `tools/goal.py` and `prompts/agent.system.tool.goal.md` own agent-facing goal inspection, creation, and status updates.
-- `tools/response.py` overrides the core response tool so an active goal continues the current monologue.
-- `extensions/python/message_loop_prompts_after/` owns injecting the active goal into agent context.
+- `tools/goal.py` owns the structured state machine and atomic persistence under ignored `usr/plugins/_goal/goals/`.
+- `api/goal.py` is browser session/CSRF protected; `api/delegate.py` is separately API-key protected for Spynel.
+- `commands/`, prompts, extensions, and WebUI own interactive controls, compact injection, loop continuation, and display.
 
 ## Local Contracts
 
-- Goal status values are `active`, `paused`, `complete`, and `blocked`.
-- Active goals are injected into agent extras; paused and blocked goals remain visible in the UI, while complete goals are hidden.
-- Goal records track accumulated active time with `elapsed_seconds` and `active_since`; pausing freezes elapsed time until resume.
-- User controls may pause, resume, edit, or delete a goal; destructive delete uses inline confirmation. Model tools may create goals and mark them complete or blocked.
-- Saving an edit that reactivates a complete or blocked goal resends the edited objective so agent processing resumes.
-- `/goal <objective>` creates the goal and sends the objective as the user message so the agent starts working immediately.
-- The composer Goal mode shortcut only prefills `/goal ` and focuses the input; it never sends the command.
-- `/goal auto` fills the composer with a prompt asking the agent to create and manage its own goal instead of silently sending a message.
-- While a goal is active, response-tool calls are intermediate updates; only completing or blocking the goal restores normal loop termination.
-- Goal UI feedback uses toast notifications and inline controls, not modal dialogs.
-- Goal state changes publish a context revision through the shared state-push
-  lifecycle; the WebUI refreshes on context or revision changes and never polls
-  the Goal API while idle.
+- Goal states are active, interrupted, pending, paused, blocked, completed, partially_verified, failed, and cancelled; legacy complete normalizes to completed. Final states cannot implicitly resume, and activation must correspond to a runnable worker.
+- Goal definition and semantic progress revisions are distinct. Routine transport or shell operations do not increment progress.
+- Completion evaluates structured criteria: only a non-empty all-PASS set with no unfinished children is completed; zero criteria or NOT_VERIFIED is partially_verified and FAIL is failed.
+- Attention reasons use the bounded machine-readable vocabulary in `tools/goal.py`.
+- Contexts have one current goal. Child goals have separate contexts, bounded hierarchy, sibling-scoped acyclic dependencies, and request/scoped idempotency keys.
+- In-process mutations share a re-entrant lock so read-modify-write updates cannot overwrite each other. Atomic replacement protects file integrity; multi-process writers are outside the supported store boundary.
+- On process recovery, persisted active goals without running contexts become interrupted. Resume is explicit so operational side effects are never replayed automatically.
+- Files survive process/container restarts only when the configured user directory is persistent; ephemeral Hugging Face storage is not durable across Space replacement.
+- High autonomy never bypasses authentication, approval, secret, or external-write protections.
+- Browser state uses existing state-push; Spynel uses compact adaptive polling fallback.
 
 ## Work Guidance
 
-- Keep goal state in `usr/plugins/_goal/`; do not store runtime goal data in tracked files.
-- Keep the goal strip mounted through WebUI extension points instead of modifying core composer templates.
-- Keep `_commands` compatibility in mind: `/goal` is a plugin-contributed command and should remain read-only in the command manager.
+- Keep records compact, atomic, collision-resistant, and outside tracked source.
+- Do not turn goals into a project manager; Paperclip remains the durable issue/project surface.
 
 ## Verification
 
-- Run `conda run -n a0 pytest plugins/_goal/tests` after changing `_goal` backend behavior.
-- Run `_commands` discovery tests when changing the `/goal` command contribution contract.
+- Run `pytest plugins/_goal/tests tests/test_spynel.py` and relevant API auth tests.
 
 ## Child DOX Index
 

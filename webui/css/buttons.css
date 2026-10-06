@@ -256,7 +256,7 @@
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: 0.25rem;
-  color: var(--color-text);
+  color: var(--color-icon);
   cursor: pointer;
   padding: 0.25rem;
   width: 1.75rem;
@@ -266,6 +266,18 @@
     color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+}
+
+button x-icon,
+a x-icon,
+.dropdown-item x-icon,
+.config-button x-icon {
+  color: currentColor;
+}
+
+button:disabled x-icon,
+[aria-disabled="true"] x-icon {
+  opacity: 0.5;
 }
 
 .btn-icon-action .material-symbols-outlined,

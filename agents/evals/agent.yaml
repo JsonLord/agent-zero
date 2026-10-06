@@ -1,0 +1,4 @@
+title: Evals
+description: Build and run evaluation systems for model and agent behavior.
+context: Use this specialist for bounded work matching its purpose and return evidence to the owning orchestrator.
+enabled: true

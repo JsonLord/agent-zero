@@ -12,7 +12,7 @@
 
 - Requires the existing Agent Zero API key; browser authentication and CSRF are not used.
 - Never creates a context and returns 404 for unknown context identifiers.
-- Returns incremental logs, progress, running/completed status, and the final agent result when available.
+- Returns compact semantic goal state, milestone, progress revision, attention signal, and the final result. Incremental raw logs are returned only when `include_logs: true` is requested.
 
 ## Work Guidance
 
