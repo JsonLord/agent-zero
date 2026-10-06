@@ -14,8 +14,9 @@ The root `Dockerfile` is the Hugging Face Docker Space build. It runs the WebUI
 as UID 1000 on `0.0.0.0:7860`, installs Kokoro/spaCy dependencies during the
 image build, and disables runtime Python package mutation. Set
 `SPYNEL_AGENT_ZERO_API_KEY` to the configured Agent Zero API token when Spynel
-must delegate to a bundled or user profile. The Space entrypoint applies this
-secret to Agent Zero's existing API-key verifier without logging it.
+must delegate to a bundled or user profile. Agent Zero's canonical runtime
+resolver gives this environment secret authority across the API, MCP, and A2A
+verifiers without persisting or logging it.
 
 For a Colab checkout, the lifecycle helper starts Agent Zero in the background,
 checks `/api/health`, and stops its process group cleanly:
@@ -23,8 +24,15 @@ checks `/api/health`, and stops its process group cleanly:
 ```bash
 python scripts/colab_a0.py start
 python scripts/colab_a0.py health
+python scripts/colab_a0.py exec -- python -m pytest tests/test_name.py
 python scripts/colab_a0.py stop
 ```
+
+The `exec` action runs an argv command in the exact checked-out commit and emits
+a bounded JSON evidence manifest. Hugging Face `/a0/usr` state survives ordinary
+process restarts in the same container. Space restart/rebuild durability is not
+guaranteed unless persistent storage is mounted. Run credentialed release
+acceptance with `python scripts/smoke_hf_openoperator.py --full`.
 
 <div align="center">
 

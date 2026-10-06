@@ -16,7 +16,7 @@ ENV BRANCH=${BRANCH} \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 COPY ./ /git/agent-zero
-COPY ./docker/run/fs/ins /ins
+COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh
 COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
 
 RUN chmod +x /exe/huggingface-entrypoint.sh /ins/*.sh

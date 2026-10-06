@@ -28,6 +28,7 @@
 - `_normalize_ui_control_visibility(value: Any) -> dict[str, dict[str, bool]]`
 - `_resolve_runtime_timezone(setting_value: str, browser_timezone: str | None=...) -> str`
 - `_timezone_options() -> list[FieldOption]`
+- `can_manage_root_password() -> bool`: Reports whether the process is containerized, has effective UID 0, and can resolve `chpasswd`.
 - `convert_out(settings: Settings) -> SettingsOutput`
 - `_get_api_key_field(settings: Settings, provider: str, title: str) -> SettingsField`
 - `convert_in(settings: Settings) -> Settings`
@@ -51,6 +52,7 @@
 - `_dict_to_env(data_dict)`
 - `set_root_password(password: str)`
 - `get_runtime_config(set: Settings)`
+- `resolve_api_token(configured_token: str | None=...) -> str`: Resolve the shared API/MCP/A2A token with deployment environment authority, configured-token preservation, and generated fallback.
 - Notable constants/configuration names: `T`, `PASSWORD_PLACEHOLDER`, `API_KEY_PLACEHOLDER`, `TIMEZONE_AUTO`, `TIME_FORMAT_12H`, `TIME_FORMAT_24H`, `UI_CONTROL_VISIBILITY_DEFAULTS`, `SETTINGS_FILE`.
 
 ## Runtime Contracts
@@ -65,6 +67,9 @@
 - Important called helpers/classes observed in the source: `TypeVar`, `files.get_abs_path`, `dotenv.get_dotenv_value`, `opts.insert`, `str.strip`, `_is_valid_timezone`, `str.strip.lower`, `_normalize_timezone_setting`, `SettingsOutput`, `get_default_settings`, `_ensure_option_present`, `_resolve_runtime_timezone`, `get_default_secrets_manager`, `get_settings`, `get_settings_for_prompt`, `normalize_settings`, `_load_sensitive_settings`, `deepcopy`, `settings.copy`, `_write_settings_file`, `reload_settings`, `set_settings`, `initialize_agent`.
 - Applying settings refreshes active context configs while preserving each subordinate agent's own profile.
 - Applying settings starts a deferred `MCPConfig.update(...)` with the current `mcp_servers` string when global MCP server settings change.
+- Root-password management is a capability distinct from container detection. Empty and masked submissions are no-ops; unsupported runtimes ignore only that field, while supported runtimes run `chpasswd` before persisting the password. Failures in supported password changes or other sensitive-setting persistence continue to propagate.
+- Public settings metadata reports both Dockerized and development classification plus the independent root-password capability; it never returns secret values.
+- `SPYNEL_AGENT_ZERO_API_KEY`, when non-empty, is authoritative for incoming API, MCP, and A2A authentication. Otherwise `A0_SET_MCP_SERVER_TOKEN` or a configured token is preserved, with the stable generated token as the fallback. Placeholder/blank frontend round trips do not replace the effective token, and public settings serialization masks it.
 - `get_settings()` retains normalize-on-read behavior. Prompt-building callers
   explicitly use `get_settings_for_prompt()` to reuse one task-local snapshot
   within each `Agent.prepare_prompt()` call.

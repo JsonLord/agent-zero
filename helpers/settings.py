@@ -155,6 +155,7 @@ class SettingsOutputAdditional(TypedDict):
     timezones: list[FieldOption]
     resolved_timezone: str
     is_dockerized: bool
+    is_development: bool
     can_manage_root_password: bool
     root_password_supported: bool
     runtime_settings: dict[str, Any]
@@ -167,6 +168,8 @@ class SettingsOutput(TypedDict):
 
 PASSWORD_PLACEHOLDER = "****PSWD****"
 API_KEY_PLACEHOLDER = "************"
+DEPLOYMENT_API_TOKEN_ENV = "SPYNEL_AGENT_ZERO_API_KEY"
+PERSISTED_API_TOKEN_ENV = "A0_SET_MCP_SERVER_TOKEN"
 TIMEZONE_AUTO = "auto"
 TIME_FORMAT_12H = "12h"
 TIME_FORMAT_24H = "24h"
@@ -261,10 +264,11 @@ def _timezone_options() -> list[FieldOption]:
 
 
 def can_manage_root_password() -> bool:
-    """Return True if this process is running in a Docker container as root (EUID 0) with chpasswd available."""
+    """Return whether this runtime can manage the container's root account."""
     if not runtime.is_dockerized():
         return False
-    if hasattr(os, "geteuid") and os.geteuid() != 0:
+    get_euid = getattr(os, "geteuid", None)
+    if not callable(get_euid) or get_euid() != 0:
         return False
     return shutil.which("chpasswd") is not None
 
@@ -277,6 +281,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             chat_providers=get_providers("chat"),
             embedding_providers=get_providers("embedding"),
             is_dockerized=runtime.is_dockerized(),
+            is_development=runtime.is_development(),
             can_manage_root_password=can_manage_root,
             root_password_supported=can_manage_root,
             agent_subdirs=[
@@ -340,6 +345,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     out["settings"]["root_password"] = (
         PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_ROOT_PASSWORD) else ""
     )
+    out["settings"]["mcp_server_token"] = (
+        API_KEY_PLACEHOLDER if resolve_api_token(settings.get("mcp_server_token")) else ""
+    )
 
     #secrets
     secrets_manager = get_default_secrets_manager()
@@ -376,6 +384,8 @@ def convert_in(settings: Settings) -> Settings:
     current = get_settings()
 
     for key, value in settings.items():
+        if key == "mcp_server_token" and value in {"", API_KEY_PLACEHOLDER}:
+            continue
         # Special handling for *_kwargs (stored as .env text)
         if (key.endswith("_kwargs")) and isinstance(value, str):
             current[key] = _env_to_dict(value)
@@ -475,8 +485,9 @@ def normalize_settings(settings: Settings) -> Settings:
     if copy["agent_profile"] == "default":
         copy["agent_profile"] = "agent0"
 
-    # mcp server token is set automatically
-    copy["mcp_server_token"] = create_auth_token()
+    # Deployment configuration is authoritative; otherwise preserve the
+    # configured token before using Agent Zero's stable generated fallback.
+    copy["mcp_server_token"] = resolve_api_token(copy.get("mcp_server_token"))
     copy["max_consecutive_unusable_responses"] = max(
         1, copy["max_consecutive_unusable_responses"]
     )
@@ -558,11 +569,14 @@ def _write_sensitive_settings(settings: Settings):
         dotenv.save_dotenv_value(dotenv.KEY_RFC_PASSWORD, settings["rfc_password"])
     if settings.get("root_password") and settings["root_password"] != PASSWORD_PLACEHOLDER:
         if can_manage_root_password():
-            try:
-                dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
-                set_root_password(settings["root_password"])
-            except Exception as e:
-                PrintStyle.warning(f"Unable to update root password: {e}")
+            set_root_password(settings["root_password"])
+    submitted_token = str(settings.get("mcp_server_token") or "").strip()
+    if (
+        submitted_token
+        and submitted_token != API_KEY_PLACEHOLDER
+        and not os.environ.get(DEPLOYMENT_API_TOKEN_ENV, "").strip()
+    ):
+        dotenv.save_dotenv_value(PERSISTED_API_TOKEN_ENV, submitted_token)
 
     # Handle secrets separately - merge with existing preserving comments/order and support deletions
     secrets_manager = get_default_secrets_manager()
@@ -741,9 +755,7 @@ def _apply_settings(previous: Settings | None, browser_timezone: str | None = No
             )  # TODO overkill, replace with background task
 
         # update token in mcp server
-        current_token = (
-            create_auth_token()
-        )  # TODO - ugly, token in settings is generated from dotenv and does not always correspond
+        current_token = resolve_api_token(_settings.get("mcp_server_token"))
         if not previous or current_token != previous["mcp_server_token"]:
 
             async def update_mcp_token(token: str):
@@ -815,10 +827,10 @@ def _dict_to_env(data_dict):
 
 
 def set_root_password(password: str):
-    if not can_manage_root_password():
-        raise Exception("Root password management is unavailable in this runtime environment.")
     if not password:
         return
+    if not can_manage_root_password():
+        raise Exception("Root password management is unavailable in this runtime environment.")
     _result = subprocess.run(
         ["chpasswd"],
         input=f"root:{password}".encode(),
@@ -843,6 +855,22 @@ def create_auth_token() -> str:
     # encode as base64 and remove any non-alphanumeric chars (like +, /, =)
     b64_token = base64.urlsafe_b64encode(hash_bytes).decode().replace("=", "")
     return b64_token[:16]
+
+
+def resolve_api_token(configured_token: str | None = None) -> str:
+    """Resolve the shared incoming API token without exposing it publicly."""
+    deployment_token = os.environ.get(DEPLOYMENT_API_TOKEN_ENV, "").strip()
+    if deployment_token:
+        return deployment_token
+    persisted_environment_token = os.environ.get(PERSISTED_API_TOKEN_ENV, "").strip()
+    if persisted_environment_token:
+        return persisted_environment_token
+    persisted_token = str(configured_token or "").strip()
+    return (
+        persisted_token
+        if persisted_token and persisted_token != API_KEY_PLACEHOLDER
+        else create_auth_token()
+    )
 
 
 def _get_version():

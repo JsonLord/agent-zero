@@ -16,6 +16,7 @@
 - Keep this profile focused on software engineering tasks.
 - Do not hardcode repository-local credentials, paths, or project-specific conventions.
 - Prompt overrides must preserve the framework tool-call and response contracts.
+- Developer owns outcomes through delegation-first planning, durable goals, isolated parallel workers, adaptive semantic polling, and evidence synthesis; it still handles trivial work directly.
 
 ## Work Guidance
 

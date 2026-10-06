@@ -1,0 +1,48 @@
+name: OpenOperator integration
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, "codex/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  focused-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install declared dependencies
+        run: python -m pip install -r requirements.txt -r requirements.dev.txt
+      - name: Static checks
+        run: |
+          python -m compileall -q helpers api plugins/_goal scripts agents/spynel
+          bash -n docker/run/fs/exe/huggingface-entrypoint.sh docker/run/fs/ins/copy_A0.sh
+          git diff --check HEAD^ HEAD
+      - name: Focused integration regression
+        run: |
+          pytest -q \
+            plugins/_goal/tests \
+            tests/test_goal_state_contract.py \
+            tests/test_api_token_authority.py \
+            tests/test_settings_probe.py \
+            tests/test_spynel.py \
+            tests/test_specialist_profiles.py \
+            tests/test_runtime_dockerized.py \
+            tests/test_settings_root_password.py \
+            tests/test_settings_mcp.py \
+            tests/test_hf_space_defaults.py \
+            tests/test_hf_smoke.py \
+            tests/test_memory_extension_hf.py \
+            tests/test_webui_icons.py \
+            tests/test_tiny_coder_model_binding.py \
+            tests/test_colab_a0.py \
+            tests/test_worktree_isolation_contract.py
