@@ -1,0 +1,5 @@
+name: repository-manager
+title: Repository Manager
+description: Manages Git repositories, GitHub pull requests, Hugging Face Hub repositories, Hugging Face Spaces, and deployment diagnostics.
+context: Repository Manager handles Git, GitHub, and Hugging Face repository and Space operations. Read-only inspection is enabled by default; write and push operations require explicit authorization.
+enabled: true

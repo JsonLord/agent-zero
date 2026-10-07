@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 import re
 from typing import (
     List,
@@ -52,7 +53,37 @@ MCP_MEDIA_TOKENS_ESTIMATE = 1500
 MAX_MCP_RESOURCE_TEXT_CHARS = 12_000
 MCP_SESSION_CLEANUP_TIMEOUT_SECONDS = 5.0
 MCP_OPERATION_TIMEOUT_GRACE_SECONDS = MCP_SESSION_CLEANUP_TIMEOUT_SECONDS + 2.0
-DEFAULT_MCP_SERVERS_CONFIG = '{\n    "mcpServers": {}\n}'
+DEFAULT_MCP_SERVERS_CONFIG = json.dumps(
+    {
+        "mcpServers": {
+            "huggingface": {
+                "type": "streamable-http",
+                "url": "https://huggingface.co/mcp",
+                "headers": {
+                    "Authorization": "Bearer ${ENV:HF_TOKEN}"
+                },
+            }
+        }
+    },
+    indent=4,
+)
+
+
+def resolve_header_secrets(headers: dict[str, Any] | None) -> dict[str, str]:
+    """Substitute ${ENV:VAR_NAME} environment placeholders safely in memory."""
+    if not isinstance(headers, dict):
+        return {}
+    resolved = {}
+    pattern = re.compile(r"\$\{ENV:([A-Z_][A-Z0-9_]*)\}")
+    for key, value in headers.items():
+        if not isinstance(value, str):
+            resolved[str(key)] = str(value) if value is not None else ""
+            continue
+        def _replace_var(match):
+            var_name = match.group(1)
+            return os.environ.get(var_name, "")
+        resolved[str(key)] = pattern.sub(_replace_var, value)
+    return resolved
 
 
 def _mcp_get(item: Any, key: str, default: Any = None) -> Any:
@@ -1633,13 +1664,15 @@ class MCPClientRemote(MCPClientBase):
         )
 
         client_factory = CustomHTTPClientFactory(verify=server.verify)
+        resolved_headers = resolve_header_secrets(server.headers)
+
         # Check if this is a streaming HTTP type
         if _is_streaming_http_type(server.type):
             # Use streamable HTTP client
             transport_result = await current_exit_stack.enter_async_context(
                 streamablehttp_client(
                     url=server.url,
-                    headers=server.headers,
+                    headers=resolved_headers,
                     timeout=timedelta(seconds=init_timeout),
                     sse_read_timeout=timedelta(seconds=tool_timeout),
                     httpx_client_factory=client_factory,
@@ -1657,7 +1690,7 @@ class MCPClientRemote(MCPClientBase):
             stdio_transport = await current_exit_stack.enter_async_context(
                 sse_client(
                     url=server.url,
-                    headers=server.headers,
+                    headers=resolved_headers,
                     timeout=init_timeout,
                     sse_read_timeout=tool_timeout,
                     httpx_client_factory=client_factory,

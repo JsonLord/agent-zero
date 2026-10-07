@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import json
+import os
 import threading
 from urllib.parse import urlsplit, unquote
 from functools import wraps
@@ -210,6 +211,16 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
     @app.route("/health", methods=["GET", "POST"])
     def _root_health():
         sha = os.environ.get("OPENOPERATOR_SOURCE_SHA", "").strip()
+        if not sha:
+            for build_file in ("/a0/openoperator-build.json", files.get_abs_path("openoperator-build.json")):
+                if files.exists(build_file):
+                    try:
+                        data = json.loads(files.read_file(build_file))
+                        sha = str(data.get("source_sha") or "").strip()
+                        if sha:
+                            break
+                    except Exception:
+                        pass
         if not sha:
             try:
                 from helpers.git import get_git_info

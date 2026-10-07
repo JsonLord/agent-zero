@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-REQUIRED = {"developer","hacker","spynel","reviewer","tester","tiny-coder","debugger","integrator","frontend-qa","evals","shipper","launch","performance","security","refactorer","maintainer","data-engineer","docs"}
+REQUIRED = {"developer","hacker","spynel","reviewer","tester","tiny-coder","debugger","integrator","frontend-qa","evals","shipper","launch","performance","security","refactorer","maintainer","data-engineer","docs","repository-manager"}
 SHARED = {"colab-execute","test-evidence","playwright","repo-map","spec-check","api-contract","benchmark","golive","brag","hf-space","git-worktree","github-pr","dependency-doctor","secret-safe-env","docker-diagnose","task-slicer","context-packager","symbol-locator","patch-small","compile-check","test-targeted","failure-to-next-patch","diff-self-review"}
 
 

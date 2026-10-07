@@ -21,6 +21,7 @@ REQUIRED_PROFILES = {
     "maintainer",
     "data-engineer",
     "docs",
+    "repository-manager",
 }
 
 REQUIRED_SKILLS = {
@@ -82,6 +83,12 @@ def assert_profiles_and_skills() -> None:
 def apply_hf_space_defaults() -> dict[str, bool]:
     """Apply only non-empty Space defaults and return a secret-free summary."""
     assert_profiles_and_skills()
+
+    try:
+        from helpers import runtime_secrets
+        runtime_secrets.sync_runtime_secrets()
+    except Exception:
+        pass
 
     compatible_url = os.environ.get("COMPATIBLE_URL", "").strip()
     compatible_model = os.environ.get("COMPATIBLE_MODEL", "").strip()

@@ -55,6 +55,9 @@ pinned: false
         if not content.startswith("---"):
             readme_path.write_text(metadata + content, encoding="utf-8")
 
+        build_json = snapshot / "openoperator-build.json"
+        build_json.write_text(f'{{\n  "source_sha": "{sha}"\n}}\n', encoding="utf-8")
+
         subprocess.check_call(["git", "init", "--initial-branch=main"], cwd=snapshot)
         subprocess.check_call(["git", "config", "user.name", "OpenOperator Deployer"], cwd=snapshot)
         subprocess.check_call(["git", "config", "user.email", "deploy@openoperator.local"], cwd=snapshot)
