@@ -142,11 +142,13 @@ def apply_hf_space_defaults() -> dict[str, bool]:
     if compatible_model: chat_slot["name"] = compatible_model
     chat_slot.pop("api_key", None)
 
-    if compatible_utility_url or compatible_utility_model:
+    effective_utility_url = compatible_utility_url or compatible_url
+    effective_utility_model = compatible_utility_model or compatible_model
+    if effective_utility_url or effective_utility_model:
         utility_slot = presets[0].setdefault("utility", {})
         utility_slot["provider"] = "other"
-        if compatible_utility_url: utility_slot["api_base"] = compatible_utility_url
-        if compatible_utility_model: utility_slot["name"] = compatible_utility_model
+        if effective_utility_url: utility_slot["api_base"] = effective_utility_url
+        if effective_utility_model: utility_slot["name"] = effective_utility_model
         utility_slot.pop("api_key", None)
 
     model_config.save_presets(presets)

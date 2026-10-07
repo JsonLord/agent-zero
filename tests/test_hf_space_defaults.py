@@ -72,7 +72,8 @@ def test_all_three_vars_select_native_compatible_main_without_touching_other_slo
     summary = module.apply_hf_space_defaults()
     assert summary == {"url": True, "model": True, "api_key": True}
     assert presets[0]["chat"] == {"provider": "other", "name": "alias-large", "api_base": "https://example.test/v1"}
-    assert presets[0]["utility"] == before["utility"] and presets[0]["embedding"] == before["embedding"]
+    assert presets[0]["utility"] == {"provider": "other", "name": "alias-large", "api_base": "https://example.test/v1"}
+    assert presets[0]["embedding"] == before["embedding"]
     assert ("API_KEY_OTHER", "dummy-secret") in saved and "api_key" not in presets[0]["chat"]
     captured = capsys.readouterr(); assert "dummy-secret" not in captured.out + captured.err
 
