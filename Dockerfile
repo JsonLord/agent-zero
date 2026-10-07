@@ -13,7 +13,8 @@ ENV BRANCH=${BRANCH} \
     XDG_CACHE_HOME=/home/a0space/.cache \
     HF_HOME=/home/a0space/.cache/huggingface \
     MPLCONFIGDIR=/home/a0space/.cache/matplotlib \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PATH="/opt/venv-a0/bin:${PATH}"
 
 COPY ./ /git/agent-zero
 COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh
@@ -40,7 +41,11 @@ RUN set -eu; \
     && bash /ins/install_additional.sh "${BRANCH}" \
     && bash /ins/install_A02.sh "${BRANCH}" \
     && bash /ins/post_install.sh "${BRANCH}" \
+    && apt-get update && apt-get install -y --no-install-recommends rsync && rm -rf /var/lib/apt/lists/* \
+    && /opt/venv-a0/bin/pip install --no-cache-dir "huggingface_hub[cli]>=0.25.0" \
     && /opt/venv-a0/bin/python -m spacy download en_core_web_sm \
+    && command -v rsync >/dev/null && rsync --version \
+    && /opt/venv-a0/bin/hf --help >/dev/null \
     && python3 - <<'PY'
 from pathlib import Path
 

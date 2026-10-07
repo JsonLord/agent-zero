@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-REQUIRED = {"developer","hacker","spynel","reviewer","tester","tiny-coder","debugger","integrator","frontend-qa","evals","shipper","launch","performance","security","refactorer","maintainer","data-engineer","docs"}
+REQUIRED = {"developer","hacker","spynel","reviewer","tester","tiny-coder","debugger","integrator","frontend-qa","evals","shipper","launch","performance","security","refactorer","maintainer","data-engineer","docs","repository-manager"}
 SHARED = {"colab-execute","test-evidence","playwright","repo-map","spec-check","api-contract","benchmark","golive","brag","hf-space","git-worktree","github-pr","dependency-doctor","secret-safe-env","docker-diagnose","task-slicer","context-packager","symbol-locator","patch-small","compile-check","test-targeted","failure-to-next-patch","diff-self-review"}
 
 
@@ -69,3 +69,9 @@ def test_colab_skill_reuses_actual_lifecycle_helper():
     for action in ("start", "health", "stop"):
         assert action in skill
         assert action in helper
+
+
+def test_docker_copy_a0_sync_preserves_user_directory():
+    copy_script = (ROOT / "docker/run/fs/ins/copy_A0.sh").read_text()
+    assert "rsync" in copy_script
+    assert "--exclude='/usr'" in copy_script or "--exclude=/usr" in copy_script

@@ -15,6 +15,7 @@ BASE = os.getenv(
 ).rstrip("/")
 HF_TOKEN = os.getenv("HF_TOKEN", "").strip()
 API_KEY = os.getenv("SPYNEL_AGENT_ZERO_API_KEY", "").strip()
+EXPECTED_SHA = os.getenv("EXPECTED_OPENOPERATOR_SHA", "").strip()
 TIMEOUT = float(os.getenv("OPENOPERATOR_SMOKE_TIMEOUT", "30"))
 POLL = float(os.getenv("SPYNEL_POLL_INTERVAL", "2"))
 results = []
@@ -37,6 +38,33 @@ REQUIRED_PROFILES = {
     "maintainer",
     "data-engineer",
     "docs",
+    "repository-manager",
+}
+
+CRITICAL_SKILLS = {
+    "colab-execute",
+    "golive",
+    "brag",
+    "playwright",
+    "hf-space",
+    "test-evidence",
+    "api-contract",
+    "benchmark",
+    "compile-check",
+    "context-packager",
+    "dependency-doctor",
+    "diff-self-review",
+    "docker-diagnose",
+    "failure-to-next-patch",
+    "git-worktree",
+    "github-pr",
+    "patch-small",
+    "repo-map",
+    "secret-safe-env",
+    "spec-check",
+    "symbol-locator",
+    "task-slicer",
+    "test-targeted",
 }
 
 
@@ -124,10 +152,11 @@ def discover():
     """Use existing read-only authenticated catalogs; never mutate for discovery."""
     code, agents = request("/api/agents", {"action": "list"}, api=True)
     names = _names(agents)
+    missing_profiles = REQUIRED_PROFILES - names
     report(
         "specialist profiles",
-        "PASS" if code == 200 and REQUIRED_PROFILES <= names else "FAIL",
-        "authenticated profile catalog",
+        "PASS" if code == 200 and not missing_profiles else "FAIL",
+        f"missing: {sorted(missing_profiles)}" if missing_profiles else f"{len(names)} profiles cataloged",
     )
     report("Spynel", "PASS" if "spynel" in names else "FAIL")
 
@@ -135,12 +164,18 @@ def discover():
         "/api/plugins/_skills/skills_catalog", {"action": "list"}, api=True
     )
     skill_names = _names(skills)
+    missing_skills = CRITICAL_SKILLS - skill_names
     report(
-        "Paperclip skill",
-        "PASS"
-        if code == 200 and any(name.startswith("paperclip") for name in skill_names)
-        else "FAIL",
+        "required skills",
+        "PASS" if code == 200 and not missing_skills else "FAIL",
+        f"missing: {sorted(missing_skills)}" if missing_skills else f"{len(skill_names)} skills cataloged",
     )
+
+    from helpers import files
+    spynel_skills_dir = files.get_abs_path("agents/spynel/skills")
+    spynel_skills = set(files.get_subdirectories(spynel_skills_dir)) if files.exists(spynel_skills_dir) else set()
+    report("spynel-dispatch", "PASS" if "spynel-dispatch" in spynel_skills or "spynel-dispatch" in skill_names else "FAIL")
+    report("paperclip-board-manager", "PASS" if "paperclip-board-manager" in spynel_skills or "paperclip-board-manager" in skill_names else "FAIL")
 
 
 def _settings_acceptance(data):
@@ -220,9 +255,15 @@ def _reversible_settings_smoke(data):
     )
 
 
-def main(mode="full"):
+def main(mode="full", expected_sha=""):
+    target_sha = expected_sha or EXPECTED_SHA
     code, data = request("/health")
-    report("health", "PASS" if code == 200 and data.get("status") == "ok" else "FAIL")
+    health_pass = code == 200 and data.get("status") == "ok"
+    report("health", "PASS" if health_pass else "FAIL")
+    if target_sha:
+        deployed_sha = str(data.get("sha") or "").strip()
+        sha_match = deployed_sha == target_sha
+        report("deployed source SHA", "PASS" if sha_match else "FAIL", f"expected {target_sha}, got {deployed_sha}")
     if mode == "basic":
         return 1 if any(state != "PASS" for _, state in results) else 0
     if API_KEY:
@@ -329,8 +370,12 @@ def main(mode="full"):
         "profile-create protection",
         "specialist profiles",
         "Spynel",
-        "Paperclip skill",
+        "required skills",
+        "spynel-dispatch",
+        "paperclip-board-manager",
     }
+    if target_sha:
+        mandatory.add("deployed source SHA")
     if mode == "full":
         mandatory.add("settings persistence")
     return (
@@ -346,12 +391,14 @@ if __name__ == "__main__":
     parser.add_argument("--basic", action="store_true")
     parser.add_argument("--authenticated", action="store_true")
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--expected-sha", default="", help="Expected GitHub source commit SHA")
     args = parser.parse_args()
     selected = (
         "basic" if args.basic else "authenticated" if args.authenticated else "full"
     )
     raise SystemExit(
         main(
-            selected if any((args.basic, args.authenticated, args.full)) else args.mode
+            selected if any((args.basic, args.authenticated, args.full)) else args.mode,
+            expected_sha=args.expected_sha,
         )
     )

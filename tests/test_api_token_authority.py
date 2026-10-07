@@ -44,27 +44,7 @@ sys.modules.setdefault("helpers.rfc", MagicMock())
 sys.modules.setdefault("helpers.defer", MagicMock())
 
 
-class HttpResponse:
-    def __init__(self, body="", status=200, *args, **kwargs):
-        self.body = body
-        self.status_code = status
-
-
-request_proxy = SimpleNamespace(headers={}, json={})
-flask = ModuleType("flask")
-flask.Request = object
-flask.Response = HttpResponse
-flask.Flask = object
-flask.jsonify = lambda value: value
-flask.session = {}
-flask.request = request_proxy
-flask.send_file = flask.redirect = lambda *args, **kwargs: None
-flask.url_for = lambda *args, **kwargs: "/"
-sys.modules.setdefault("flask", flask)
-werkzeug_response = ModuleType("werkzeug.wrappers.response")
-werkzeug_response.Response = HttpResponse
-sys.modules.setdefault("werkzeug.wrappers.response", werkzeug_response)
-
+from flask import Flask, Response
 from helpers import api, settings
 
 
@@ -92,15 +72,36 @@ def test_configured_then_generated_fallback(monkeypatch):
 def test_actual_api_decorator_uses_authoritative_token(monkeypatch, header, expected):
     monkeypatch.setenv("SPYNEL_AGENT_ZERO_API_KEY", "deployment-secret")
     monkeypatch.setattr(settings, "get_settings", lambda: {"mcp_server_token": "old"})
-    request_proxy.headers = {"X-API-KEY": header} if header else {}
-    request_proxy.json = {}
+
+    app = Flask("test_auth")
 
     @api.requires_api_key
     async def protected():
-        return HttpResponse("accepted", 200)
+        return Response("accepted", 200)
 
-    response = asyncio.run(protected())
-    assert response.status_code == expected
+    headers = {"X-API-KEY": header} if header else {}
+    with app.test_request_context("/", headers=headers):
+        response = asyncio.run(protected())
+        assert response.status_code == expected
+
+
+def test_api_decorator_fallback_when_deployment_env_absent(monkeypatch):
+    monkeypatch.delenv("SPYNEL_AGENT_ZERO_API_KEY", raising=False)
+    monkeypatch.setattr(settings, "get_settings", lambda: {"mcp_server_token": "fallback-secret"})
+
+    app = Flask("test_auth_fallback")
+
+    @api.requires_api_key
+    async def protected():
+        return Response("accepted", 200)
+
+    with app.test_request_context("/", headers={"X-API-KEY": "fallback-secret"}):
+        response = asyncio.run(protected())
+        assert response.status_code == 200
+
+    with app.test_request_context("/", headers={"X-API-KEY": "wrong"}):
+        response = asyncio.run(protected())
+        assert response.status_code == 401
 
 
 def test_save_reload_keeps_effective_deployment_token(monkeypatch, tmp_path):

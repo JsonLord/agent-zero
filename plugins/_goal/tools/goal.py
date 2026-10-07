@@ -106,6 +106,7 @@ class GoalTool(Tool):
                     requires_attention=kwargs.get("requires_attention"),
                     attention_reason=kwargs.get("attention_reason"),
                     attention_message=kwargs.get("attention_message"),
+                    criterion_updates=kwargs.get("criterion_updates"),
                 )
                 return Response(message=summarize_goal(current), break_loop=False)
             if action == "revise":
@@ -406,7 +407,8 @@ def update_goal(
     goal = _required_goal(context_id)
     changed = False
     if objective is not None and _required_objective(objective) != goal["objective"]:
-        return revise_goal(context_id, objective=objective)
+        revise_goal(context_id, objective=objective)
+        goal = _required_goal(context_id)
     if status is not None:
         normalized = _normalize_status(status)
         if normalized != goal["status"]:

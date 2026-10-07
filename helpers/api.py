@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import json
+import os
 import threading
 from urllib.parse import urlsplit, unquote
 from functools import wraps
@@ -148,11 +149,12 @@ def requires_api_key(f):
 
         valid_api_key = resolve_api_token(get_settings().get("mcp_server_token"))
 
+        req_json = request.get_json(silent=True) if request.is_json else None
         if api_key := request.headers.get("X-API-KEY"):
             if api_key != valid_api_key:
                 return Response("Invalid API key", 401)
-        elif request.json and request.json.get("api_key"):
-            api_key = request.json.get("api_key")
+        elif req_json and isinstance(req_json, dict) and req_json.get("api_key"):
+            api_key = req_json.get("api_key")
             if api_key != valid_api_key:
                 return Response("Invalid API key", 401)
         else:
@@ -208,7 +210,27 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
 
     @app.route("/health", methods=["GET", "POST"])
     def _root_health():
-        return Response('{"status":"ok"}', status=200, mimetype="application/json")
+        sha = os.environ.get("OPENOPERATOR_SOURCE_SHA", "").strip()
+        if not sha:
+            for build_file in ("/a0/openoperator-build.json", files.get_abs_path("openoperator-build.json")):
+                if files.exists(build_file):
+                    try:
+                        data = json.loads(files.read_file(build_file))
+                        sha = str(data.get("source_sha") or "").strip()
+                        if sha:
+                            break
+                    except Exception:
+                        pass
+        if not sha:
+            try:
+                from helpers.git import get_git_info
+                sha = str(get_git_info().get("commit_hash") or "").strip()
+            except Exception:
+                sha = ""
+        payload = {"status": "ok"}
+        if sha:
+            payload["sha"] = sha
+        return Response(json.dumps(payload), status=200, mimetype="application/json")
 
     @app.route("/api-docs", methods=["GET"])
     def _root_api_docs():

@@ -22,6 +22,17 @@ def _repo(path: Path) -> None:
     subprocess.run(["git", "-C", str(path), "commit", "-qm", "fixture"], check=True)
 
 
+def _parse_last_json(text: str) -> dict:
+    lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
+    for line in reversed(lines):
+        if line.startswith("{") and line.endswith("}"):
+            try:
+                return json.loads(line)
+            except json.JSONDecodeError:
+                continue
+    return json.loads(text)
+
+
 def test_colab_exec_returns_structured_passing_evidence(tmp_path, capsys):
     _repo(tmp_path)
 
@@ -30,7 +41,7 @@ def test_colab_exec_returns_structured_passing_evidence(tmp_path, capsys):
         [sys.executable, "-c", "print('one harmless assertion passed')"],
         timeout=5,
     )
-    evidence = json.loads(capsys.readouterr().out)
+    evidence = _parse_last_json(capsys.readouterr().out)
 
     assert code == 0
     assert evidence["backend"] == "colab"
@@ -44,6 +55,6 @@ def test_colab_exec_returns_structured_passing_evidence(tmp_path, capsys):
 
 def test_colab_exec_rejects_non_checkout(tmp_path, capsys):
     code = colab_a0.execute(tmp_path, [sys.executable, "-V"], timeout=5)
-    evidence = json.loads(capsys.readouterr().out)
+    evidence = _parse_last_json(capsys.readouterr().out)
     assert code == 2
     assert evidence["result"] == "BLOCKED"

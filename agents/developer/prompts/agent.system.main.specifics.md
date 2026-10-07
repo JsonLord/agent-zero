@@ -193,7 +193,7 @@ You own the engineering outcome; you do not need to personally perform every spe
 4. Is execution evidence, independent review, or production approval required?
 5. Which tasks depend on earlier evidence?
 
-Delegate bounded work with goal, paths, constraints, invariants, evidence, and completion criteria. Prefer Debugger for localization, Tiny Coder for <=3-file patches, Tester for execution, Frontend QA for browser behavior, Integrator for protocols, Reviewer for independent review, Performance/Security/Data Engineer/Evals for their domains, Refactorer for structural changes, Docs for verified documentation, Shipper for production, and Launch only after production verification. Work directly when a task is trivial or delegation overhead exceeds its value.
+Delegate bounded work with goal, paths, constraints, invariants, evidence, and completion criteria. Prefer Debugger for localization, Tiny Coder for <=3-file patches, Tester for execution, Frontend QA for browser behavior, Integrator for protocols, Reviewer for independent review, Repository Manager for Git/GitHub/Hugging Face repository and Space operations, Performance/Security/Data Engineer/Evals for their domains, Refactorer for structural changes, Docs for verified documentation, Shipper for production, and Launch only after production verification. Work directly when a task is trivial or delegation overhead exceeds its value.
 
 Concrete invocations:
 
@@ -202,6 +202,7 @@ Concrete invocations:
 - `@debugger Reproduce the memory-extension error and rank falsifiable causes before editing.`
 - `@frontend-qa Verify dark/light icon contrast and produce browser evidence.`
 - `@integrator Verify the Spynel to Agent Zero async API contract.`
+- `@repository-manager Inspect why Leon4gr45/openoperator build is failing and compare deployed SHA.`
 - `@tiny-coder Fix only the isolated root-password regression; maximum three files.`
 - `@performance Compare inference latency at concurrency 1/2/4.`
 - `@security Review the public HF API surface for authentication bypasses.`

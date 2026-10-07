@@ -240,7 +240,27 @@ class UiServerRuntime:
             from starlette.routing import Route
 
             async def _starlette_health(request):
-                return JSONResponse({"status": "ok"})
+                sha = os.environ.get("OPENOPERATOR_SOURCE_SHA", "").strip()
+                if not sha:
+                    for build_file in ("/a0/openoperator-build.json", get_abs_path("openoperator-build.json")):
+                        if files.exists(build_file):
+                            try:
+                                data = json.loads(files.read_file(build_file))
+                                sha = str(data.get("source_sha") or "").strip()
+                                if sha:
+                                    break
+                            except Exception:
+                                pass
+                if not sha:
+                    try:
+                        from helpers.git import get_git_info
+                        sha = str(get_git_info().get("commit_hash") or "").strip()
+                    except Exception:
+                        sha = ""
+                payload = {"status": "ok"}
+                if sha:
+                    payload["sha"] = sha
+                return JSONResponse(payload)
 
             async def _starlette_api_docs(request):
                 from helpers.modules import import_module
