@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: huggingface-space-leon4gr45-agent
+  group: huggingface-space-leon4gr45-openoperator
   cancel-in-progress: true
 
 permissions:
@@ -35,5 +35,5 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git remote add huggingface "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/Leon4gr45/agent"
-          git push --force huggingface HEAD:main
+          git remote add huggingface "https://huggingface.co/spaces/Leon4gr45/openoperator"
+          git -c "http.extraHeader=Authorization: Bearer ${HF_TOKEN}" push --force huggingface HEAD:main

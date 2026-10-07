@@ -64,10 +64,13 @@ pinned: false
         subprocess.check_call(["git", "add", "--all"], cwd=snapshot)
         subprocess.check_call(["git", "commit", "-m", f"Deploy source revision {sha}"], cwd=snapshot)
 
-        remote_url = f"https://oauth2:{hf_token}@huggingface.co/spaces/{args.space}"
+        remote_url = f"https://huggingface.co/spaces/{args.space}"
         subprocess.check_call(["git", "remote", "add", "huggingface", remote_url], cwd=snapshot)
-        print("Pushing snapshot to Hugging Face Space...")
-        subprocess.check_call(["git", "push", "--force", "huggingface", "main:main"], cwd=snapshot)
+        print(f"Pushing snapshot to Hugging Face Space {args.space}...")
+        subprocess.check_call(
+            ["git", "-c", f"http.extraHeader=Authorization: Bearer {hf_token}", "push", "--force", "huggingface", "main:main"],
+            cwd=snapshot,
+        )
 
     print(f"Deployment push complete for {args.space} at SHA {sha}.")
     return 0
