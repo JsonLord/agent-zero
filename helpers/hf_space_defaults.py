@@ -90,31 +90,67 @@ def apply_hf_space_defaults() -> dict[str, bool]:
     except Exception:
         pass
 
-    compatible_url = os.environ.get("COMPATIBLE_URL", "").strip()
-    compatible_model = os.environ.get("COMPATIBLE_MODEL", "").strip()
-    blablador_api_key = os.environ.get("BLABLADOR_API_KEY", "").strip()
+    compatible_url = (
+        os.environ.get("COMPATIBLE_URL", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_URL", "").strip()
+    )
+    compatible_model = (
+        os.environ.get("COMPATIBLE_MODEL", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_MODEL", "").strip()
+    )
+    compatible_utility_url = (
+        os.environ.get("COMPATIBLE_UTILITY_URL", "").strip()
+        or os.environ.get("COMPATIBLE_UTILITY_BASE", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_UTILITY_URL", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_UTILITY_BASE", "").strip()
+    )
+    compatible_utility_model = (
+        os.environ.get("COMPATIBLE_UTILITY_MODEL", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_UTILITY_MODEL", "").strip()
+    )
+    blablador_api_key = (
+        os.environ.get("COMPATIBLE_API", "").strip()
+        or os.environ.get("COMPATIBLE_API_KEY", "").strip()
+        or os.environ.get("BLABLADOR_API_KEY", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_API", "").strip()
+        or dotenv.get_dotenv_value("COMPATIBLE_API_KEY", "").strip()
+        or dotenv.get_dotenv_value("BLABLADOR_API_KEY", "").strip()
+        or dotenv.get_dotenv_value("API_KEY_OTHER", "").strip()
+    )
 
     if not compatible_url: PrintStyle.warning("COMPATIBLE_URL is not configured")
     if not compatible_model: PrintStyle.warning("COMPATIBLE_MODEL is not configured")
-    if not blablador_api_key: PrintStyle.warning("BLABLADOR_API_KEY is not configured")
-    if not (compatible_url or compatible_model or blablador_api_key):
+    if not blablador_api_key: PrintStyle.warning("COMPATIBLE_API / BLABLADOR_API_KEY is not configured")
+    if not (compatible_url or compatible_model or compatible_utility_url or compatible_utility_model or blablador_api_key):
         return {"url": False, "model": False, "api_key": False}
 
     if blablador_api_key:
         dotenv.save_dotenv_value("API_KEY_OTHER", blablador_api_key)
+        dotenv.save_dotenv_value("COMPATIBLE_API", blablador_api_key)
+        os.environ["API_KEY_OTHER"] = blablador_api_key
+        os.environ["COMPATIBLE_API"] = blablador_api_key
 
     from plugins._model_config.helpers import model_config
     presets = model_config.get_presets()
     if not presets or not isinstance(presets, list):
         raise RuntimeError("Default model preset is unavailable")
+
     chat_slot = presets[0].setdefault("chat", {})
     if compatible_url or compatible_model:
         chat_slot["provider"] = "other"
     if compatible_url: chat_slot["api_base"] = compatible_url
     if compatible_model: chat_slot["name"] = compatible_model
     chat_slot.pop("api_key", None)
+
+    if compatible_utility_url or compatible_utility_model:
+        utility_slot = presets[0].setdefault("utility", {})
+        utility_slot["provider"] = "other"
+        if compatible_utility_url: utility_slot["api_base"] = compatible_utility_url
+        if compatible_utility_model: utility_slot["name"] = compatible_utility_model
+        utility_slot.pop("api_key", None)
+
     model_config.save_presets(presets)
-    return {"url": bool(compatible_url), "model": bool(compatible_model), "api_key": bool(blablador_api_key)}
+    return {"url": bool(compatible_url or compatible_utility_url), "model": bool(compatible_model or compatible_utility_model), "api_key": bool(blablador_api_key)}
 
 
 if __name__ == "__main__":
