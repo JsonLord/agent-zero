@@ -66,9 +66,10 @@ pinned: false
 
         remote_url = f"https://huggingface.co/spaces/{args.space}"
         subprocess.check_call(["git", "remote", "add", "huggingface", remote_url], cwd=snapshot)
+        subprocess.check_call(["git", "config", "http.extraHeader", f"Authorization: Bearer {hf_token}"], cwd=snapshot)
         print(f"Pushing snapshot to Hugging Face Space {args.space}...")
         subprocess.check_call(
-            ["git", "-c", f"http.extraHeader=Authorization: Bearer {hf_token}", "push", "--force", "huggingface", "main:main"],
+            ["git", "push", "--force", "huggingface", "main:main"],
             cwd=snapshot,
         )
 

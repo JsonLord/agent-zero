@@ -17,10 +17,10 @@ ENV BRANCH=${BRANCH} \
     PATH="/opt/venv-a0/bin:${PATH}"
 
 COPY ./ /git/agent-zero
-COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh
-COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
+COPY ./docker/run/fs/ins /ins
+COPY ./docker/run/fs/exe /exe
 
-RUN chmod +x /exe/huggingface-entrypoint.sh /ins/*.sh
+RUN chmod -R +x /exe /ins
 
 RUN set -eu; \
     for script in \
