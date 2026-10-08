@@ -14,7 +14,7 @@ x-icon,
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
   font-style: normal;
-  font-size: inherit;
+  font-size: 24px;
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -32,10 +32,11 @@ x-icon,
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  color: transparent !important;
 }
 
 html:not(.material-icons-ready) x-icon,
 html:not(.material-icons-ready) .material-symbols-outlined,
 html:not(.material-icons-ready) .material-icons-outlined {
-  color: inherit;
+  color: transparent !important;
 }

@@ -88,15 +88,13 @@
             }, { once: true })
 
             const loadMaterialIcons = () => {
-                root.classList.add("material-icons-ready")
                 const fontLoad = document.fonts?.load
                     ? document.fonts.load('24px "Material Symbols Outlined"')
                     : Promise.resolve([])
-                fontLoad.then(() => {
-                    root.classList.add("material-icons-ready")
+                fontLoad.then((faces) => {
+                    if (faces.length > 0) root.classList.add("material-icons-ready")
                 }).catch((error) => {
                     console.warn("Material Symbols font unavailable.", error)
-                    root.classList.add("material-icons-ready")
                 })
             }
 
