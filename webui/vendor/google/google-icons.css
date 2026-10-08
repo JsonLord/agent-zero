@@ -32,6 +32,7 @@ x-icon,
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  color: transparent !important;
 }
 
 html:not(.material-icons-ready) x-icon,

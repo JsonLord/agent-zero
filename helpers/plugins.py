@@ -248,6 +248,8 @@ def get_plugins_list():
     result: list[str] = []
     seen_names: set[str] = set()
     for root in get_plugin_roots():
+        if not files.exists(root) or not Path(root).is_dir():
+            continue
         for dir in Path(root).iterdir():
             if not dir.is_dir() or dir.name.startswith("."):
                 continue
@@ -270,6 +272,8 @@ def get_enhanced_plugins_list(
     allowed_names = set(plugin_names) if plugin_names else None
 
     def load_plugins(root_path: str, is_custom: bool):
+        if not files.exists(root_path) or not Path(root_path).is_dir():
+            return
         for d in sorted(Path(root_path).iterdir(), key=lambda p: p.name):
             try:
                 if not d.is_dir() or d.name.startswith("."):
