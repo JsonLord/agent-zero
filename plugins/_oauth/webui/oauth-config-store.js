@@ -31,7 +31,7 @@ const MODEL_SLOTS = [
   {
     key: "utility_model",
     title: "Utility model",
-    icon: "manufacturing",
+    icon: "build",
   },
 ];
 

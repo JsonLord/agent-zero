@@ -649,8 +649,8 @@ export const store = createStore("modelConfig", {
     const label = (list, id) => (list.find(x => x.value === id) || {}).label || id || '\u2014';
     return [
       { icon: 'chat', title: 'Main', cfg: preset?.chat, pList: chatP },
-      { icon: 'eye', title: 'Vision', cfg: preset?.vision, pList: chatP },
-      { icon: 'manufacturing', title: 'Utility', cfg: preset?.utility, pList: chatP },
+      { icon: 'visibility', title: 'Vision', cfg: preset?.vision, pList: chatP },
+      { icon: 'build', title: 'Utility', cfg: preset?.utility, pList: chatP },
       { icon: 'database', title: 'Embedding', cfg: preset?.embedding, pList: embedP },
     ]
       .filter(s => s.title !== 'Vision' || (
@@ -794,8 +794,8 @@ export const store = createStore("modelConfig", {
     const label = (list, id) => (list.find(x => x.value === id) || {}).label || id || '\u2014';
     return [
       { icon: 'chat', title: 'Main', cfg: cfg.chat_model, pList: chatP },
-      { icon: 'eye', title: 'Vision', cfg: cfg.vision_model, pList: chatP },
-      { icon: 'manufacturing', title: 'Utility', cfg: cfg.utility_model, pList: chatP },
+      { icon: 'visibility', title: 'Vision', cfg: cfg.vision_model, pList: chatP },
+      { icon: 'build', title: 'Utility', cfg: cfg.utility_model, pList: chatP },
       { icon: 'database', title: 'Embedding', cfg: cfg.embedding_model, pList: embedP },
     ]
       .filter(s => s.title !== 'Vision' || (
