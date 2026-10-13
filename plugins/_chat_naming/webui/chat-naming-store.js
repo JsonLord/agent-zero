@@ -97,13 +97,17 @@ const model = {
     return closeModal(MODAL_PATH);
   },
 
-  call(action, extra = {}) {
-    return callJsonApi(`/plugins/${PLUGIN_ID}/chat_name`, {
-      action,
-      kind: this.kind,
-      item_id: this.itemId,
-      ...extra,
-    });
+  call(action, extra = {}, options = {}) {
+    return callJsonApi(
+      `/plugins/${PLUGIN_ID}/chat_name`,
+      {
+        action,
+        kind: this.kind,
+        item_id: this.itemId,
+        ...extra,
+      },
+      { timeout: 60000, ...options },
+    );
   },
 
   localName() {
