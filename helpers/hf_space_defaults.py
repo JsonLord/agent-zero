@@ -129,6 +129,7 @@ def apply_hf_space_defaults() -> dict[str, bool]:
         dotenv.save_dotenv_value("COMPATIBLE_API", blablador_api_key)
         os.environ["API_KEY_OTHER"] = blablador_api_key
         os.environ["COMPATIBLE_API"] = blablador_api_key
+        os.environ["OTHER_API_KEY"] = blablador_api_key
 
     from plugins._model_config.helpers import model_config
     presets = model_config.get_presets()

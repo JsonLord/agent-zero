@@ -279,6 +279,15 @@ def get_api_key(service: str) -> str:
         dotenv.get_dotenv_value(f"API_KEY_{service.upper()}")
         or dotenv.get_dotenv_value(f"{service.upper()}_API_KEY")
         or dotenv.get_dotenv_value(f"{service.upper()}_API_TOKEN")
+        or (
+            (
+                dotenv.get_dotenv_value("COMPATIBLE_API")
+                or dotenv.get_dotenv_value("COMPATIBLE_API_KEY")
+                or dotenv.get_dotenv_value("BLABLADOR_API_KEY")
+            )
+            if service.lower() == "other"
+            else None
+        )
         or "None"
     )
     # if the key contains a comma, use round-robin
