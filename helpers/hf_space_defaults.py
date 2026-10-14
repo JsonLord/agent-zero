@@ -22,6 +22,7 @@ REQUIRED_PROFILES = {
     "data-engineer",
     "docs",
     "repository-manager",
+    "prompt-improver",
 }
 
 REQUIRED_SKILLS = {
@@ -92,11 +93,14 @@ def apply_hf_space_defaults() -> dict[str, bool]:
 
     compatible_url = os.environ.get("COMPATIBLE_URL", "").strip()
     compatible_model = os.environ.get("COMPATIBLE_MODEL", "").strip()
-    blablador_api_key = os.environ.get("BLABLADOR_API_KEY", "").strip()
+    # COMPATIBLE_API is authoritative for the OpenAI-compatible endpoint.
+    # Preserve the earlier Space secret name as a compatibility fallback.
+    blablador_api_key = (os.environ.get("COMPATIBLE_API", "").strip()
+                         or os.environ.get("BLABLADOR_API_KEY", "").strip())
 
     if not compatible_url: PrintStyle.warning("COMPATIBLE_URL is not configured")
     if not compatible_model: PrintStyle.warning("COMPATIBLE_MODEL is not configured")
-    if not blablador_api_key: PrintStyle.warning("BLABLADOR_API_KEY is not configured")
+    if not blablador_api_key: PrintStyle.warning("COMPATIBLE_API / BLABLADOR_API_KEY is not configured")
     if not (compatible_url or compatible_model or blablador_api_key):
         return {"url": False, "model": False, "api_key": False}
 
