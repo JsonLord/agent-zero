@@ -58,6 +58,12 @@ if path.exists():
         path.write_text(text[:start] + text[end:], encoding="utf-8")
 PY
 
+# Keep DSPy/GEPA independent from Agent Zero's LiteLLM/production Python runtime.
+# Install dependencies during image build, before runtime PIP_NO_INDEX=1.
+RUN /opt/venv-a0/bin/python -m venv /opt/venv-dspy \
+    && /opt/venv-dspy/bin/python -m pip install --no-cache-dir "dspy==3.4.0" \
+    && /opt/venv-dspy/bin/python -c "import dspy; assert hasattr(dspy, 'GEPA')"
+
 RUN if ! getent group 1000 >/dev/null; then groupadd --gid 1000 a0space; fi \
     && space_group="$(getent group 1000 | cut -d: -f1)" \
     && if ! getent passwd 1000 >/dev/null; then useradd --uid 1000 --gid "$space_group" --create-home --shell /bin/bash a0space; fi \

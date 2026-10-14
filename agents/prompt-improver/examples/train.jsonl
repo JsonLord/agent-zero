@@ -1,0 +1,6 @@
+{"question":"Classify the support message as praise, complaint, or question: I love the new dashboard.","answer":"praise"}
+{"question":"Classify the support message as praise, complaint, or question: Why does my export fail?","answer":"question"}
+{"question":"Classify the support message as praise, complaint, or question: The app freezes every minute.","answer":"complaint"}
+{"question":"Classify the support message as praise, complaint, or question: Thank you, the update is amazing.","answer":"praise"}
+{"question":"Classify the support message as praise, complaint, or question: How can I reset my workspace?","answer":"question"}
+{"question":"Classify the support message as praise, complaint, or question: This login bug is unacceptable.","answer":"complaint"}
