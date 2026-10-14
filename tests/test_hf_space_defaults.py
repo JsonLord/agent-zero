@@ -52,7 +52,7 @@ def isolated(monkeypatch):
 
 
 def env(monkeypatch, url=None, model=None, key=None):
-    for name, value in (("COMPATIBLE_URL", url), ("COMPATIBLE_MODEL", model), ("BLABLADOR_API_KEY", key)):
+    for name, value in (("COMPATIBLE_URL", url), ("COMPATIBLE_MODEL", model), ("BLABLADOR_API_KEY", key), ("COMPATIBLE_API", None)):
         if value is None: monkeypatch.delenv(name, raising=False)
         else: monkeypatch.setenv(name, value)
 
