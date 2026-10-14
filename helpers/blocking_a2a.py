@@ -2,7 +2,13 @@ import asyncio
 import os
 import time
 from fasta2a.task_manager import TaskManager
-from fasta2a.schema import SendMessageResponse, SendMessageResult
+from fasta2a.schema import SendMessageResponse
+
+try:
+    from fasta2a.schema import SendMessageResult
+except ImportError:
+    def SendMessageResult(**kwargs):
+        return kwargs
 
 
 class BlockingTaskManager(TaskManager):
