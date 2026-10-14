@@ -284,12 +284,17 @@ def main() -> int:
         return preflight()
     if args.command == "inspect":
         return inspect(args.run_dir)
+    # Keep all generated artifacts and optimizer trace logs private even when
+    # the parent shell has a permissive umask.
+    previous_umask = os.umask(0o077)
     try:
         return optimize(args)
     except Exception as exc:
         # stderr should not accidentally contain provider-returned secrets.
         print("GEPA run failed: " + type(exc).__name__ + ". See the run status for evidence.", file=sys.stderr)
         return 1
+    finally:
+        os.umask(previous_umask)
 
 
 if __name__ == "__main__":
