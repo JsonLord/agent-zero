@@ -22,6 +22,7 @@ REQUIRED_PROFILES = {
     "data-engineer",
     "docs",
     "repository-manager",
+    "prompt-improver",
 }
 
 REQUIRED_SKILLS = {

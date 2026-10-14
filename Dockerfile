@@ -67,6 +67,11 @@ RUN if ! getent group 1000 >/dev/null; then groupadd --gid 1000 a0space; fi \
        /home/a0space /home/a0space/.cache /a0/usr /a0/tmp \
     && chown -R "$space_user":"$space_group" /a0 /home/a0space
 
+RUN /opt/venv-a0/bin/python -m venv /opt/venv-dspy \
+    && /opt/venv-dspy/bin/python -m pip install --no-cache-dir dspy==3.4.0 \
+    && /opt/venv-dspy/bin/python -c "import dspy; print('DSPy', dspy.__version__, 'ready')" \
+    && chown -R 1000:1000 /opt/venv-dspy
+
 # Runtime dependency mutation fails on immutable Space layers and is unsafe in a
 # serving process. All Python dependencies and spaCy data are present above.
 ENV PIP_NO_INDEX=1
