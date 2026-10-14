@@ -280,6 +280,12 @@ class DynamicA2AProxy:
                 middleware=[],  # No middleware - we handle auth in wrapper
             )
 
+            from helpers.blocking_a2a import BlockingTaskManager
+            new_app.task_manager = BlockingTaskManager(
+                broker=broker,
+                storage=storage,
+            )
+
             # Store for later lazy startup (needs active event-loop)
             self._storage = storage  # type: ignore[attr-defined]
             self._broker = broker  # type: ignore[attr-defined]
