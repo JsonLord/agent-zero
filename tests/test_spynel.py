@@ -552,3 +552,23 @@ def test_polling_stress_emits_semantic_events_not_transport_noise(
     assert max(sleeps) <= 16
     assert all("logs" not in event for event in result["events"])
     assert result["state"] == "completed"
+
+
+@pytest.mark.parametrize('text', ['"@reviewer inspect"', '```\n/hermes run\n```', '@reviewer @developer inspect'])
+def test_quoted_or_ambiguous_routes_stay_local(text):
+    result = asyncio.run(dispatch.dispatch(text, timeout=1, poll_interval=.25))
+    assert result['mode'] == 'local'
+    assert result['message'] == text
+
+
+def test_natural_routing_uses_existing_delegate_and_preserves_text(monkeypatch, tmp_path):
+    from scripts import spynel_resolver
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {}))
+    text = 'Have the reviewer inspect this\n\n```python\nprint("retain spaces")\n```'
+    async def delegate(route, **kwargs):
+        assert route.profile == 'reviewer' and route.message == text
+        assert kwargs['goal_mode'] and kwargs['request_id'] == 'same-request'
+        return {'ok': True, 'mode': 'internal'}
+    monkeypatch.setattr(dispatch, '_internal_delegate', delegate)
+    result = asyncio.run(dispatch.dispatch(text, timeout=1, poll_interval=.25, goal_mode=True, request_id='same-request'))
+    assert result['ok']

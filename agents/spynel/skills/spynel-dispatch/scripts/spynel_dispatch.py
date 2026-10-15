@@ -8,6 +8,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -30,7 +31,7 @@ def parse_route(text: str) -> Route:
     s = SDK_RE.search(text)
     cleaned = PROFILE_RE.sub(" ", text, count=1)
     cleaned = SDK_RE.sub(" ", cleaned, count=1)
-    return Route(p.group(1).lower() if p else None, s.group(1).lower() if s else None, " ".join(cleaned.split()))
+    return Route(p.group(1).lower() if p else None, s.group(1).lower() if s else None, cleaned.strip())
 
 
 def _https_url(value: str, label: str) -> str:
@@ -259,7 +260,38 @@ async def dispatch(
     request_id: str | None = None,
     request_scope: str | None = None,
 ) -> dict[str, Any]:
-    route = parse_route(text)
+    # The resolver has no model dependencies until active registry discovery.
+    root = Path(__file__).resolve().parents[5]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from scripts.spynel_resolver import INTENT, discover, resolve, visible, workspace_candidates
+    masked = visible(text)
+    if not PROFILE_RE.search(masked) and not SDK_RE.search(masked):
+        if not INTENT.search(masked):
+            return {"mode": "local", "message": text, "events": [{"state": "local"}]}
+        profiles, external_registry = discover(os.getenv("SPYNEL_PROJECT") or None)
+        resolution = resolve(text, profiles, external_registry)
+        if resolution["decision"] != "dispatch":
+            return {"mode": "local", "message": text, "resolution": resolution, "events": [{"state": resolution["decision"]}]}
+        target = resolution["target_id"]
+        route = Route(None if resolution["target_type"] == "sdk" else target,
+                      target if resolution["target_type"] == "sdk" else None, text)
+        if resolution["workspace_path"]:
+            route.message += "\n\nWorkspace: " + resolution["workspace_path"]
+    else:
+        profiles = list(PROFILE_RE.finditer(masked))
+        sdks = list(SDK_RE.finditer(masked))
+        workspaces = workspace_candidates(masked, "/a0/usr/workdir")
+        if len({m[1] for m in profiles}) > 1 or len({m[1] for m in sdks}) > 1 or len(workspaces) > 1:
+            return {"mode": "local", "message": text, "events": [{"state": "abstain", "reason": "ambiguous"}]}
+        route = parse_route(masked)
+        # Delete only routing tokens from the original; keep multiline/code text.
+        message = text
+        for match in sorted(profiles[:1] + sdks[:1], key=lambda m: m.start(), reverse=True):
+            message = message[:match.start()] + message[match.end():]
+        route.message = message.strip()
+        if workspaces:
+            route.message += "\n\nWorkspace: " + workspaces[0]
     events: list[dict[str, Any]] = [{"state": "parsed", "profile": route.profile, "sdk": route.sdk}]
     if not route.profile and not route.sdk:
         return {"mode": "local", "message": route.message, "events": events + [{"state": "local"}]}

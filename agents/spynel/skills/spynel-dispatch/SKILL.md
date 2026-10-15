@@ -24,3 +24,15 @@ Run `python agents/spynel/skills/spynel-dispatch/scripts/spynel_dispatch.py -- '
 Use `scripts/spynel_dispatch.py --goal '@developer <objective>'` for multi-step outcomes; omit `--goal` for one bounded operation. Goal mode calls the API-key-protected internal goal delegate and validates the profile before context creation. When retrying one submission after a transport failure, the caller may supply the same stable `--request-id` and optional `--request-scope`; without a caller ID, identical text intentionally creates an independent goal. External registered routes explicitly return `goal_unsupported` because they do not implement Agent Zero's goal protocol.
 
 The dispatcher stores the accepted context/goal IDs, backs off between unchanged progress revisions up to `SPYNEL_MAX_POLL_INTERVAL`, resets on semantic progress, returns immediately for `requires_attention`, and never resubmits merely because work remains active.
+
+## Natural-language recognition
+
+The same dispatcher recognizes explicit requests such as `Ask developer to fix
+nodepad` and `Have the reviewer inspect my code`. It discovers active profiles
+and environment-registered SDKs; unknown or ambiguous names stay local. Quoted
+examples, fenced code, filenames and URLs do not request delegation. Existing
+workspace directories resolve beneath `/a0/usr/workdir` without creating files.
+Use `python scripts/spynel_resolver.py --resolve-only 'Have the reviewer inspect
+nodepad'` to inspect the JSON decision without submitting work. `SPYNEL_PROJECT`
+selects project-scoped profiles in the dispatcher. External Laya classification
+is an optional interface and is not enabled by dispatch.

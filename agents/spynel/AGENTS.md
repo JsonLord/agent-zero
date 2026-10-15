@@ -28,3 +28,11 @@
 ## Child DOX Index
 
 No child DOX files.
+
+- `scripts/spynel_resolver.py` is the shared read-only deterministic recognizer;
+  discover active profiles through `subagents.get_available_agents_dict` and
+  external routes only through credential-free HTTPS environment registrations.
+- Natural requests preserve original text; workspace paths must already exist
+  beneath `/a0/usr/workdir` after symlink resolution. Ambiguity abstains.
+- The optional HTTPS classifier is disabled by default and may select only an
+  exact validated candidate or abstain; it never discovers or dispatches targets.
