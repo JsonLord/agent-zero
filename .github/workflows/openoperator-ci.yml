@@ -35,6 +35,16 @@ jobs:
             tests/test_api_token_authority.py \
             tests/test_settings_probe.py \
             tests/test_spynel.py \
+            tests/test_spynel_resolver.py \
+            tests/test_search_reliability.py \
+            tests/test_hf_deployment_control.py \
+            plugins/_chat_naming/tests \
+            tests/test_blocking_a2a.py \
+            tests/test_fasta2a_server.py \
+            tests/test_fasta2a_client.py \
+            tests/test_http_auth_csrf.py \
+            tests/test_sidebar_row_actions.py \
+            tests/test_prompt_improver.py \
             tests/test_specialist_profiles.py \
             tests/test_runtime_dockerized.py \
             tests/test_settings_root_password.py \

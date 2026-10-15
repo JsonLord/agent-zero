@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   sync:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Check out main
@@ -47,9 +48,14 @@ jobs:
           python3 - "$snapshot/README.md" <<'PY'
           from pathlib import Path
           import sys
+          import json
+          import os
 
           readme = Path(sys.argv[1])
           content = readme.read_text(encoding="utf-8")
+          (readme.parent / "openoperator-build.json").write_text(
+              json.dumps({"repository": "JsonLord/agent-zero", "branch": "main",
+                          "source_sha": os.environ["SOURCE_SHA"]}) + "\n", encoding="utf-8")
           metadata = """---
           title: Agent Zero
           emoji: 🤖
