@@ -58,15 +58,33 @@ pinned: false
         build_json = snapshot / "openoperator-build.json"
         build_json.write_text(f'{{\n  "source_sha": "{sha}"\n}}\n', encoding="utf-8")
 
+        # Create .gitattributes to track large binary extensions via LFS / ignore if needed
+        gitattributes = snapshot / ".gitattributes"
+        gitattributes.write_text("*.png filter=lfs diff=lfs merge=lfs -text\n*.jpg filter=lfs diff=lfs merge=lfs -text\n*.jpeg filter=lfs diff=lfs merge=lfs -text\n*.gif filter=lfs diff=lfs merge=lfs -text\n*.webm filter=lfs diff=lfs merge=lfs -text\n*.ttf filter=lfs diff=lfs merge=lfs -text\n*.woff filter=lfs diff=lfs merge=lfs -text\n*.woff2 filter=lfs diff=lfs merge=lfs -text\n", encoding="utf-8")
+
         subprocess.check_call(["git", "init", "--initial-branch=main"], cwd=snapshot)
         subprocess.check_call(["git", "config", "user.name", "OpenOperator Deployer"], cwd=snapshot)
         subprocess.check_call(["git", "config", "user.email", "deploy@openoperator.local"], cwd=snapshot)
+
+        # Remove offending documentation and raw binary files (like .png, .jpg, .gif, .webm, .ttf, .woff2) from snapshot
+        for pattern in ["docs/res", "plugins/_whats_new/webui/assets"]:
+            path = snapshot / pattern
+            if path.exists():
+                import shutil
+                shutil.rmtree(path, ignore_errors=True)
+
+        for binary_file in snapshot.glob("**/*"):
+            if binary_file.is_file() and binary_file.suffix in [".png", ".jpg", ".jpeg", ".gif", ".webm", ".ttf", ".woff", ".woff2"]:
+                try:
+                    binary_file.unlink()
+                except Exception:
+                    pass
+
         subprocess.check_call(["git", "add", "--all"], cwd=snapshot)
         subprocess.check_call(["git", "commit", "-m", f"Deploy source revision {sha}"], cwd=snapshot)
 
-        remote_url = f"https://huggingface.co/spaces/{args.space}"
+        remote_url = f"https://oauth2:{hf_token}@huggingface.co/spaces/{args.space}"
         subprocess.check_call(["git", "remote", "add", "huggingface", remote_url], cwd=snapshot)
-        subprocess.check_call(["git", "config", "http.extraHeader", f"Authorization: Bearer {hf_token}"], cwd=snapshot)
         print(f"Pushing snapshot to Hugging Face Space {args.space}...")
         subprocess.check_call(
             ["git", "push", "--force", "huggingface", "main:main"],
