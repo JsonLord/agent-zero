@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import math
+import threading
 from typing import Any
 
 from agent import Agent
 from helpers import persist_chat, plugins, tokens
 from helpers.state_monitor_integration import mark_dirty_all
 
-
+NAME_LOCK = threading.RLock()
 PLUGIN_NAME = "_chat_naming"
 MODE_ONCE = "once"
 MODE_ALWAYS = "always"
@@ -21,13 +24,22 @@ def get_config(agent: Agent) -> dict[str, Any]:
     mode = str(config.get("automatic_naming_mode", MODE_ONCE) or MODE_ONCE)
     if mode not in {MODE_ONCE, MODE_ALWAYS}:
         mode = MODE_ONCE
+    try:
+        timeout = float(config.get("automatic_naming_timeout_seconds", 45))
+        if not math.isfinite(timeout):
+            timeout = 45
+    except (ValueError, TypeError):
+        timeout = 45
     return {
+        "automatic_naming_timeout_seconds": min(300, max(1, timeout)),
         "automatic_naming": bool(config.get("automatic_naming", True)),
         "automatic_naming_mode": mode,
     }
 
 
-def get_user_messages(agent: Agent, *, limit: int | None = RECENT_USER_MESSAGES) -> list[str]:
+def get_user_messages(
+    agent: Agent, *, limit: int | None = RECENT_USER_MESSAGES
+) -> list[str]:
     messages: list[str] = []
     for message in agent.history.all_messages():
         if message.ai:
@@ -75,7 +87,9 @@ async def generate_name(
     fixed_tokens = _estimated_input_tokens(system_prompt, prompt_without_messages)
     message_budget = input_budget - fixed_tokens
     if message_budget <= 0:
-        raise ValueError("The Utility Model context window is too small for chat naming.")
+        raise ValueError(
+            "The Utility Model context window is too small for chat naming."
+        )
 
     message_text = _fit_user_messages(selected_messages, message_budget)
     user_prompt = agent.read_prompt(
@@ -105,10 +119,14 @@ async def generate_name(
     if estimated_tokens > input_budget:
         raise ValueError("Chat naming input exceeds the Utility Model context budget.")
 
-    response = await agent.call_utility_model(
-        system=system_prompt,
-        message=user_prompt,
-        background=True,
+    timeout = get_config(agent).get("automatic_naming_timeout_seconds", 45)
+    response = await asyncio.wait_for(
+        agent.call_utility_model(
+            system=system_prompt,
+            message=user_prompt,
+            background=True,
+        ),
+        timeout=timeout,
     )
     name = normalize_generated_name(response)
     if not name:
@@ -117,17 +135,23 @@ async def generate_name(
 
 
 def save_context_name(agent: Agent, name: str) -> str:
-    normalized = normalize_manual_name(name)
-    agent.context.name = normalized
-    if "parent_context_label" in agent.context.output_data:
-        agent.context.output_data["parent_context_label"] = normalized
-    persist_chat.save_tmp_chat(agent.context)
-    mark_dirty_all(reason="plugins._chat_naming.save_context_name")
-    return normalized
+    with NAME_LOCK:
+        normalized = normalize_manual_name(name)
+        agent.context._chat_naming_revision = (
+            getattr(agent.context, "_chat_naming_revision", 0) + 1
+        )
+        agent.context.name = normalized
+        if "parent_context_label" in agent.context.output_data:
+            agent.context.output_data["parent_context_label"] = normalized
+        persist_chat.save_tmp_chat(agent.context)
+        mark_dirty_all(reason="plugins._chat_naming.save_context_name")
+        return normalized
 
 
 def normalize_generated_name(value: object) -> str:
-    name = " ".join(str(value or "").split()).strip(" \"'`#")
+    if not isinstance(value, str) or any(c in value for c in ("{", "}", "```")):
+        return ""
+    name = " ".join(value.split()).strip(" \"'`#")
     if len(name) > GENERATED_NAME_LIMIT:
         name = name[: GENERATED_NAME_LIMIT - 3].rstrip() + "..."
     return name

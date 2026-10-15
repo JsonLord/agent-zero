@@ -37,3 +37,10 @@
 ## Child DOX Index
 
 No child DOX files.
+
+- Retain at most one automatic naming task per context on its persistent event
+  loop. Once-mode pending work survives new messages; always-mode supersedes it.
+- All naming provider calls have a scoped 1–300s total budget (default 45s),
+  including provider retries; no plugin-level retry is added.
+- Context identity, title revision and current name must still match before
+  persisting a late result. Manual saves increment the revision.
