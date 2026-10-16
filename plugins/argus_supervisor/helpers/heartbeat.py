@@ -135,6 +135,12 @@ class Supervisor:
         except BaseException:
             # Cancellation/process loss may happen after the remote commit.
             # Intent stays unresolved even when the local caller disappears.
+            if campaign.intent is None:
+                campaign.intent = {
+                    "request_id": request_id,
+                    "operation": operation,
+                    "epoch": epoch,
+                }
             campaign.intent["state"] = "unknown"
             self.control_lost(campaign)
             campaign.pending_question = {

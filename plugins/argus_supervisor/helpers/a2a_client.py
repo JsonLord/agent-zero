@@ -10,6 +10,15 @@ import aiohttp
 from .models import AmbiguousMutation, SupervisorError, Unsupported
 from .security import clean, endpoint, evidence_envelope
 
+POLICY = {
+    "execution": "remote-only",
+    "publication": False,
+    "destructive_git": False,
+    "credential_changes": False,
+    "force_push": False,
+    "merge": False,
+}
+
 EXTENSION = "urn:openoperator:campaign-control:v1"
 EXT_METHODS = {
     name: "campaign/" + name
@@ -109,6 +118,7 @@ class OpenTrainingA2AClient:
             if (
                 not isinstance(params, dict)
                 or params.get("lease_epoch_enforced") is not True
+                or params.get("policy_enforced") is not True
             ):
                 continue
             operations = params.get("operations", {})
@@ -227,6 +237,7 @@ class OpenTrainingA2AClient:
                 "campaign_id": campaign_id,
                 "controller_id": controller_id,
                 "ttl_seconds": ttl,
+                "constraints": POLICY,
                 "request_id": request_id,
             },
             mutation=True,
@@ -243,6 +254,7 @@ class OpenTrainingA2AClient:
             "campaign_id": campaign_id,
             "controller_id": lease["controller_id"],
             "controller_epoch": lease["epoch"],
+            "constraints": POLICY,
             "request_id": request_id,
         }
         # Authority is outside untrusted task text. The remote must enforce it.

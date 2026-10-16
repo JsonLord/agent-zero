@@ -82,7 +82,7 @@ return retained event IDs for consumer deduplication; the job loop never injects
 chat messages. There is no new WebUI panel or notification spam.
 
 Every action needs fresh remote readback, a matching unexpired controller epoch,
-and remote epoch enforcement. Argus proposals additionally need a fresh independent
+and advertised remote epoch/policy enforcement. Argus proposals additionally need a fresh independent
 Reviewer verdict tied to that event; old reviews and Foreman FINISH cannot authorize
 an action. Approved decision IDs are consumed durably before relay. The adapter
 adds authority outside task text, never accepts a model-provided epoch or task ID,

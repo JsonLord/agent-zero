@@ -24,6 +24,7 @@ To enable mutation the card must advertise this extension:
   "uri": "urn:openoperator:campaign-control:v1",
   "params": {
     "lease_epoch_enforced": true,
+    "policy_enforced": true,
     "operations": {
       "claim_control": "campaign/claim_control",
       "read_control": "campaign/read_control",
@@ -36,6 +37,11 @@ To enable mutation the card must advertise this extension:
   }
 }
 ```
+
+The remote must also enforce the `constraints` envelope sent with claims and
+mutations: remote-only execution and no publication, destructive Git, credential
+changes, force push or merge. A model cannot relax that envelope. Advertisement
+without both lease and policy enforcement leaves mutation disabled.
 
 Each operation is optional and independently detected. Without read_control and
 claim_control the client remains an observer. `read_control` is required beyond

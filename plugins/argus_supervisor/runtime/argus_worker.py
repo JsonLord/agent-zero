@@ -146,7 +146,9 @@ DATA: {json.dumps({"events": request["events"], "evidence": request["evidence"],
             backend=request["backend"],
             once=True,
             max_missions=1,
-            global_daily_cap_usd=0,
+            global_daily_cap_usd=float(
+                os.getenv("ARGUS_SKILL_GLOBAL_DAILY_CAP_USD", "0")
+            ),
             quiet=True,
             continuous=True,
             continuous_objective=mission,
