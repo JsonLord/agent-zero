@@ -37,4 +37,4 @@ echo "Runtime mode: dockerized production"
 # image-build time, so runtime package installation is disabled by the image.
 cd /a0
 /opt/venv-a0/bin/python -m helpers.hf_space_defaults
-exec /opt/venv-a0/bin/python run_ui.py --dockerized=true
+exec /opt/venv-a0/bin/python /exe/huggingface-services.py

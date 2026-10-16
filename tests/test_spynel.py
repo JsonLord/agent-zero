@@ -296,7 +296,9 @@ def test_huggingface_image_is_non_root_and_direct_startup():
     assert "PIP_NO_INDEX=1" in dockerfile
     assert "spacy download en_core_web_sm" in dockerfile
     assert "/exe/initialize.sh" not in entrypoint
-    assert "run_ui.py --dockerized=true" in entrypoint
+    assert "exec /opt/venv-a0/bin/python /exe/huggingface-services.py" in entrypoint
+    services = (ROOT / "docker/run/fs/exe/huggingface-services.py").read_text()
+    assert '["/opt/venv-a0/bin/python", "run_ui.py", "--dockerized=true"]' in services
     assert "Runtime mode: dockerized production" in entrypoint
     assert "chpasswd" not in entrypoint
     assert 'settings["mcp_server_token"] = api_key' not in entrypoint

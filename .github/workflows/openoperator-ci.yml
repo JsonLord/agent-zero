@@ -43,6 +43,7 @@ jobs:
             tests/test_document_query_plugin.py \
             tests/test_document_query_fallback.py \
             tests/test_hf_deployment_control.py \
+            tests/test_hf_searxng_startup.py \
             plugins/_chat_naming/tests \
             tests/test_blocking_a2a.py \
             tests/test_fasta2a_server.py \

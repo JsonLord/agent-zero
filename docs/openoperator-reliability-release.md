@@ -44,11 +44,30 @@ status validation or exception containment. `SearchEngine.searxng_search` awaite
 it without catching failures; checking whether the returned value was an
 Exception never handled a raised `ClientConnectorError`.
 
-The Space entrypoint starts the UI directly and does not run `run_searxng.sh`.
-That script assumes both `/usr/local/searxng/searxng-src` and
-`/usr/local/searxng/searx-pyenv`. Their presence, non-root usability and RAM cost
-in the live `agent-zero-base:latest` image could not be verified. Configuration
-files alone are not evidence of an installed runtime. No local service was added.
+The previous Space entrypoint bypassed Supervisor and never launched SearXNG.
+The Space image now verifies the base image's SearXNG source and dedicated venv,
+installs pinned Gunicorn there, and makes that installation readable by uid 1000.
+A missing installation fails the image build explicitly. On every Space startup,
+`huggingface-services.py` launches one Gunicorn worker with four threads on
+`127.0.0.1:55510`, with JSON search enabled and a fresh secret in private temporary
+settings. It does not expose SearXNG publicly, require root/Redis/Supervisor, change
+`/a0/usr`, or install packages at runtime. Installation belongs to the HF image
+build; normal restarts only start the installed services.
+
+The launcher probes `/config` for a valid engine registry for up to 30 seconds
+before starting the UI. If readiness fails, the UI still starts with the existing
+search fallbacks. SearXNG exits are logged and retried after five seconds. Container
+termination stops both process groups; UI exit stops SearXNG and preserves the UI
+exit status. Set `A0_SEARCH_BACKEND=auto` (or unset it) to use restored SearXNG;
+a previously configured `tinyfish` backend continues to skip it.
+
+Real local child-process tests cover readiness, failed startup, restart after
+exit, UI failure and joint SIGTERM cleanup. The actual SearXNG image, upstream
+search results and live memory usage remain unverified: no Docker build or HF
+deployment was performed. After an authorized release, check Space logs for
+`SearXNG ready`, request `http://127.0.0.1:55510/config` from inside the container,
+and exercise a real search through OpenOperator. The public Space URL remains
+the UI/API endpoint, not the search backend.
 
 `A0_SEARCH_BACKEND=auto` tries SearXNG, then DuckDuckGo HTML. When
 `TINYFISH_API_KEY` is set, it instead tries SearXNG, Tinyfish, then DuckDuckGo.
@@ -211,7 +230,7 @@ No authentication/CSRF implementation or assertions were disabled.
 
 ## Validation and resources
 
-436 selected tests passed, zero failed/skipped. The suite includes the Tinyfish
+441 selected tests passed, zero failed/skipped. The suite includes the Tinyfish
 REST contract, immediate fallback, document dispatch, cancellation, URL validation
 and credential-safe failure tests. This includes search HTTP
 failures through real loopback requests and the ordinary tool response; naming
@@ -235,12 +254,13 @@ checks for changed reliability modules/tests, compile checks, shell syntax and
 `{"status":"ok", "sha": ...}` from `/health` on loopback. A real unavailable
 search returned structured failure without an escaping traceback.
 
-No new image dependency, daemon, worker/database or public port is added. Search
-adds one bounded HTTP fallback plus modest HTML parsing per request; no per-query
+The Space adds pinned Gunicorn in the existing SearXNG venv and one private
+SearXNG worker with four threads. Its actual RAM cost still needs image/runtime
+measurement. No database or public port is added. Search
+adds bounded HTTP fallbacks plus modest HTML parsing per request; no per-query
 process is spawned. Naming retains at most one task per chat (default lifetime
 45 seconds) and a brief persistence lock. Production CPU/RAM were not measured;
-no production performance numbers are claimed. Startup has no new model load or
-SearXNG launch. DSPy/GEPA job ownership and its separate environment are unchanged.
+no production performance numbers are claimed. Startup launches private SearXNG but adds no new model load. DSPy/GEPA job ownership and its separate environment are unchanged.
 
 The local backend/UI development environment uses a CPU-only Python virtualenv.
 The full optional document stack's initial installation backtracked into an old

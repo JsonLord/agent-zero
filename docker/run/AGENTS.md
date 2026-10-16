@@ -13,6 +13,7 @@
 - `fs/exe/` owns runtime entrypoint, supervisor, self-update, Node eval, and service scripts.
 - `fs/exe/huggingface-entrypoint.sh` owns Space-specific startup defaults, including disabling outbound Cloudflare tunnels and enabling A2A.
 - `fs/ins/` owns preinstall, installation, virtualenv, Playwright, SSH, and postinstall scripts.
+- `fs/exe/huggingface-services.py` owns non-root Space service lifecycle: private SearXNG on 127.0.0.1:55510, bounded readiness, restart delay and joint shutdown. Its temporary settings enable JSON, disable the limiter and generate a per-boot secret without changing user data. SearXNG/Gunicorn are verified/installed at image build; runtime installs remain disabled.
 - Files under `fs/` are copied to container root during the runtime build.
 
 ## Local Contracts
