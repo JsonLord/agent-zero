@@ -6,6 +6,8 @@ import os
 import time
 from pathlib import Path
 
+import aiohttp
+
 from helpers import plugins, subagents
 from plugins.argus_supervisor.helpers import service
 from plugins.argus_supervisor.helpers.argus_bridge import ArgusBridge
@@ -53,6 +55,18 @@ async def checks():
         sha = json.loads(Path("/a0/openoperator-build.json").read_text())["source_sha"]
     except (OSError, ValueError, KeyError):
         sha = None
+    try:
+        async with (
+            aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session,
+            session.get(
+                "http://127.0.0.1:7860/health", allow_redirects=False
+            ) as response,
+        ):
+            data = json.loads(await response.content.read(16384))
+            report["health_sha"] = data.get("sha") if response.status == 200 else None
+    except (aiohttp.ClientError, OSError, ValueError):
+        report["health_sha"] = None
+    report["health_sha_match"] = bool(expected and report["health_sha"] == expected)
     report["build_sha"] = sha
     report["expected_sha_match"] = bool(expected and sha == expected)
     try:
@@ -74,3 +88,18 @@ async def checks():
 if __name__ == "__main__":
     result = asyncio.run(checks())
     print(json.dumps(result, indent=2))
+    required = (
+        "uid_1000",
+        "profile_discoverable",
+        "plugin_loaded",
+        "only_existing_public_port",
+        "expected_sha_match",
+        "health_sha_match",
+        "heartbeat_healthy",
+    )
+    good = all(result.get(key) is True for key in required)
+    good = good and not any(
+        result.get(key, {}).get("error") for key in ("argus_runtime", "foreman_runtime")
+    )
+    good = good and bool(result.get("capabilities", {}).get("discover"))
+    raise SystemExit(0 if good else 1)

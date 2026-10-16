@@ -25,6 +25,22 @@ def persist_receipt(path, text):
         os.close(fd)
 
 
+def read_proposal(work):
+    path = work / "proposed_action.json"
+    if not path.exists():
+        return None
+    # Do not follow a model-created link or read arbitrary/oversized local data.
+    if (
+        path.is_symlink()
+        or path.resolve().parent != work.resolve()
+        or path.stat().st_size > 16000
+    ):
+        raise ValueError("invalid proposal file")
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    with os.fdopen(fd) as handle:
+        return json.loads(handle.read(16001))
+
+
 def operate(request):
     if request["operation"] == "verify":
         import argus
@@ -165,9 +181,7 @@ DATA: {json.dumps({"events": request["events"], "evidence": request["evidence"],
         "review": review,
         "review_bound_to_events": bound_events,
         "stage": observation.get("stage"),
-        "proposal": json.loads((work / "proposed_action.json").read_text()[:16000])
-        if operation == "event" and (work / "proposed_action.json").is_file()
-        else None,
+        "proposal": read_proposal(work) if operation == "event" else None,
     }
 
 
