@@ -24,7 +24,7 @@ jobs:
         run: python -m pip install -r requirements.txt -r requirements.dev.txt
       - name: Static checks
         run: |
-          python -m compileall -q helpers api plugins/_goal scripts agents/spynel
+          python -m compileall -q helpers api plugins/_goal scripts agents/spynel extensions/python/monologue_start
           bash -n docker/run/fs/exe/huggingface-entrypoint.sh docker/run/fs/ins/copy_A0.sh
           git diff --check HEAD^ HEAD
       - name: Focused integration regression
@@ -35,6 +35,22 @@ jobs:
             tests/test_api_token_authority.py \
             tests/test_settings_probe.py \
             tests/test_spynel.py \
+            tests/test_spynel_resolver.py \
+            tests/test_spynel_dispatch_integration.py \
+            tests/test_spynel_profile_guard.py \
+            tests/test_search_reliability.py \
+            tests/test_tinyfish_fallback.py \
+            tests/test_document_query_plugin.py \
+            tests/test_document_query_fallback.py \
+            tests/test_hf_deployment_control.py \
+            tests/test_hf_searxng_startup.py \
+            plugins/_chat_naming/tests \
+            tests/test_blocking_a2a.py \
+            tests/test_fasta2a_server.py \
+            tests/test_fasta2a_client.py \
+            tests/test_http_auth_csrf.py \
+            tests/test_sidebar_row_actions.py \
+            tests/test_prompt_improver.py \
             tests/test_specialist_profiles.py \
             tests/test_runtime_dockerized.py \
             tests/test_settings_root_password.py \

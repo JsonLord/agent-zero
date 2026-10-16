@@ -132,3 +132,26 @@ def test_openoperator_navigation_surfaces_use_shared_icons() -> None:
     for label in labels:
         assert label in lowered
     assert "<x-icon" in source
+
+
+def test_first_party_icon_names_exist_in_bundled_font() -> None:
+    from fontTools.ttLib import TTFont
+
+    font_path = WEBUI_ROOT / "vendor" / "google" / "google-icons.ttf"
+    assert font_path.exists()
+    ttf = TTFont(font_path)
+    valid_glyphs = set(ttf.getGlyphOrder())
+    if "GSUB" in ttf:
+        gsub = ttf["GSUB"].table
+        for lookup in gsub.LookupList.Lookup:
+            for subtable in lookup.SubTable:
+                if hasattr(subtable, "ligatures"):
+                    for first_glyph, lig_list in subtable.ligatures.items():
+                        for lig in lig_list:
+                            name = getattr(lig, "LigGlyph", None)
+                            if name:
+                                valid_glyphs.add(name)
+
+    # Check model icons explicitly
+    for icon_name in ("chat", "visibility", "build", "database", "smart_toy"):
+        assert icon_name in valid_glyphs, f"Required icon glyph '{icon_name}' is missing from bundled font"

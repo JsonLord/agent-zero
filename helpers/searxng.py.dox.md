@@ -41,3 +41,22 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## Reliability and configuration
+
+`A0_SEARCH_BACKEND=auto` tries SearXNG then the already declared free
+DuckDuckGo provider; `searxng` and `duckduckgo` select a single backend.
+`A0_SEARXNG_URL` overrides the loopback endpoint. Each provider is bounded by
+`A0_SEARCH_TIMEOUT_SECONDS` (default 15, range 1–60); HTTP connect has a 3s cap.
+DuckDuckGo uses its HTML endpoint through verified `aiohttp` TLS and environment
+proxy support. Its pinned DDGS client disables verification internally and is
+not used. Cancellation propagates and closes HTTP sessions. Empty results are successful. Failures return
+safe reason codes and empty results; provider response bodies and secrets are
+never included. No paid backend is selected. Run `tests/test_search_reliability.py`.
+
+When `TINYFISH_API_KEY` is present, Tinyfish Search is the immediate next provider
+following a selected provider failure (auto order: SearXNG, Tinyfish, DuckDuckGo).
+Explicit single-provider selections also gain this authorized fallback;
+`A0_SEARCH_BACKEND=tinyfish` selects it directly. Missing keys preserve the
+existing free-provider order. Healthy/empty results and cancellation do not
+trigger fallback. No retry/backoff is inserted before Tinyfish.

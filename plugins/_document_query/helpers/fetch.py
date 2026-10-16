@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Awaitable, Callable
 from urllib.parse import urlparse
 
-from helpers import files
-from helpers.network import fetch_public_http_resource
+from helpers import files, tinyfish
+from helpers.network import UnsafeUrlError, fetch_public_http_resource
 
 
 InterventionCallback = Callable[[], Awaitable[None]]
@@ -138,29 +138,22 @@ async def _fetch_http(
 
     last_error = ""
     for attempt in range(retries):
+        if intervention_callback:
+            await intervention_callback()
         try:
-            if intervention_callback:
-                await intervention_callback()
             resource = await asyncio.to_thread(
                 fetch_public_http_resource,
                 uri,
                 max_bytes=max_remote_bytes,
                 timeout=(timeout, timeout),
             )
-            if intervention_callback:
-                await intervention_callback()
-
             mimetype = (
-                resource.content_type
-                or guessed_mimetype
-                or "application/octet-stream"
+                resource.content_type or guessed_mimetype or "application/octet-stream"
             )
             if mimetype == "application/octet-stream":
-                raise ValueError(
-                    f"Unsupported document mimetype '{mimetype}' ({uri})"
-                )
+                raise ValueError(f"Unsupported document mimetype '{mimetype}' ({uri})")
 
-            return FetchedDocument(
+            document = FetchedDocument(
                 uri=resource.url,
                 source_uri=uri,
                 scheme=urlparse(resource.url).scheme or scheme,
@@ -169,14 +162,45 @@ async def _fetch_http(
                 charset=resource.encoding,
                 content=resource.content,
             )
+        except UnsafeUrlError:
+            # Neither a remote provider nor a retry may bypass SSRF checks.
+            raise
         except Exception as e:
+            if "exceeds max size" in str(e):
+                raise
+            if scheme == "https" and tinyfish.configured():
+                if intervention_callback:
+                    await intervention_callback()
+                try:
+                    final_url, content = await tinyfish.fetch(
+                        uri, timeout=timeout, max_bytes=max_remote_bytes
+                    )
+                except tinyfish.TinyfishError as error:
+                    raise ValueError(
+                        f"Document fetch unavailable: local fetch failed; Tinyfish {error}"
+                    ) from None
+                if intervention_callback:
+                    await intervention_callback()
+                return FetchedDocument(
+                    uri=final_url,
+                    source_uri=uri,
+                    scheme="https",
+                    mimetype="text/markdown",
+                    charset="utf-8",
+                    content=content,
+                )
             last_error = str(e)
             if attempt < retries - 1:
                 await asyncio.sleep(retry_backoff)
                 if intervention_callback:
                     await intervention_callback()
+            continue
+        if intervention_callback:
+            await intervention_callback()
+        return document
 
     raise ValueError(f"Document fetch error: {uri} ({last_error})")
+
 
 register_protocol_handler("file", _fetch_file)
 register_protocol_handler("http", _fetch_http)

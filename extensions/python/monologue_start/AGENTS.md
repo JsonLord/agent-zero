@@ -7,6 +7,7 @@
 ## Ownership
 
 - Ordered Python files own core monologue-start setup.
+- `_00_spynel_profile_guard.py` blocks divergent active Spynel routing overrides before the main model runs; it preserves user files and logs no prompt contents.
 
 ## Local Contracts
 
@@ -19,7 +20,7 @@
 
 ## Verification
 
-- Smoke-test the first monologue after a new user message.
+- Smoke-test the first monologue after a new user message; run `tests/test_spynel_profile_guard.py` for safe/blocked Spynel override cases.
 
 ## Child DOX Index
 

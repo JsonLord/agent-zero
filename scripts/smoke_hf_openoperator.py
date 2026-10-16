@@ -39,6 +39,7 @@ REQUIRED_PROFILES = {
     "data-engineer",
     "docs",
     "repository-manager",
+    "prompt-improver",
 }
 
 CRITICAL_SKILLS = {

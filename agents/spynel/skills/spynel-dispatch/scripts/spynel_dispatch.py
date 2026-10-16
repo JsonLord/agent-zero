@@ -8,6 +8,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -23,6 +24,9 @@ class Route:
     profile: str | None
     sdk: str | None
     message: str
+    workspace_path: str | None = None
+    workspace_files: tuple[str, ...] = ()
+    project_name: str | None = None
 
 
 def parse_route(text: str) -> Route:
@@ -30,7 +34,7 @@ def parse_route(text: str) -> Route:
     s = SDK_RE.search(text)
     cleaned = PROFILE_RE.sub(" ", text, count=1)
     cleaned = SDK_RE.sub(" ", cleaned, count=1)
-    return Route(p.group(1).lower() if p else None, s.group(1).lower() if s else None, " ".join(cleaned.split()))
+    return Route(p.group(1).lower() if p else None, s.group(1).lower() if s else None, cleaned.strip())
 
 
 def _https_url(value: str, label: str) -> str:
@@ -178,6 +182,8 @@ async def _internal_delegate(
                 "agent_profile": route.profile,
                 "async": True,
             }
+        if route.project_name:
+            payload["project_name"] = route.project_name
         code, data, error = await _curl_json(
             f"{base}/api/plugins/_goal/delegate" if goal_mode else f"{base}/api/api_message",
             payload,
@@ -258,8 +264,58 @@ async def dispatch(
     goal_mode: bool = False,
     request_id: str | None = None,
     request_scope: str | None = None,
+    profile: str | None = None,
+    sdk: str | None = None,
+    workspace: str | None = None,
+    workspace_root: str = "/a0/usr/workdir",
 ) -> dict[str, Any]:
-    route = parse_route(text)
+    root = Path(__file__).resolve().parents[5]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from scripts.spynel_resolver import (
+        INTENT, TOKEN, discover, load_workspace_aliases, prepare_route,
+        profile_conflicts, visible,
+    )
+    project = os.getenv("SPYNEL_PROJECT") or None
+    conflicts = profile_conflicts(project)
+    if conflicts:
+        return {"mode": "local", "ok": False, "state": "profile_conflict",
+                "error": "Reconcile active Spynel profile overrides with the bundled routing contract before dispatch.",
+                "conflicts": conflicts, "events": [{"state": "profile_conflict"}]}
+    masked = visible(text)
+    if not TOKEN.search(masked) and not INTENT.search(masked) and not (profile or sdk or workspace):
+        return {"mode": "local", "message": text, "events": [{"state": "local"}]}
+    profiles, external_registry = discover(project)
+    resolution = prepare_route(text, profiles, external_registry, workspace_root,
+                               profile=profile, sdk=sdk, workspace=workspace,
+                               workspace_aliases=load_workspace_aliases())
+    if resolution["decision"] != "dispatch":
+        reason = resolution.get("reason", "local")
+        if reason in {"unknown_profile", "unknown_sdk"} or reason == "unknown_target":
+            unknown_sdk = reason == "unknown_sdk"
+            return {"mode": "external" if unknown_sdk else "internal", "ok": False,
+                    "state": "failed", "error": "Unknown SDK" if unknown_sdk else "Unknown agent profile or target",
+                    "resolution": resolution, "events": [{"state": "failed", "reason": reason}]}
+        return {"mode": "local", "ok": resolution["decision"] == "local", "state": resolution["decision"],
+                "message": text, "resolution": resolution, "events": [{"state": resolution["decision"]}]}
+    target = resolution["target_id"]
+    route = Route(
+        resolution.get("agent_profile") if resolution["target_type"] == "sdk" else target,
+        target if resolution["target_type"] == "sdk" else None,
+        text, workspace_path=resolution["workspace_path"],
+        workspace_files=tuple(resolution["workspace_files"]), project_name=project,
+    )
+    # Remove only explicit tokens from the ORIGINAL text. Natural/model-selected
+    # tasks keep all user formatting, including multiline source code.
+    for match in reversed(list(TOKEN.finditer(masked))):
+        end = match.end()
+        if text[end:end + 1] == " " or (match.start() == 0 and text[end:end + 1] == "\n"):
+            end += 1
+        route.message = route.message[:match.start()] + route.message[end:]
+    if route.workspace_path:
+        route.message += "\n\nWorkspace: " + route.workspace_path
+    if route.workspace_files:
+        route.message += "\nWorkspace files:\n" + "\n".join(route.workspace_files)
     events: list[dict[str, Any]] = [{"state": "parsed", "profile": route.profile, "sdk": route.sdk}]
     if not route.profile and not route.sdk:
         return {"mode": "local", "message": route.message, "events": events + [{"state": "local"}]}
@@ -293,6 +349,8 @@ async def dispatch(
         }
     events.append({"state": "dispatching", "target": registry_key})
     payload = {"message": route.message, "agent_profile": route.profile, "agent_sdk": route.sdk}
+    if route.workspace_path:
+        payload.update(workspace_path=route.workspace_path, workspace_files=list(route.workspace_files))
     try:
         code, data, stderr = await _curl_json(url, payload, timeout)
     except TimeoutError as exc:
@@ -339,6 +397,9 @@ async def amain() -> int:
     ap.add_argument("message", nargs="?", help="message containing optional @profile and /sdk")
     ap.add_argument("--timeout", type=float, default=float(os.getenv("SPYNEL_REQUEST_TIMEOUT", "300")))
     ap.add_argument("--poll-interval", type=float, default=float(os.getenv("SPYNEL_POLL_INTERVAL", "2")))
+    ap.add_argument("--profile", help="existing main-model-selected profile, validated before dispatch")
+    ap.add_argument("--sdk", help="registered SDK selected during the existing main interaction")
+    ap.add_argument("--workspace", help="existing workspace path or configured alias; never creates a path")
     ap.add_argument("--goal", action="store_true", help="assign a durable goal instead of a one-shot message")
     ap.add_argument(
         "--request-id",
@@ -358,6 +419,7 @@ async def amain() -> int:
             goal_mode=ns.goal,
             request_id=ns.request_id,
             request_scope=ns.request_scope,
+            profile=ns.profile, sdk=ns.sdk, workspace=ns.workspace,
         )
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result.get("ok", True) else 2

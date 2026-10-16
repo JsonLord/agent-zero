@@ -17,10 +17,10 @@ ENV BRANCH=${BRANCH} \
     PATH="/opt/venv-a0/bin:${PATH}"
 
 COPY ./ /git/agent-zero
-COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh
-COPY ./docker/run/fs/exe/huggingface-entrypoint.sh /exe/huggingface-entrypoint.sh
+COPY ./docker/run/fs/ins /ins
+COPY ./docker/run/fs/exe /exe
 
-RUN chmod +x /exe/huggingface-entrypoint.sh /ins/*.sh
+RUN chmod -R +x /exe /ins
 
 RUN set -eu; \
     for script in \
@@ -66,6 +66,18 @@ RUN if ! getent group 1000 >/dev/null; then groupadd --gid 1000 a0space; fi \
     && install -d -o "$space_user" -g "$space_group" \
        /home/a0space /home/a0space/.cache /a0/usr /a0/tmp \
     && chown -R "$space_user":"$space_group" /a0 /home/a0space
+
+# Verify the base's actual SearXNG installation rather than assuming config files
+# imply a working service. Install its production server during the Space build.
+RUN test -f /usr/local/searxng/searxng-src/searx/webapp.py \
+    && /usr/local/searxng/searx-pyenv/bin/python -m pip install --no-cache-dir gunicorn==23.0.0 \
+    && /usr/local/searxng/searx-pyenv/bin/python -c "import searx, gunicorn" \
+    && chmod -R a+rX /usr/local/searxng
+
+RUN /opt/venv-a0/bin/python -m venv /opt/venv-dspy \
+    && /opt/venv-dspy/bin/python -m pip install --no-cache-dir dspy==3.4.0 \
+    && /opt/venv-dspy/bin/python -c "import dspy; print('DSPy', dspy.__version__, 'ready')" \
+    && chown -R 1000:1000 /opt/venv-dspy
 
 # Runtime dependency mutation fails on immutable Space layers and is unsafe in a
 # serving process. All Python dependencies and spaCy data are present above.

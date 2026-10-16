@@ -8,6 +8,7 @@
 ## Ownership
 
 - `openrouter_release_notes_system_prompt.md` is consumed by `.github/scripts/docker_release_plan.py`.
+- `spynel_resolver.py` owns the read-only deterministic routing CLI and the shared resolver imported by the existing Spynel dispatcher; active discovery uses the framework registry. Its shared execution gate validates main-model selections and workspace references without making any inference request; the profile audit is read-only.
 - Additional repository maintenance scripts belong here when they are not runtime application code.
 
 ## Local Contracts
@@ -24,7 +25,7 @@
 
 ## Verification
 
-- Run targeted tests for any automation script with coverage.
+- Run targeted tests for any automation script with coverage. For Spynel recognition, run `tests/test_spynel_resolver.py` and the existing `tests/test_spynel.py`; neither requires provider keys.
 - For release-note prompt changes, inspect generated output format expectations in `.github/scripts/docker_release_plan.py`.
 
 ## Child DOX Index

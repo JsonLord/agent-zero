@@ -376,6 +376,8 @@ def get_active_projects_list():
 
 def _get_projects_list(parent_dir):
     projects = []
+    if not os.path.exists(parent_dir) or not os.path.isdir(parent_dir):
+        return []
 
     # folders in project directory
     for name in os.listdir(parent_dir):

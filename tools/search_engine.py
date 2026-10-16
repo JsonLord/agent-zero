@@ -1,6 +1,4 @@
-import os
-import asyncio
-from helpers import dotenv, perplexity_search, duckduckgo_search
+import json
 from helpers.tool import Tool, Response
 from helpers.print_style import PrintStyle
 from helpers.errors import handle_error
@@ -30,6 +28,9 @@ class SearchEngine(Tool):
         if isinstance(result, Exception):
             handle_error(result)
             return f"{source} search failed: {str(result)}"
+
+        if result.get("status") == "unavailable":
+            return json.dumps(result, ensure_ascii=False)
 
         outputs = []
         for item in (result or {}).get("results", []):

@@ -1,5 +1,5 @@
 ---
-title: Agent Zero
+title: Open Operator
 emoji: 🤖
 colorFrom: indigo
 colorTo: blue

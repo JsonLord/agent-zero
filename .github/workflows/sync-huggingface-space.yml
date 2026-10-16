@@ -1,39 +1,17 @@
-name: Sync Main To Hugging Face Space
+name: Deprecated Hugging Face Mirror (No Deployment)
 
+# Clean snapshots in deploy-huggingface-space.yml are authoritative. Never
+# mirror repository history: large historical blobs exceed Space limits.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
-
-concurrency:
-  group: huggingface-space-leon4gr45-openoperator
-  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  sync:
+  explain:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out main
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate Hugging Face token
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          if [[ -z "$HF_TOKEN" ]]; then
-            echo "::error::Add a write-scoped HF_TOKEN repository secret."
-            exit 1
-          fi
-
-      - name: Mirror main to the Docker Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git remote add huggingface "https://huggingface.co/spaces/Leon4gr45/openoperator"
-          git -c "http.extraHeader=Authorization: Bearer ${HF_TOKEN}" push --force huggingface HEAD:main
+      - run: |
+          echo 'Deployment is handled only by deploy-huggingface-space.yml on main.'
+          echo 'This legacy workflow performs no upload.'

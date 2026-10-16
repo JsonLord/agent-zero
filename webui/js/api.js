@@ -5,7 +5,7 @@
  * @param {any} data - The data to send to the API
  * @returns {Promise<any>} The JSON response from the API
  */
-export async function callJsonApi(endpoint, data) {
+export async function callJsonApi(endpoint, data, options = {}) {
   const apiUrl = _normalizeApiUrl(endpoint);
 
   /** @type {{ endpoint: string, data: any, response: Response | null, result: any, error: Error | null }} */
@@ -22,14 +22,21 @@ export async function callJsonApi(endpoint, data) {
     await extensions.callJsExtensions("json_api_call_before", ctx);
   }
 
-  const response = await fetchApi(ctx.endpoint, {
+  const fetchOptions = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "same-origin",
     body: JSON.stringify(ctx.data),
-  });
+    ...options,
+  };
+
+  if (options.timeout && typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+    fetchOptions.signal = AbortSignal.timeout(options.timeout);
+  }
+
+  const response = await fetchApi(ctx.endpoint, fetchOptions);
   ctx.response = response;
 
   if (!response.ok) {

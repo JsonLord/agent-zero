@@ -296,7 +296,9 @@ def test_huggingface_image_is_non_root_and_direct_startup():
     assert "PIP_NO_INDEX=1" in dockerfile
     assert "spacy download en_core_web_sm" in dockerfile
     assert "/exe/initialize.sh" not in entrypoint
-    assert "run_ui.py --dockerized=true" in entrypoint
+    assert "exec /opt/venv-a0/bin/python /exe/huggingface-services.py" in entrypoint
+    services = (ROOT / "docker/run/fs/exe/huggingface-services.py").read_text()
+    assert '["/opt/venv-a0/bin/python", "run_ui.py", "--dockerized=true"]' in services
     assert "Runtime mode: dockerized production" in entrypoint
     assert "chpasswd" not in entrypoint
     assert 'settings["mcp_server_token"] = api_key' not in entrypoint
@@ -306,14 +308,9 @@ def test_huggingface_image_is_non_root_and_direct_startup():
 def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():
     dockerfile = (ROOT / "Dockerfile").read_text()
     assert "COPY ./docker/run/fs/ /" not in dockerfile
-    assert "COPY ./docker/run/fs/exe /exe" not in dockerfile
     assert "COPY ./ /git/agent-zero" in dockerfile
-    assert "COPY ./docker/run/fs/ins /ins" not in dockerfile
-    assert "COPY ./docker/run/fs/ins/copy_A0.sh /ins/copy_A0.sh" in dockerfile
-    assert (
-        "COPY ./docker/run/fs/exe/huggingface-entrypoint.sh "
-        "/exe/huggingface-entrypoint.sh"
-    ) in dockerfile
+    assert "COPY ./docker/run/fs/ins /ins" in dockerfile
+    assert "COPY ./docker/run/fs/exe /exe" in dockerfile
     assert "/exe/huggingface-entrypoint.sh" in dockerfile
     assert "version https://git-lfs.github.com/spec/v1" in dockerfile
     assert "Required script has no shebang" in dockerfile
@@ -557,3 +554,45 @@ def test_polling_stress_emits_semantic_events_not_transport_noise(
     assert max(sleeps) <= 16
     assert all("logs" not in event for event in result["events"])
     assert result["state"] == "completed"
+
+
+@pytest.mark.parametrize('text', ['"@reviewer inspect"', '```\n/hermes run\n```', '@reviewer @developer inspect'])
+def test_quoted_or_ambiguous_routes_stay_local(text):
+    result = asyncio.run(dispatch.dispatch(text, timeout=1, poll_interval=.25))
+    assert result['mode'] == 'local'
+    assert result['message'] == text
+
+
+def test_natural_routing_uses_existing_delegate_and_preserves_text(monkeypatch, tmp_path):
+    from scripts import spynel_resolver
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {}))
+    text = 'Have the reviewer inspect this\n\n```python\nprint("retain spaces")\n```'
+    async def delegate(route, **kwargs):
+        assert route.profile == 'reviewer' and route.message == text
+        assert kwargs['goal_mode'] and kwargs['request_id'] == 'same-request'
+        return {'ok': True, 'mode': 'internal'}
+    monkeypatch.setattr(dispatch, '_internal_delegate', delegate)
+    result = asyncio.run(dispatch.dispatch(text, timeout=1, poll_interval=.25, goal_mode=True, request_id='same-request'))
+    assert result['ok']
+
+
+def test_natural_sdk_registration_controls_dispatch(monkeypatch, tmp_path):
+    from scripts import spynel_resolver
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {('sdk', 'hermes'): 'Hermes'}))
+    monkeypatch.setenv('SPYNEL_SDK_HERMES_URL', 'https://gateway.example/run')
+    workspace = tmp_path / 'nodepad'
+    workspace.mkdir()
+    seen = []
+    async def post(url, payload, *args, **kwargs):
+        seen.append((url, payload))
+        return 200, {'status': 'completed', 'result': 'SDK result'}, ''
+    monkeypatch.setattr(dispatch, '_curl_json', post)
+    result = asyncio.run(dispatch.dispatch('Use Hermes to inspect nodepad', timeout=2, poll_interval=.25, workspace_root=tmp_path))
+    assert result['ok'] and len(seen) == 1
+    assert seen[0][0] == 'https://gateway.example/run'
+    assert seen[0][1]['agent_sdk'] == 'hermes'
+    assert seen[0][1]['workspace_path'] == str(workspace)
+    assert seen[0][1]['message'] == 'Use Hermes to inspect nodepad\n\nWorkspace: ' + str(workspace)
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {}))
+    result = asyncio.run(dispatch.dispatch('/hermes inspect nodepad', timeout=2, poll_interval=.25, workspace_root=tmp_path))
+    assert not result['ok'] and result['state'] == 'failed' and len(seen) == 1

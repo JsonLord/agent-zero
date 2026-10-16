@@ -23,8 +23,23 @@
 
 ## Verification
 
-- Run `pytest tests/test_spynel.py`.
+- Run `pytest tests/test_spynel.py tests/test_spynel_resolver.py tests/test_spynel_dispatch_integration.py tests/test_spynel_profile_guard.py`.
 
 ## Child DOX Index
 
 No child DOX files.
+
+- `scripts/spynel_resolver.py` is the shared read-only deterministic recognizer;
+  discover active profiles through `subagents.get_available_agents_dict` and
+  external routes only through credential-free HTTPS environment registrations.
+- Natural requests preserve original text; workspace paths must already exist
+  beneath `/a0/usr/workdir` after symlink resolution. Ambiguity abstains.
+- No classifier interface, model fallback, endpoint integration or additional
+  routing inference request is permitted. Existing main-model selections pass
+  through `prepare_route` before dispatch, with explicit tokens taking precedence.
+- `resolve` retains the original labeled recognition corpus; `prepare_route` is
+  the execution gate and also validates files, missing/escaping references and
+  configured folder aliases. Recognition never substitutes for real dispatch.
+- Persistent routing prompt/skill/context overrides must be audited before use;
+  the core monologue-start guard and dispatcher block conflicts without changing
+  user files. Metadata-only edits and exact copies are allowed.

@@ -21,20 +21,27 @@ def isolated(monkeypatch):
         }
     ]
     saved = []
+    import helpers.dotenv as real_dotenv
     fake_dotenv = types.ModuleType("helpers.dotenv")
+    for k, v in real_dotenv.__dict__.items():
+        setattr(fake_dotenv, k, v)
     fake_dotenv.save_dotenv_value = lambda key, value: saved.append((key, value))
+    fake_dotenv.get_dotenv_value = lambda key, default="": default or ""
     fake_print = types.ModuleType("helpers.print_style")
     class PrintStyle:
         @staticmethod
         def warning(message): pass
     fake_print.PrintStyle = PrintStyle
 
+    from plugins._model_config.helpers import model_config as real_model_config
     parent_pkg = sys.modules.get("plugins._model_config.helpers")
     if not parent_pkg:
         parent_pkg = types.ModuleType("plugins._model_config.helpers")
         monkeypatch.setitem(sys.modules, "plugins._model_config.helpers", parent_pkg)
 
     fake_model = types.ModuleType("plugins._model_config.helpers.model_config")
+    for k, v in real_model_config.__dict__.items():
+        setattr(fake_model, k, v)
     fake_model.get_presets = lambda: copy.deepcopy(presets)
     fake_model.save_presets = lambda value: presets.__setitem__(slice(None), copy.deepcopy(value))
 
@@ -45,9 +52,12 @@ def isolated(monkeypatch):
 
     import helpers
     monkeypatch.setattr(helpers, "dotenv", fake_dotenv, raising=False)
+    for k in ("COMPATIBLE_URL", "COMPATIBLE_MODEL", "COMPATIBLE_UTILITY_URL", "COMPATIBLE_UTILITY_MODEL", "COMPATIBLE_API", "COMPATIBLE_API_KEY", "BLABLADOR_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
     spec = importlib.util.spec_from_file_location("isolated_hf_defaults", ROOT / "helpers/hf_space_defaults.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    saved.clear()
     return module, presets, saved
 
 
@@ -62,8 +72,9 @@ def test_all_three_vars_select_native_compatible_main_without_touching_other_slo
     summary = module.apply_hf_space_defaults()
     assert summary == {"url": True, "model": True, "api_key": True}
     assert presets[0]["chat"] == {"provider": "other", "name": "alias-large", "api_base": "https://example.test/v1"}
-    assert presets[0]["utility"] == before["utility"] and presets[0]["embedding"] == before["embedding"]
-    assert saved == [("API_KEY_OTHER", "dummy-secret")] and "api_key" not in presets[0]["chat"]
+    assert presets[0]["utility"] == {"provider": "other", "name": "alias-large", "api_base": "https://example.test/v1"}
+    assert presets[0]["embedding"] == before["embedding"]
+    assert ("API_KEY_OTHER", "dummy-secret") in saved and "api_key" not in presets[0]["chat"]
     captured = capsys.readouterr(); assert "dummy-secret" not in captured.out + captured.err
 
 
@@ -84,6 +95,22 @@ def test_defaults_idempotent_and_token_never_serialized(isolated, monkeypatch, c
     module.apply_hf_space_defaults(); first = copy.deepcopy(presets); module.apply_hf_space_defaults()
     assert presets == first and "never-print" not in json.dumps(presets)
     captured = capsys.readouterr(); assert "never-print" not in captured.out + captured.err
+
+
+def test_compatible_api_and_utility_model_support(isolated, monkeypatch):
+    module, presets, saved = isolated
+    monkeypatch.setenv("COMPATIBLE_URL", "https://chat.example/v1")
+    monkeypatch.setenv("COMPATIBLE_MODEL", "chat-model-1")
+    monkeypatch.setenv("COMPATIBLE_UTILITY_URL", "https://utility.example/v1")
+    monkeypatch.setenv("COMPATIBLE_UTILITY_MODEL", "utility-model-1")
+    monkeypatch.setenv("COMPATIBLE_API", "tok-compat-123")
+
+    summary = module.apply_hf_space_defaults()
+    assert summary == {"url": True, "model": True, "api_key": True}
+    assert presets[0]["chat"] == {"provider": "other", "name": "chat-model-1", "api_base": "https://chat.example/v1"}
+    assert presets[0]["utility"] == {"provider": "other", "name": "utility-model-1", "api_base": "https://utility.example/v1"}
+    assert ("API_KEY_OTHER", "tok-compat-123") in saved
+    assert ("COMPATIBLE_API", "tok-compat-123") in saved
 
 
 def test_native_model_config_integration(tmp_path, monkeypatch):

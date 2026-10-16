@@ -1,3 +1,16 @@
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webm
+*.ttf
+*.woff2
+docs/res/
+plugins/_whats_new/webui/assets/
+webui/vendor/fonts/
+webui/vendor/google/google-icons.ttf
+webui/vendor/google/google-icons.woff2
+webui/vendor/katex/fonts/
 .git
 .gitattributes
 .gitignore

@@ -29,6 +29,8 @@ def load_classes_from_folder(
 ) -> list[Type[T]]:
     classes = []
     abs_folder = get_abs_path(folder)
+    if not os.path.exists(abs_folder) or not os.path.isdir(abs_folder):
+        return []
 
     # Get all .py files in the folder that match the pattern, sorted alphabetically
     py_files = sorted(

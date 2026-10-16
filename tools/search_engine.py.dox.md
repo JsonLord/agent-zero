@@ -44,3 +44,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+Search unavailability is returned as structured JSON with reason, backend,
+fallback status and empty results, preserving the ordinary non-breaking tool
+response. Successful results retain titles, URLs and snippets.

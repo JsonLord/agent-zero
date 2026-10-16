@@ -90,4 +90,6 @@ def test_chat_naming_plugin_contributes_rename_action_and_standard_modal() -> No
     assert 'store.openConfig(' in store
     assert 'item?.project?.name' in store
     assert 'item?.agent_profile' in store
-    assert 'callJsonApi(`/plugins/${PLUGIN_ID}/chat_name`' in store
+    assert 'callJsonApi(' in store
+    assert '`/plugins/${PLUGIN_ID}/chat_name`' in store
+    assert 'timeout: 60000' in store

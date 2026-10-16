@@ -44,6 +44,16 @@
             </select>
           </div>
         </div>
+        <div class="field" x-show="config.automatic_naming">
+          <div class="field-label">
+            <div class="field-title">Naming time limit (seconds)</div>
+            <div class="field-description">Total time for a title request. The main conversation continues while naming runs.</div>
+          </div>
+          <div class="field-control">
+            <input type="number" min="1" max="300" x-model.number="config.automatic_naming_timeout_seconds"
+              x-init="if (config.automatic_naming_timeout_seconds == null) config.automatic_naming_timeout_seconds = 45">
+          </div>
+        </div>
       </div>
     </template>
   </div>
