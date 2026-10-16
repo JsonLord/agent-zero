@@ -1,9 +1,8 @@
-import asyncio
 from pathlib import Path
 
 import pytest
 
-from scripts.spynel_resolver import HTTPSClassifier, classify_ambiguous, resolve
+from scripts.spynel_resolver import discover, prepare_route, resolve
 
 PROFILES = {
     "developer": "Developer",
@@ -127,55 +126,197 @@ def test_agent_folder_collision_and_title_collision(workspace):
     assert result["decision"] == "abstain" and result["ambiguous"]
 
 
-@pytest.mark.asyncio
-async def test_classifier_default_disabled_and_validated():
-    candidates = [{"decision": "dispatch", "target_id": "reviewer"}]
+def test_no_classifier_interface_or_model_dependency():
+    from scripts import spynel_resolver
 
-    class Fake:
-        calls = 0
-
-        async def classify(self, *args):
-            self.calls += 1
-            return {"decision": "dispatch", "target_id": "attacker"}
-
-    fake = Fake()
-    assert await classify_ambiguous(fake, "text", candidates) == {"decision": "abstain"}
-    assert fake.calls == 0
-    assert await classify_ambiguous(fake, "text", candidates, enabled=True) == {
-        "decision": "abstain"
-    }
-
-    async def valid(*args):
-        return candidates[0]
-
-    fake.classify = valid
-    assert (
-        await classify_ambiguous(fake, "text", candidates, enabled=True)
-        == candidates[0]
-    )
+    for name in ("Classifier", "HTTPSClassifier", "classify_ambiguous"):
+        assert not hasattr(spynel_resolver, name)
 
 
-@pytest.mark.asyncio
-async def test_classifier_timeout_and_cancellation():
-    class Fake:
-        async def classify(self, *args):
-            raise TimeoutError()
+def test_deterministic_routing_makes_no_network_calls(monkeypatch, workspace):
+    import socket
 
-    assert await classify_ambiguous(Fake(), "text", [{}], enabled=True) == {
-        "decision": "abstain"
-    }
+    def never(*args, **kwargs):
+        pytest.fail("routing must not make an inference/network request")
 
-    class Cancel:
-        async def classify(self, *args):
-            raise asyncio.CancelledError()
-
-    with pytest.raises(asyncio.CancelledError):
-        await classify_ambiguous(Cancel(), "text", [{}], enabled=True)
+    monkeypatch.setattr(socket, "create_connection", never)
+    for text, _, _ in CASES:
+        prepare_route(text, PROFILES, EXTERNAL, workspace)
 
 
 @pytest.mark.parametrize(
     "url", ["http://example.org", "https://user:secret@example.org", "file:///tmp/x"]
 )
-def test_classifier_https_only(url):
+def test_registry_rejects_non_https_or_credentialed_endpoints(monkeypatch, url):
+    monkeypatch.setenv("SPYNEL_SDK_UNTRUSTED_URL", url)
+    _, external = discover()
+    assert ("sdk", "untrusted") not in external
+
+
+@pytest.mark.parametrize(
+    "text,options,decision,target,path",
+    [
+        (
+            "Have reviewer inspect nodepad/src/app.py",
+            {},
+            "dispatch",
+            "reviewer",
+            "nodepad/src",
+        ),
+        ("Have reviewer inspect file nodepad/missing.py", {}, "abstain", None, None),
+        ("Have reviewer inspect folder missing", {}, "abstain", None, None),
+        ("Have reviewer inspect missing-folder", {}, "abstain", None, None),
+        ("Have reviewer inspect ../escape", {}, "abstain", None, None),
+        ("Have reviewer inspect escaped", {}, "abstain", None, None),
+        (
+            "Work on nodepad",
+            {"profile": "developer"},
+            "dispatch",
+            "developer",
+            "nodepad",
+        ),
+        ("Improve the parser", {"profile": "invented"}, "abstain", None, None),
+        ("Improve the parser", {"sdk": "unregistered"}, "abstain", None, None),
+        (
+            "Improve the parser",
+            {"profile": "developer", "workspace": "missing"},
+            "abstain",
+            None,
+            None,
+        ),
+        (
+            "@reviewer inspect nodepad",
+            {"profile": "developer"},
+            "dispatch",
+            "reviewer",
+            "nodepad",
+        ),
+        (
+            "Ask reviewer or developer to inspect nodepad",
+            {"profile": "reviewer"},
+            "abstain",
+            None,
+            None,
+        ),
+        ("/missing inspect nodepad", {"sdk": "hermes"}, "abstain", None, None),
+        ('"@reviewer inspect"', {"profile": "reviewer"}, "abstain", None, None),
+        (
+            "https://example.org/@reviewer",
+            {"profile": "reviewer"},
+            "abstain",
+            None,
+            None,
+        ),
+        (
+            "Ask developer to inspect www.example.org/@reviewer",
+            {},
+            "dispatch",
+            "developer",
+            None,
+        ),
+    ],
+)
+def test_final_dispatch_gate(workspace, text, options, decision, target, path):
+    (workspace / "nodepad/src/app.py").write_text('print("test")\n')
+    result = prepare_route(text, PROFILES, EXTERNAL, workspace, **options)
+    assert result["decision"] == decision
+    if decision == "dispatch":
+        assert result["target_id"] == target
+        assert result["workspace_path"] == (str(workspace / path) if path else None)
+    if path is None:
+        assert result["workspace_path"] is None
+
+
+def test_folder_aliases_and_files_are_canonical(workspace):
+    (workspace / "notepad").symlink_to(workspace / "nodepad", target_is_directory=True)
+    (workspace / "nodepad/src/app.py").write_text("pass\n")
+    for message, aliases in [
+        ("Have reviewer inspect notepad", {}),
+        ("Have reviewer inspect my project", {"my project": "nodepad"}),
+        ('Have reviewer inspect folder "my project"', {"my project": "nodepad"}),
+    ]:
+        result = prepare_route(
+            message, PROFILES, EXTERNAL, workspace, workspace_aliases=aliases
+        )
+        assert result["decision"] == "dispatch" and result["workspace_path"] == str(
+            workspace / "nodepad"
+        )
+    result = prepare_route(
+        "Have reviewer inspect nodepad/src/app.py", PROFILES, EXTERNAL, workspace
+    )
+    assert result["workspace_files"] == [str(workspace / "nodepad/src/app.py")]
+    blocked = prepare_route(
+        "Have reviewer inspect remote",
+        PROFILES,
+        EXTERNAL,
+        workspace,
+        workspace_aliases={"remote": "../escape"},
+    )
+    assert blocked["decision"] == "abstain" and blocked["reason"] == "workspace_escape"
+
+
+def test_agent_folder_collision_does_not_invent_workspace(workspace):
+    (workspace / "reviewer").mkdir()
+    result = prepare_route(
+        "Have reviewer inspect nodepad", PROFILES, EXTERNAL, workspace
+    )
+    assert result["decision"] == "dispatch" and result["workspace_path"] == str(
+        workspace / "nodepad"
+    )
+
+
+def test_same_gateway_still_validates_accompanying_profile(workspace):
+    result = prepare_route("@invented /hermes inspect", PROFILES, EXTERNAL, workspace)
+    assert result["decision"] == "abstain" and result["reason"] == "unknown_profile"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "[]",
+        '{"x": 1}',
+        '{"": "nodepad"}',
+        '{"my-project":"nodepad","my_project":"nodepad"}',
+    ],
+)
+def test_trusted_alias_configuration_must_be_unambiguous(monkeypatch, raw):
+    from scripts.spynel_resolver import load_workspace_aliases
+
+    monkeypatch.setenv("SPYNEL_WORKSPACE_ALIASES", raw)
     with pytest.raises(ValueError):
-        HTTPSClassifier(url)
+        load_workspace_aliases()
+
+
+def test_existing_main_selection_with_gateway_retains_validated_profile(workspace):
+    result = prepare_route(
+        "Improve the parser",
+        PROFILES,
+        EXTERNAL,
+        workspace,
+        profile="developer",
+        sdk="hermes",
+        workspace="nodepad",
+    )
+    assert result["decision"] == "dispatch"
+    assert result["recognition"] == "validated_selection"
+    assert result["target_type"] == "sdk" and result["target_id"] == "hermes"
+    assert result["agent_profile"] == "developer"
+
+
+def test_broken_folder_alias_never_authorizes_execution(workspace):
+    (workspace / "broken").symlink_to(workspace / "missing", target_is_directory=True)
+    result = prepare_route(
+        "Have reviewer inspect broken", PROFILES, EXTERNAL, workspace
+    )
+    assert result["decision"] == "abstain" and result["reason"] == "workspace_missing"
+
+
+def test_convenience_alias_tracks_registered_external_profile(workspace):
+    registered = {("external_agent", "developer"): "Developer"}
+    result = prepare_route(
+        "Ask coding agent to inspect nodepad", PROFILES, registered, workspace
+    )
+    assert result["decision"] == "dispatch"
+    assert (
+        result["target_type"] == "external_agent" and result["target_id"] == "developer"
+    )

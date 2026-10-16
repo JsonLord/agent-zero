@@ -572,3 +572,25 @@ def test_natural_routing_uses_existing_delegate_and_preserves_text(monkeypatch, 
     monkeypatch.setattr(dispatch, '_internal_delegate', delegate)
     result = asyncio.run(dispatch.dispatch(text, timeout=1, poll_interval=.25, goal_mode=True, request_id='same-request'))
     assert result['ok']
+
+
+def test_natural_sdk_registration_controls_dispatch(monkeypatch, tmp_path):
+    from scripts import spynel_resolver
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {('sdk', 'hermes'): 'Hermes'}))
+    monkeypatch.setenv('SPYNEL_SDK_HERMES_URL', 'https://gateway.example/run')
+    workspace = tmp_path / 'nodepad'
+    workspace.mkdir()
+    seen = []
+    async def post(url, payload, *args, **kwargs):
+        seen.append((url, payload))
+        return 200, {'status': 'completed', 'result': 'SDK result'}, ''
+    monkeypatch.setattr(dispatch, '_curl_json', post)
+    result = asyncio.run(dispatch.dispatch('Use Hermes to inspect nodepad', timeout=2, poll_interval=.25, workspace_root=tmp_path))
+    assert result['ok'] and len(seen) == 1
+    assert seen[0][0] == 'https://gateway.example/run'
+    assert seen[0][1]['agent_sdk'] == 'hermes'
+    assert seen[0][1]['workspace_path'] == str(workspace)
+    assert seen[0][1]['message'] == 'Use Hermes to inspect nodepad\n\nWorkspace: ' + str(workspace)
+    monkeypatch.setattr(spynel_resolver, 'discover', lambda project: ({'reviewer': 'Reviewer'}, {}))
+    result = asyncio.run(dispatch.dispatch('/hermes inspect nodepad', timeout=2, poll_interval=.25, workspace_root=tmp_path))
+    assert not result['ok'] and result['state'] == 'failed' and len(seen) == 1

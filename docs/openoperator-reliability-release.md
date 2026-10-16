@@ -121,14 +121,60 @@ python scripts/spynel_resolver.py --resolve-only \
 `--project` selects project-scoped discovery in the CLI; `SPYNEL_PROJECT` does so
 in the dispatcher. `--workspace-root` is a read-only CLI testing override.
 
-The optional `HTTPSClassifier`/`Classifier` interface sends only explicitly
-provided validated candidates, uses bounded HTTPS requests, validates the exact
-returned candidate and supports abstention. It is disabled by default and is not
-called by dispatch. No local Laya model or inference dependency was added.
+The final routing architecture has no classifier interface, endpoint integration,
+model fallback or extra inference dependency. Explicit user tokens have highest
+precedence. Deterministic matching resolves registered names and aliases; the
+execution gate `prepare_route` validates files, folder references and configured
+aliases before submission. The existing Spynel main interaction may select an
+existing profile/SDK with `--profile` or `--sdk` and an existing `--workspace`;
+these proposals are validated through the same gate and cannot override an
+explicit, unknown or ambiguous target. No second model call is made for routing.
+The read-only CLI accepts the same options. Legacy `resolve` retains the original
+recognition corpus; only `prepare_route` authorizes actual dispatch.
+
+Folder aliases can be existing confined symlinks or trusted
+`SPYNEL_WORKSPACE_ALIASES` JSON mappings. Canonical workspace and file annotations
+are delivered with the original multiline task. Missing files, escaping aliases,
+and ambiguous directories abstain. The accompanying profile on a `/sdk` gateway
+is also validated; a model-generated identifier cannot bypass registry checks.
+
+### Local experiment reconciliation and persistent overrides
+
+The supplied experiment summary reported 18/20 classifications, an inconsistent
+table count and SDK outcomes conditional on registration. In this cloud machine,
+all three experiment sources are absent: `/a0/usr/agents/spynel/`,
+`/tmp/spynel_patch.diff`, and `/a0/usr/workdir/spynel_test_cases.md`. A row-by-row
+comparison, reproduction of that score, and patch merge were **not** possible.
+No local patch is claimed as merged. The useful edge-case requirements from the
+supplied report were independently encoded in tests: ordinary URLs, registered
+versus unregistered SDKs, real files/folders, canonical aliases, quotes/source
+code, actual worker dispatch and multiline preservation.
+
+The tracked bundled role/specifics and skill now describe the same routing
+protocol, replacing the stale instruction to keep every token-free request
+local. A core `_00_spynel_profile_guard.py` hook runs before the main model, and
+the shared dispatcher performs the same read-only active-profile audit. Divergent
+user, project or plugin routing prompts, context instructions, extension code or
+skill files block routing with an explicit reconciliation message. Identical
+copies and metadata-only title/avatar edits are allowed. No user files are
+changed or deleted. This intentionally prevents a retained experimental profile
+from silently taking precedence after redeployment.
+
+```bash
+python scripts/spynel_resolver.py --check-profile
+# For a scoped profile, also supply --project <existing-project>.
+```
+
+A blocked audit exits nonzero. Before a future release, an authorized operator
+must back up, review and explicitly reconcile any listed persistent overrides;
+the cloud test cannot prove that the live Space has no such overrides. No
+migration or removal of `/a0/usr/agents/spynel` has been performed. The amendment
+leaves NeuralMind, SearXNG/search and Parallel MCP requirements unchanged.
 
 The labeled deterministic corpus includes explicit/natural routes, aliases,
 nested workspaces, collisions, ambiguity, quoted/code/URL examples, unknown
-targets, and multilingual abstention/explicit routes. No Laya accuracy is claimed.
+targets, and multilingual abstention/explicit routes. The original 62 labeled
+recognition cases are retained; extra tests exercise the final execution gate.
 Initial confusion cases (filename suffixes, partial aliases, multiple targets)
 were corrected; all labeled cases now pass.
 
@@ -149,16 +195,23 @@ No authentication/CSRF implementation or assertions were disabled.
 
 ## Validation and resources
 
-331 selected tests passed, zero failed/skipped. This includes search HTTP
+380 selected tests passed, zero failed/skipped. This includes search HTTP
 failures through real loopback requests and the ordinary tool response; naming
 success, delay, errors, cancellation, manual races, context deletion, scoped
 configuration, concurrent chats and persistence; the **real Agent monologue and
 response tool completing while utility naming remains pending**; deterministic
-routing, classifier validation, A2A, goal delegation, authentication/CSRF,
+routing, final selection validation, profile-override guards, real local authenticated
+API/AgentContext/response-tool/polling dispatch, A2A, goal delegation, authentication/CSRF,
 profiles, HF defaults, Colab, Repository Manager and DSPy/GEPA offline contracts.
 Full deployment/image tests and live external agent/model calls were not run.
 
-The exact selected pytest command is in the PR validation description. Ruff
+The exact selected pytest command is in the PR validation description. The
+original 62 recognition rows and existing dispatch regressions are preserved;
+obsolete classifier-specific tests are replaced by no-classifier/no-network and
+registry-validation regressions. Four authenticated local worker cases exercise
+actual profile selection, native curl, task submission, execution and polling
+with controlled model responses; 9 rejection cases create no worker and a
+separate wrong-key case verifies authentication. Ruff
 checks for changed reliability modules/tests, compile checks, shell syntax and
 `git diff --check` pass. Local UI startup returned HTTP 200 for `/` and
 `{"status":"ok", "sha": ...}` from `/health` on loopback. A real unavailable
@@ -213,7 +266,9 @@ package resolution remains part of the later authorized build acceptance.
 6. Start a new chat: verify automatic title persistence and sidebar updates while
    the main model remains responsive. Rename it manually while a delayed title
    is pending; verify the manual title wins. Test once/always/disabled settings.
-7. Create a harmless test directory through the usual workspace workflow, then
+7. Run the read-only Spynel profile audit with the framework interpreter before
+   using Spynel, including any active project scope. If blocked, preserve and
+   explicitly reconcile the reported persistent overrides. Create a harmless test directory through the usual workspace workflow, then
    use the read-only resolver with natural and explicit routes. Test a symlink
    escape and ambiguous targets; neither may be dispatched automatically.
 8. Check logs, memory, only one public listener, preserved profiles/model settings,
