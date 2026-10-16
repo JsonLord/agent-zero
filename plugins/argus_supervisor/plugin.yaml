@@ -1,0 +1,7 @@
+name: argus_supervisor
+title: Argus Supervisor
+description: Durable, lease-aware supervision of remote OpenTraining campaigns.
+version: 0.1.0
+always_enabled: true
+per_project_config: false
+per_agent_config: false

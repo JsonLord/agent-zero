@@ -68,6 +68,7 @@ Direct child DOX files:
 
 | Child | Scope |
 | --- | --- |
+| [argus_supervisor/AGENTS.md](argus_supervisor/AGENTS.md) | User-specified native Argus campaign supervisor (explicit naming exception). |
 | [_a0_connector/AGENTS.md](_a0_connector/AGENTS.md) | HTTP and WebSocket connector integration with remote tools and runtime bridges. |
 | [_agent_editor/AGENTS.md](_agent_editor/AGENTS.md) | Deterministic sparse agent-profile editor API, helpers, and WebUI. |
 | [_browser/AGENTS.md](_browser/AGENTS.md) | Playwright browser tool, helpers, viewer, and browser panel UI. |

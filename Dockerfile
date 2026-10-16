@@ -79,6 +79,8 @@ RUN /opt/venv-a0/bin/python -m venv /opt/venv-dspy \
     && /opt/venv-dspy/bin/python -c "import dspy; print('DSPy', dspy.__version__, 'ready')" \
     && chown -R 1000:1000 /opt/venv-dspy
 
+RUN bash /ins/install_argus_supervisor.sh
+
 # Runtime dependency mutation fails on immutable Space layers and is unsafe in a
 # serving process. All Python dependencies and spaCy data are present above.
 ENV PIP_NO_INDEX=1
