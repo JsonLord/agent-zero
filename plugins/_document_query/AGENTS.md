@@ -29,3 +29,9 @@
 ## Child DOX Index
 
 No child DOX files.
+
+- A configured `TINYFISH_API_KEY` enables immediate Tinyfish Markdown extraction
+  after the first public HTTPS fetch failure, before local retry backoff. Native
+  success, HTTP/file resources, intervention, cancellation, SSRF rejection and
+  size-limit rejection never invoke that fallback. The existing byte limit also
+  applies to extracted Markdown. Provider errors contain only safe reason codes.

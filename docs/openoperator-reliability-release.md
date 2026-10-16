@@ -50,17 +50,33 @@ That script assumes both `/usr/local/searxng/searxng-src` and
 in the live `agent-zero-base:latest` image could not be verified. Configuration
 files alone are not evidence of an installed runtime. No local service was added.
 
-`A0_SEARCH_BACKEND=auto` now tries SearXNG followed by the existing free
-DuckDuckGo provider's HTML backend. Explicit `searxng` or `duckduckgo` disables
-fallback. `A0_SEARXNG_URL` overrides the endpoint.
+`A0_SEARCH_BACKEND=auto` tries SearXNG, then DuckDuckGo HTML. When
+`TINYFISH_API_KEY` is set, it instead tries SearXNG, Tinyfish, then DuckDuckGo.
+Explicit `searxng` or `duckduckgo` also falls back to Tinyfish when configured;
+`tinyfish` selects it directly. Without the key, existing behavior is preserved. `A0_SEARXNG_URL` overrides the endpoint.
 `A0_SEARCH_TIMEOUT_SECONDS` defaults to 15 seconds per backend (1–60), with a
-3-second connection cap. Auto mode can therefore take up to 30 seconds at defaults.
+3-second connection cap. Each failed provider consumes its own bounded timeout.
 Use `duckduckgo` on a Space intentionally lacking SearXNG to avoid probing it.
 
 Both adapters preserve titles, source URLs and snippets. HTTP errors, malformed
 responses, DNS/connection failures and timeouts return safe reason codes and no
 fabricated results. Legitimate empty results succeed; challenge pages do not.
-Cancellation propagates and closes HTTP sessions. No paid backend is selected.
+Cancellation propagates and closes HTTP sessions. Tinyfish is opt-in through
+`TINYFISH_API_KEY`, supplied by the operator in the HF Space environment.
+
+Tinyfish uses GET `https://api.search.tinyfish.ai?query=…` for search and POST
+`https://api.fetch.tinyfish.ai` with `{"urls":[url],"format":"markdown"}` for
+HTTPS document content, authenticated with `X-API-Key`. These contracts match the
+[official REST client](https://github.com/tinyfish-io/tinyfish-web-agent-integrations/blob/main/hermes/tinyfish_hermes/rest_client.py).
+Fetch invokes Tinyfish immediately after the first native fetch failure, before
+retry delays. This means immediate fallback invocation after failure, not zero
+network latency. Native success and empty search results do not call Tinyfish.
+HTTP/file documents, unsafe URLs, size-limit rejections, user intervention and
+cancellation do not trigger remote fetching. Public URL validation applies to
+requested and returned HTTPS URLs. Responses are bounded, TLS is verified,
+provider redirects are disabled, and errors omit credentials and response bodies.
+No additional package or inference service is needed. Live Tinyfish requests
+remain untested because no API key is configured in this environment.
 
 The pinned `duckduckgo-search==6.1.12` client hardcodes `verify=False`; this repair
 does **not** use that client. The HTML adapter uses default verified aiohttp TLS,
@@ -195,7 +211,9 @@ No authentication/CSRF implementation or assertions were disabled.
 
 ## Validation and resources
 
-380 selected tests passed, zero failed/skipped. This includes search HTTP
+436 selected tests passed, zero failed/skipped. The suite includes the Tinyfish
+REST contract, immediate fallback, document dispatch, cancellation, URL validation
+and credential-safe failure tests. This includes search HTTP
 failures through real loopback requests and the ordinary tool response; naming
 success, delay, errors, cancellation, manual races, context deletion, scoped
 configuration, concurrent chats and persistence; the **real Agent monologue and
@@ -262,7 +280,9 @@ package resolution remains part of the later authorized build acceptance.
 5. Exercise Search Engine with a real query. With `A0_SEARCH_BACKEND=auto`,
    intentionally unavailable SearXNG must fall back or report structured
    unavailability; with `duckduckgo`, SearXNG is intentionally unused. If a remote
-   SearXNG is configured, verify its reachability and TLS independently.
+   SearXNG is configured, verify its reachability and TLS independently. With
+   `TINYFISH_API_KEY` configured, verify search and public HTTPS document fallback
+   against Tinyfish after an intentional native failure; never put the key in logs.
 6. Start a new chat: verify automatic title persistence and sidebar updates while
    the main model remains responsive. Rename it manually while a delayed title
    is pending; verify the manual title wins. Test once/always/disabled settings.

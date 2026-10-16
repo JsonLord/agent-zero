@@ -53,3 +53,10 @@ proxy support. Its pinned DDGS client disables verification internally and is
 not used. Cancellation propagates and closes HTTP sessions. Empty results are successful. Failures return
 safe reason codes and empty results; provider response bodies and secrets are
 never included. No paid backend is selected. Run `tests/test_search_reliability.py`.
+
+When `TINYFISH_API_KEY` is present, Tinyfish Search is the immediate next provider
+following a selected provider failure (auto order: SearXNG, Tinyfish, DuckDuckGo).
+Explicit single-provider selections also gain this authorized fallback;
+`A0_SEARCH_BACKEND=tinyfish` selects it directly. Missing keys preserve the
+existing free-provider order. Healthy/empty results and cancellation do not
+trigger fallback. No retry/backoff is inserted before Tinyfish.

@@ -10,6 +10,11 @@ import pytest
 from helpers import searxng as search
 
 
+@pytest.fixture(autouse=True)
+def no_live_tinyfish_key(monkeypatch):
+    monkeypatch.delenv("TINYFISH_API_KEY", raising=False)
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "rows",

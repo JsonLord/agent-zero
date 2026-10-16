@@ -39,6 +39,9 @@ jobs:
             tests/test_spynel_dispatch_integration.py \
             tests/test_spynel_profile_guard.py \
             tests/test_search_reliability.py \
+            tests/test_tinyfish_fallback.py \
+            tests/test_document_query_plugin.py \
+            tests/test_document_query_fallback.py \
             tests/test_hf_deployment_control.py \
             plugins/_chat_naming/tests \
             tests/test_blocking_a2a.py \

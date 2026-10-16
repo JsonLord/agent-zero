@@ -7,6 +7,8 @@ from urllib.parse import parse_qs, urljoin, urlparse
 
 import aiohttp
 
+from helpers import tinyfish
+
 URL = "http://localhost:55510/search"
 log = logging.getLogger(__name__)
 
@@ -124,7 +126,11 @@ def _reason(error):
 
 async def _search(query: str):
     backend = os.getenv("A0_SEARCH_BACKEND", "auto").lower()
-    providers = {"searxng": _searxng, "duckduckgo": _duckduckgo}
+    providers = {
+        "searxng": _searxng,
+        "duckduckgo": _duckduckgo,
+        "tinyfish": tinyfish.search,
+    }
     if backend not in {*providers, "auto"}:
         return {
             "status": "unavailable",
@@ -134,10 +140,17 @@ async def _search(query: str):
             "results": [],
         }
     names = ["searxng", "duckduckgo"] if backend == "auto" else [backend]
+    if tinyfish.configured() and "tinyfish" not in names:
+        # Immediate authorized fallback after the selected local/free provider.
+        names.insert(1, "tinyfish")
     failures = []
     for name in names:
         try:
-            results = await providers[name](query)
+            results = (
+                await providers[name](query, timeout=_timeout())
+                if name == "tinyfish"
+                else await providers[name](query)
+            )
             return {
                 "status": "ok",
                 "backend": name,
@@ -154,7 +167,11 @@ async def _search(query: str):
             RuntimeError,
             TimeoutError,
         ) as error:
-            reason = _reason(error)
+            reason = (
+                str(error)
+                if isinstance(error, tinyfish.TinyfishError)
+                else _reason(error)
+            )
             log.warning("Search backend %s unavailable: %s", name, reason)
             failures.append({"backend": name, "reason": reason})
     return {
