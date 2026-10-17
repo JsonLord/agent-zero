@@ -11,7 +11,7 @@
 - `docker-compose.yml` owns the local compose service example.
 - `build.txt` owns maintainer build and push command notes.
 - `fs/exe/` owns runtime entrypoint, supervisor, self-update, Node eval, and service scripts.
-- `fs/exe/huggingface-entrypoint.sh` owns Space-specific startup defaults, including disabling outbound Cloudflare tunnels and enabling A2A.
+- `fs/exe/huggingface-entrypoint.sh` owns Space-specific startup defaults, including disabling outbound Cloudflare tunnels and enabling MCP/A2A only when SPYNEL_AGENT_ZERO_API_KEY is configured; otherwise both are explicitly disabled with a safe warning.
 - `fs/ins/` owns preinstall, installation, virtualenv, Playwright, SSH, and postinstall scripts.
 - `fs/ins/install_argus_supervisor.sh` installs immutable, SHA-pinned Argus and Foreman sources into separate build-time venvs; dependency constraints and adapters live in `plugins/argus_supervisor/runtime/`. Mutable supervision state stays under `/a0/usr/argus-supervisor`; no extra listener or runtime installs.
 - `fs/exe/huggingface-services.py` owns non-root Space service lifecycle: private SearXNG on 127.0.0.1:55510, bounded readiness, restart delay and joint shutdown. Its temporary settings enable JSON, disable the limiter and generate a per-boot secret without changing user data. SearXNG/Gunicorn are verified/installed at image build; runtime installs remain disabled.

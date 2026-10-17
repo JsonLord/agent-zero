@@ -43,6 +43,7 @@ jobs:
             plugins/argus_supervisor/tests \
             tests/test_goal_state_contract.py \
             tests/test_api_token_authority.py \
+            tests/test_hf_integration_auth.py \
             tests/test_settings_probe.py \
             tests/test_spynel.py \
             tests/test_spynel_resolver.py \

@@ -388,7 +388,13 @@ class DynamicA2AProxy:
             return
 
         from helpers import settings
-        cfg = settings.get_settings()
+        cfg = dict(settings.get_settings())
+        cfg["mcp_server_token"] = settings.resolve_api_token(cfg.get("mcp_server_token"))
+        if not settings.resolve_api_token(cfg.get("mcp_server_token")):
+            await send({"type": "http.response.start", "status": 503,
+                        "headers": [[b"content-type", b"text/plain"]]})
+            await send({"type": "http.response.body", "body": b"deployment token missing"})
+            return
         if not cfg["a2a_server_enabled"]:
             response = b'HTTP/1.1 403 Forbidden\r\n\r\nA2A server is disabled'
             await send({
@@ -484,7 +490,7 @@ class DynamicA2AProxy:
 
             # Validate token
             cfg = settings.get_settings()
-            expected_token = cfg.get("mcp_server_token")
+            expected_token = settings.resolve_api_token(cfg.get("mcp_server_token"))
 
             if expected_token and request_token != expected_token:
                 # Invalid token, return 401
@@ -555,7 +561,7 @@ class DynamicA2AProxy:
             request = Request(scope, receive=receive)
 
             cfg = settings.get_settings()
-            expected = cfg.get("mcp_server_token")
+            expected = settings.resolve_api_token(cfg.get("mcp_server_token"))
 
             if expected:
                 auth_header = request.headers.get("Authorization", "")

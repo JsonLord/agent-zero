@@ -52,3 +52,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## HF deployment authority
+
+MCP middleware fails closed with 503 deployment token missing when shared authority is unavailable, even if persisted enable flags remain true. Existing SSE and streamable HTTP token-path auth is preserved; this change does not introduce header auth.

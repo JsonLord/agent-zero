@@ -159,6 +159,7 @@ class SettingsOutputAdditional(TypedDict):
     can_manage_root_password: bool
     root_password_supported: bool
     runtime_settings: dict[str, Any]
+    external_services: dict[str, Any]
 
 
 class SettingsOutput(TypedDict):
@@ -349,6 +350,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         API_KEY_PLACEHOLDER if resolve_api_token(settings.get("mcp_server_token")) else ""
     )
 
+    out["additional"]["external_services"] = external_service_diagnostics(settings)
+
     #secrets
     secrets_manager = get_default_secrets_manager()
     try:
@@ -488,6 +491,9 @@ def normalize_settings(settings: Settings) -> Settings:
     # Deployment configuration is authoritative; otherwise preserve the
     # configured token before using Agent Zero's stable generated fallback.
     copy["mcp_server_token"] = resolve_api_token(copy.get("mcp_server_token"))
+    if runtime.is_huggingface_space():
+        copy["mcp_server_enabled"] = bool(copy["mcp_server_token"])
+        copy["a2a_server_enabled"] = bool(copy["mcp_server_token"])
     copy["max_consecutive_unusable_responses"] = max(
         1, copy["max_consecutive_unusable_responses"]
     )
@@ -624,7 +630,7 @@ def get_default_settings() -> Settings:
         mcp_client_init_timeout=get_default_value("mcp_client_init_timeout", 10),
         mcp_client_tool_timeout=get_default_value("mcp_client_tool_timeout", 120),
         mcp_server_enabled=get_default_value("mcp_server_enabled", False),
-        mcp_server_token=create_auth_token(),
+        mcp_server_token=resolve_api_token(),
         a2a_server_enabled=get_default_value("a2a_server_enabled", False),
         variables="",
         secrets="",
@@ -857,20 +863,34 @@ def create_auth_token() -> str:
     return b64_token[:16]
 
 
+def resolve_api_token_with_source(configured_token: str | None = None) -> tuple[str, str]:
+    """Shared authority; Spaces require the operator-owned canonical secret."""
+    deployment = os.getenv(DEPLOYMENT_API_TOKEN_ENV, "").strip()
+    if deployment:
+        return deployment, "deployment_secret"
+    if runtime.is_huggingface_space():
+        return "", "missing"
+    persisted = os.getenv(PERSISTED_API_TOKEN_ENV, "").strip()
+    if persisted:
+        return persisted, "persisted_environment"
+    configured = str(configured_token or "").strip()
+    generated = create_auth_token()
+    if configured and configured != API_KEY_PLACEHOLDER and configured != generated:
+        return configured, "configured"
+    return generated, "generated_local"
+
+
 def resolve_api_token(configured_token: str | None = None) -> str:
-    """Resolve the shared incoming API token without exposing it publicly."""
-    deployment_token = os.environ.get(DEPLOYMENT_API_TOKEN_ENV, "").strip()
-    if deployment_token:
-        return deployment_token
-    persisted_environment_token = os.environ.get(PERSISTED_API_TOKEN_ENV, "").strip()
-    if persisted_environment_token:
-        return persisted_environment_token
-    persisted_token = str(configured_token or "").strip()
-    return (
-        persisted_token
-        if persisted_token and persisted_token != API_KEY_PLACEHOLDER
-        else create_auth_token()
-    )
+    return resolve_api_token_with_source(configured_token)[0]
+
+
+def external_service_diagnostics(current=None) -> dict:
+    current = get_settings() if current is None else current
+    token, source = resolve_api_token_with_source(current.get("mcp_server_token"))
+    return {"incoming_api_token_present": bool(token), "incoming_api_token_source": source,
+            "external_integration_error": None if token else "deployment token missing",
+            "mcp_enabled": bool(token and current.get("mcp_server_enabled")),
+            "a2a_enabled": bool(token and current.get("a2a_server_enabled"))}
 
 
 def _get_version():

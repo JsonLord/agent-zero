@@ -57,11 +57,16 @@ def has_arg(name: str):
     return name in args
 
 
+def is_huggingface_space() -> bool:
+    """Documented Space metadata; never an authentication decision."""
+    return bool(os.getenv("SPACE_ID", "").strip())
+
+
 def is_dockerized() -> bool:
     val = get_arg("dockerized")
     if val is True or (isinstance(val, str) and val.lower() in ("true", "1", "yes")):
         return True
-    return os.environ.get("HF_SPACE") == "true" or bool(os.environ.get("SPACE_ID"))
+    return is_huggingface_space()
 
 
 def is_development() -> bool:

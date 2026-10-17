@@ -70,3 +70,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## HF deployment authority
+
+Incoming API-key routes return 503 deployment token missing when shared authority is unavailable. Existing browser requires_auth and csrf_protect remain unchanged on Spaces; there is no runtime-based bypass.

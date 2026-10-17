@@ -49,7 +49,7 @@ from plugins._promptinclude.helpers.scanner import scan_promptinclude_files
 from plugins._promptinclude.extensions.python.system_prompt import _16_promptinclude as promptinclude_extension
 
 def test_hf_production_runtime_mode(monkeypatch):
-    monkeypatch.setenv("HF_SPACE", "true")
+    monkeypatch.setenv("SPACE_ID", "test/space")
 
     assert runtime.is_dockerized() is True
     assert runtime.is_development() is False
@@ -63,7 +63,7 @@ def test_native_dockerized_argument_marks_production(monkeypatch):
     assert runtime.is_development() is False
 
 def test_call_development_function_in_production(monkeypatch):
-    monkeypatch.setenv("HF_SPACE", "true")
+    monkeypatch.setenv("SPACE_ID", "test/space")
 
     mock_rfc = MagicMock()
     mock_rfc.call_rfc.side_effect = AssertionError("RFC must not be called in production mode")
@@ -107,7 +107,7 @@ def test_real_development_mode_uses_rfc(monkeypatch):
     assert mock_rfc.call_rfc.await_count == 1
 
 def test_promptinclude_scans_locally_in_production(monkeypatch, tmp_path):
-    monkeypatch.setenv("HF_SPACE", "true")
+    monkeypatch.setenv("SPACE_ID", "test/space")
 
     inc_file = tmp_path / "test.promptinclude.md"
     inc_file.write_text("Hello from promptinclude test")
