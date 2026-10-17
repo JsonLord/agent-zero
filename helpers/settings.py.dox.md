@@ -107,3 +107,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## HF deployment authority
+
+Spaces detected through SPACE_ID require SPYNEL_AGENT_ZERO_API_KEY; missing canonical secret yields missing authority and disables MCP/A2A. Local resolution remains deployment secret, persisted environment, configured, stable generated fallback. resolve_api_token_with_source and external_service_diagnostics expose source metadata only; convert_out masks all token values and adds safe diagnostics under additional.external_services.

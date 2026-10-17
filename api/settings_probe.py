@@ -28,6 +28,7 @@ class SettingsProbe(ApiHandler):
             configured = model_config.get_config().get("chat_model", {})
             return {
                 "ok": True,
+                "external_services": settings.external_service_diagnostics(),
                 **output,
                 "runtime": {
                     "uid": os.geteuid() if hasattr(os, "geteuid") else None,

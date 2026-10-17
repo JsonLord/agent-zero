@@ -14,6 +14,7 @@ mkdir -p /a0/usr
 # the authenticated A2A endpoint available immediately after the Space starts.
 python3 - <<'PY'
 import json
+import os
 from pathlib import Path
 
 settings_path = Path("/a0/usr/settings.json")
@@ -22,12 +23,18 @@ try:
 except (FileNotFoundError, json.JSONDecodeError):
     settings = {}
 
-settings["a2a_server_enabled"] = True
+external_enabled = bool(os.getenv("SPYNEL_AGENT_ZERO_API_KEY", "").strip())
+settings["a2a_server_enabled"] = external_enabled
+settings["mcp_server_enabled"] = external_enabled
+if external_enabled:
+    print("MCP, A2A and incoming API enabled using the deployment secret.")
+else:
+    print("External integrations disabled: SPYNEL_AGENT_ZERO_API_KEY is not configured.")
 settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
 PY
 
 echo "Space URL: ${A0_PUBLIC_URL:-https://leon4gr45-openoperator.hf.space}"
-echo "A2A enabled at /a2a; authenticated incoming API enabled at /api_message."
+echo "External endpoints share port 7860; browser authentication and CSRF remain required."
 echo "Starting Agent Zero as uid=$(id -u) on ${WEB_UI_HOST:-0.0.0.0}:${WEB_UI_PORT:-7860}."
 echo "Runtime mode: dockerized production"
 

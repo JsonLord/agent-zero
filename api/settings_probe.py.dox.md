@@ -13,3 +13,7 @@
 ## Verification
 
 - Run API-token authority and HF smoke tests.
+
+## HF deployment authority
+
+API-key-authenticated get responses include external_services metadata: presence, source enum, effective enabled flags and a safe missing-token diagnostic. No raw token or credential hash is returned. Browser settings_get exposes equivalent safe metadata through additional.external_services.

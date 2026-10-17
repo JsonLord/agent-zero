@@ -27,6 +27,7 @@
             </template>
         </div>
 
+        <p>The token is intentionally not retrievable from OpenOperator. Replace YOUR_SPYNEL_AGENT_ZERO_API_KEY with the value configured as your Hugging Face secret SPYNEL_AGENT_ZERO_API_KEY.</p>
         <h3>Example MCP Server Configuration JSON</h3>
 
         <!-- Project selector -->
@@ -46,14 +47,8 @@
                 const API = await import("/js/api.js");
                 const url = window.location.origin;
 
-                // Fetch token from settings API
-                let token = "";
-                try {
-                    const response = await API.callJsonApi("settings_get", null);
-                    token = response?.settings?.mcp_server_token || "";
-                } catch (e) {
-                    console.error("Failed to fetch token:", e);
-                }
+                // Use the operator-owned deployment secret; never interpolate the settings mask.
+                const token = "YOUR_SPYNEL_AGENT_ZERO_API_KEY";
 
                 // Fetch and populate projects
                 const projectSelect = document.getElementById('mcp-project-select');

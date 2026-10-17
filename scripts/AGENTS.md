@@ -9,6 +9,7 @@
 
 - `openrouter_release_notes_system_prompt.md` is consumed by `.github/scripts/docker_release_plan.py`.
 - `spynel_resolver.py` owns the read-only deterministic routing CLI and the shared resolver imported by the existing Spynel dispatcher; active discovery uses the framework registry. Its shared execution gate validates main-model selections and workspace references without making any inference request; the profile audit is read-only.
+- `deploy_hf_space.py` rejects dirty tracked/untracked state, resolves an exact committed SHA, prints source/target identity, archives only that commit, and can require live `/health` provenance with `--verify`. HF push credentials stay out of Git remote URLs/output. Push success alone is not deployment qualification.
 - Additional repository maintenance scripts belong here when they are not runtime application code.
 
 ## Local Contracts

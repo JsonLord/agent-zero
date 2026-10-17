@@ -1,0 +1,6 @@
+# Operational settings and credentials are read from environment only.
+# Loading the plugin is safe; external work is disabled until explicitly enabled.
+enabled: false
+heartbeat_seconds: 120
+lease_ttl_seconds: 600
+controller_id: argus-openoperator

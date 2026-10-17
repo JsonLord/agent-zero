@@ -22,17 +22,28 @@ jobs:
           cache: pip
       - name: Install declared dependencies
         run: python -m pip install -r requirements.txt -r requirements.dev.txt
+      - name: Install pinned supervisor test runtimes
+        run: |
+          python -m venv /tmp/venv-argus
+          /tmp/venv-argus/bin/pip install -c plugins/argus_supervisor/runtime/argus-constraints.txt git+https://github.com/microsoft/ArgusAgent.git@fdfeb715b0749db176c7d8b3212a717fb81087ba
+          python -m venv /tmp/venv-foreman
+          /tmp/venv-foreman/bin/pip install -c plugins/argus_supervisor/runtime/foreman-constraints.txt git+https://github.com/JsonLord/foreman-supervisor.git@381ca2de90af9efc2781a58055cc3028c7cabbb9
       - name: Static checks
         run: |
-          python -m compileall -q helpers api plugins/_goal scripts agents/spynel extensions/python/monologue_start
-          bash -n docker/run/fs/exe/huggingface-entrypoint.sh docker/run/fs/ins/copy_A0.sh
+          python -m compileall -q helpers api plugins/_goal plugins/argus_supervisor scripts agents/spynel extensions/python/monologue_start
+          bash -n docker/run/fs/exe/huggingface-entrypoint.sh docker/run/fs/ins/copy_A0.sh docker/run/fs/ins/install_argus_supervisor.sh
           git diff --check HEAD^ HEAD
       - name: Focused integration regression
+        env:
+          ARGUS_TEST_ARGUS_PYTHON: /tmp/venv-argus/bin/python
+          ARGUS_TEST_FOREMAN_PYTHON: /tmp/venv-foreman/bin/python
         run: |
           pytest -q \
             plugins/_goal/tests \
+            plugins/argus_supervisor/tests \
             tests/test_goal_state_contract.py \
             tests/test_api_token_authority.py \
+            tests/test_hf_integration_auth.py \
             tests/test_settings_probe.py \
             tests/test_spynel.py \
             tests/test_spynel_resolver.py \

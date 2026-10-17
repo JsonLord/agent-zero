@@ -480,6 +480,8 @@ async def mcp_middleware(request: Request, call_next):
     """Middleware to check if MCP server is enabled."""
     # check if MCP server is enabled
     cfg = settings.get_settings()
+    if not settings.resolve_api_token(cfg.get("mcp_server_token")):
+        raise StarletteHTTPException(status_code=503, detail="deployment token missing")
     if not cfg["mcp_server_enabled"]:
         PrintStyle.error("[MCP] Access denied: MCP server is disabled in settings.")
         raise StarletteHTTPException(

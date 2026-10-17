@@ -1,0 +1,16 @@
+{
+  "base_branch": "jules-17409741302335967131-509964cf",
+  "base_sha": "8f30a6549b87fd103d50b26170bb5ab57b032209",
+  "argus": {
+    "repository": "microsoft/ArgusAgent",
+    "sha": "fdfeb715b0749db176c7d8b3212a717fb81087ba",
+    "version": "0.1.8",
+    "license": "MIT"
+  },
+  "foreman": {
+    "repository": "JsonLord/foreman-supervisor",
+    "sha": "381ca2de90af9efc2781a58055cc3028c7cabbb9",
+    "version": "0.5.0",
+    "license": "MIT"
+  }
+}

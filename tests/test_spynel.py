@@ -302,7 +302,9 @@ def test_huggingface_image_is_non_root_and_direct_startup():
     assert "Runtime mode: dockerized production" in entrypoint
     assert "chpasswd" not in entrypoint
     assert 'settings["mcp_server_token"] = api_key' not in entrypoint
-    assert "SPYNEL_AGENT_ZERO_API_KEY" not in entrypoint
+    assert 'os.getenv("SPYNEL_AGENT_ZERO_API_KEY", "").strip()' in entrypoint
+    assert 'settings["mcp_server_enabled"] = external_enabled' in entrypoint
+    assert 'settings["a2a_server_enabled"] = external_enabled' in entrypoint
 
 
 def test_huggingface_image_preserves_base_installers_and_rejects_lfs_pointers():

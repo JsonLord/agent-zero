@@ -67,3 +67,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## HF deployment authority
+
+is_huggingface_space uses only nonblank documented SPACE_ID. HF_SPACE is not a platform signal. This helper detects environment only; browser/session authentication and CSRF never depend on it.

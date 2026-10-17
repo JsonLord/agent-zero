@@ -55,3 +55,7 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## HF deployment authority
+
+Every request resolves shared incoming token authority before dispatch. Missing Space deployment secret fails closed with 503; Bearer, X-API-KEY and URL-token paths retain the same canonical token authority.

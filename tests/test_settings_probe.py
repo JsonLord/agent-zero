@@ -25,6 +25,7 @@ def _module(monkeypatch):
     fake_settings = ModuleType("helpers.settings")
     fake_settings.TIME_FORMAT_12H = "12h"
     fake_settings.TIME_FORMAT_24H = "24h"
+    fake_settings.external_service_diagnostics = lambda: {"incoming_api_token_present": True, "incoming_api_token_source": "deployment_secret"}
     fake_settings.get_settings = lambda: current.copy()
     fake_settings.convert_out = lambda value: {"settings": value, "additional": {}}
     fake_settings.set_settings_delta = lambda delta: current.update(delta) or current.copy()
