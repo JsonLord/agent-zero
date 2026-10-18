@@ -1,0 +1,891 @@
+data: {"data":"===== Application Startup at 2026-10-18 19:51:07 =====\n","timestamp":"2026-10-18T19:51:07Z"}
+
+data: {"data":"Synchronizing exact application code from /git/agent-zero to /a0...","timestamp":"2026-10-18T19:52:11.358Z"}
+
+data: {"data":"MCP, A2A and incoming API enabled using the deployment secret.","timestamp":"2026-10-18T19:52:11.847Z"}
+
+data: {"data":"Space URL: https://leon4gr45-openoperator.hf.space","timestamp":"2026-10-18T19:52:11.855Z"}
+
+data: {"data":"External endpoints share port 7860; browser authentication and CSRF remain required.","timestamp":"2026-10-18T19:52:11.855Z"}
+
+data: {"data":"Starting Agent Zero as uid=1000 on 0.0.0.0:7860.","timestamp":"2026-10-18T19:52:11.857Z"}
+
+data: {"data":"Runtime mode: dockerized production","timestamp":"2026-10-18T19:52:11.857Z"}
+
+data: {"data":"Starting private SearXNG at 127.0.0.1:55510.","timestamp":"2026-10-18T19:52:21.439Z"}
+
+data: {"data":"[2026-10-18 19:52:21 +0000] [23] [INFO] Starting gunicorn 23.0.0","timestamp":"2026-10-18T19:52:21.619Z"}
+
+data: {"data":"[2026-10-18 19:52:21 +0000] [23] [INFO] Listening at: http://127.0.0.1:55510 (23)","timestamp":"2026-10-18T19:52:21.619Z"}
+
+data: {"data":"[2026-10-18 19:52:21 +0000] [23] [INFO] Using worker: gthread","timestamp":"2026-10-18T19:52:21.619Z"}
+
+data: {"data":"[2026-10-18 19:52:21 +0000] [24] [INFO] Booting worker with pid: 24","timestamp":"2026-10-18T19:52:21.621Z"}
+
+data: {"data":"2026-10-18 19:52:22,635 ERROR:searx.engines: loading engine ahmia failed: set engine to inactive!","timestamp":"2026-10-18T19:52:22.636Z"}
+
+data: {"data":"2026-10-18 19:52:22,820 ERROR:searx.engines: loading engine torch failed: set engine to inactive!","timestamp":"2026-10-18T19:52:22.821Z"}
+
+data: {"data":"2026-10-18 19:52:22,888 WARNING:searx.botdetection.config: missing config file: /tmp/openoperator-searxng-2gpzoe80/limiter.toml","timestamp":"2026-10-18T19:52:22.888Z"}
+
+data: {"data":"2026-10-18 19:52:22,890 ERROR:searx.botdetection: X-Forwarded-For nor X-Real-IP header is set!","timestamp":"2026-10-18T19:52:22.890Z"}
+
+data: {"data":"SearXNG ready: configuration endpoint returned engine registry.","timestamp":"2026-10-18T19:52:22.899Z"}
+
+data: {"data":"Initializing Python framework...\u001b[0m","timestamp":"2026-10-18T19:52:32.235Z"}
+
+data: {"data":"Checking for data migration...\u001b[0m","timestamp":"2026-10-18T19:52:32.235Z"}
+
+data: {"data":"Preparing web server runtime...\u001b[0m","timestamp":"2026-10-18T19:52:32.577Z"}
+
+data: {"data":"Initializing Agent Zero components...\u001b[0m","timestamp":"2026-10-18T19:52:32.633Z"}
+
+data: {"data":"BEWARE: your OS is not officially supported by Patchright; downloading fallback build for ubuntu24.04-x64.","timestamp":"2026-10-18T19:52:32.862Z"}
+
+data: {"data":"Downloading Chrome for Testing 149.0.7827.55 (playwright chromium v1228) from https://cdn.playwright.dev/builds/cft/149.0.7827.55/linux64/chrome-linux64.zip","timestamp":"2026-10-18T19:52:32.863Z"}
+
+data: {"data":"Preload completed.\u001b[0m","timestamp":"2026-10-18T19:52:33.986Z"}
+
+data: {"data":"Starting UI/API server...\u001b[0m","timestamp":"2026-10-18T19:52:34.076Z"}
+
+data: {"data":"|                                                                                |   0% of 177 MiB","timestamp":"2026-10-18T19:52:34.099Z"}
+
+data: {"data":"INFO:     Started server process [67]","timestamp":"2026-10-18T19:52:34.158Z"}
+
+data: {"data":"INFO:     Waiting for application startup.","timestamp":"2026-10-18T19:52:34.158Z"}
+
+data: {"data":"INFO:     Application startup complete.","timestamp":"2026-10-18T19:52:34.158Z"}
+
+data: {"data":"INFO:     Uvicorn running on http://0.0.0.0:7860 (Press CTRL+C to quit)","timestamp":"2026-10-18T19:52:34.158Z"}
+
+data: {"data":"|■■■■■■■■                                                                        |  10% of 177 MiB","timestamp":"2026-10-18T19:52:34.279Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■                                                                |  20% of 177 MiB","timestamp":"2026-10-18T19:52:34.387Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 177 MiB","timestamp":"2026-10-18T19:52:34.466Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 177 MiB","timestamp":"2026-10-18T19:52:34.523Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 177 MiB","timestamp":"2026-10-18T19:52:34.591Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 177 MiB","timestamp":"2026-10-18T19:52:34.643Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 177 MiB","timestamp":"2026-10-18T19:52:34.730Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 177 MiB","timestamp":"2026-10-18T19:52:34.783Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 177 MiB","timestamp":"2026-10-18T19:52:34.851Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 177 MiB","timestamp":"2026-10-18T19:52:34.920Z"}
+
+data: {"data":"Agent Zero is running.\u001b[0m","timestamp":"2026-10-18T19:52:35.159Z"}
+
+data: {"data":"Chrome for Testing 149.0.7827.55 (playwright chromium v1228) downloaded to /a0/tmp/playwright/chromium-1228","timestamp":"2026-10-18T19:52:37.426Z"}
+
+data: {"data":"BEWARE: your OS is not officially supported by Patchright; downloading fallback build for ubuntu24.04-x64.","timestamp":"2026-10-18T19:52:37.426Z"}
+
+data: {"data":"Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip","timestamp":"2026-10-18T19:52:37.426Z"}
+
+data: {"data":"INFO:     10.20.0.157:35160 - \"WebSocket /socket.io/?EIO=4&transport=websocket\" [accepted]","timestamp":"2026-10-18T19:52:37.778Z"}
+
+data: {"data":"|                                                                                |   0% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.406Z"}
+
+data: {"data":"|■■■■■■■■                                                                        |  10% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.410Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.414Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.419Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.424Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.429Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.432Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.436Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.439Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.443Z"}
+
+data: {"data":"|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB","timestamp":"2026-10-18T19:52:38.445Z"}
+
+data: {"data":"FFmpeg (playwright ffmpeg v1011) downloaded to /a0/tmp/playwright/ffmpeg-1011","timestamp":"2026-10-18T19:52:38.499Z"}
+
+data: {"data":"","timestamp":"2026-10-18T19:52:40.448Z"}
+
+data: {"data":"\u001b[38;2;0;0;255mInfo: WebSocket disconnected: namespace=/ws sid=8tnhmyLqXdn5gTcDAAAB\u001b[0m","timestamp":"2026-10-18T19:52:40.448Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;128;0;128m[A2A] Starting up FastA2A components\u001b[0m","timestamp":"2026-10-18T20:12:40.994Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;128;0;128m[A2A] Worker & TaskManager started\u001b[0m","timestamp":"2026-10-18T20:12:40.994Z"}
+
+data: {"data":"ERROR:    Exception in ASGI application","timestamp":"2026-10-18T21:45:57.373Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\", line 411, in run_asgi","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    result = await app(  # type: ignore[func-returns-value]","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\", line 63, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    return await self.app(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/engineio/async_drivers/asgi.py\", line 75, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.other_asgi_app(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 448, in handle","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/a0/helpers/fasta2a_server.py\", line 718, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await app(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 83, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await super().__call__(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 276, in handle","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 64, in app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 61, in app","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    response = await f(request)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"               ^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 124, in _agent_run_endpoint","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    a2a_request = a2a_request_ta.validate_json(data)","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/pydantic/type_adapter.py\", line 468, in validate_json","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    return self.validator.validate_json(","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"pydantic_core._pydantic_core.ValidationError: 2 validation errors for tagged-union[JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest]","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"message/send.params.configuration.acceptedOutputModes","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  Field required [type=missing, input_value={'blocking': True, 'accep...': ['application/json']}, input_type=dict]","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"message/send.params.message.messageId","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"  Field required [type=missing, input_value={'role': 'user', 'kind': ...data': {'params': {}}}]}, input_type=dict]","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:45:57.375Z"}
+
+data: {"data":"ERROR:    Exception in ASGI application","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\", line 411, in run_asgi","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    result = await app(  # type: ignore[func-returns-value]","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    return await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/engineio/async_drivers/asgi.py\", line 75, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.other_asgi_app(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 448, in handle","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/a0/helpers/fasta2a_server.py\", line 718, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await app(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 83, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await super().__call__(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 276, in handle","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 64, in app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 61, in app","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    response = await f(request)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"               ^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 124, in _agent_run_endpoint","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    a2a_request = a2a_request_ta.validate_json(data)","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/pydantic/type_adapter.py\", line 468, in validate_json","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    return self.validator.validate_json(","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"pydantic_core._pydantic_core.ValidationError: 2 validation errors for tagged-union[JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest]","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"message/send.params.configuration.acceptedOutputModes","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  Field required [type=missing, input_value={}, input_type=dict]","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"message/send.params.message.messageId","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"  Field required [type=missing, input_value={'role': 'user', 'kind': ...ext', 'text': 'hello'}]}, input_type=dict]","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:46:05.020Z"}
+
+data: {"data":"ERROR:    Exception in ASGI application","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\", line 411, in run_asgi","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    result = await app(  # type: ignore[func-returns-value]","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    return await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/engineio/async_drivers/asgi.py\", line 75, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.other_asgi_app(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 448, in handle","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/a0/helpers/fasta2a_server.py\", line 718, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await app(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 83, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await super().__call__(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 276, in handle","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 64, in app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 61, in app","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    response = await f(request)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"               ^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 124, in _agent_run_endpoint","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    a2a_request = a2a_request_ta.validate_json(data)","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/pydantic/type_adapter.py\", line 468, in validate_json","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    return self.validator.validate_json(","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"pydantic_core._pydantic_core.ValidationError: 2 validation errors for tagged-union[JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest]","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"message/send.params.configuration.acceptedOutputModes","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  Field required [type=missing, input_value={}, input_type=dict]","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"message/send.params.message.messageId","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"  Field required [type=missing, input_value={'role': 'user', 'kind': ...ext', 'text': 'hello'}]}, input_type=dict]","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/missing","timestamp":"2026-10-18T21:46:15.582Z"}
+
+data: {"data":"ERROR:    Exception in ASGI application","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\", line 411, in run_asgi","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    result = await app(  # type: ignore[func-returns-value]","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    return await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/engineio/async_drivers/asgi.py\", line 75, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.other_asgi_app(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 448, in handle","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/a0/helpers/fasta2a_server.py\", line 718, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await app(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 83, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await super().__call__(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 276, in handle","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 64, in app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 61, in app","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    response = await f(request)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"               ^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 124, in _agent_run_endpoint","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    a2a_request = a2a_request_ta.validate_json(data)","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/pydantic/type_adapter.py\", line 468, in validate_json","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    return self.validator.validate_json(","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest]","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"message/send.params.message.extensions.0","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"  Input should be a valid string [type=string_type, input_value={'uri': 'urn:openoperator:argus-supervisor:v1'}, input_type=dict]","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/string_type","timestamp":"2026-10-18T21:46:34.512Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;128;0;128m[A2A] Processing task 2e51defd-8200-4c75-bc3b-41100bff368e with new temporary context\u001b[0m","timestamp":"2026-10-18T21:47:06.317Z"}
+
+data: {"data":"Initializing VectorDB...\u001b[0m","timestamp":"2026-10-18T21:47:06.842Z"}
+
+data: {"data":"\u001b[38;2;0;128;0mCreated knowledge directory: /a0/usr/knowledge\u001b[0m","timestamp":"2026-10-18T21:47:07.328Z"}
+
+data: {"data":"\u001b[38;2;0;128;0mCreated knowledge directory: /a0/usr/knowledge/main\u001b[0m","timestamp":"2026-10-18T21:47:07.329Z"}
+
+data: {"data":"\u001b[38;2;0;128;0mCreated knowledge directory: /a0/usr/knowledge/fragments\u001b[0m","timestamp":"2026-10-18T21:47:07.331Z"}
+
+data: {"data":"\u001b[38;2;0;128;0mCreated knowledge directory: /a0/usr/knowledge/solutions\u001b[0m","timestamp":"2026-10-18T21:47:07.333Z"}
+
+data: {"data":"Found 1 knowledge files in /a0/knowledge, processing...\u001b[0m","timestamp":"2026-10-18T21:47:07.334Z"}
+
+data: {"data":"Processed 1 documents from 1 files.\u001b[0m","timestamp":"2026-10-18T21:47:07.366Z"}
+
+data: {"data":"Found 5 knowledge files in /a0/knowledge/main, processing...\u001b[0m","timestamp":"2026-10-18T21:47:07.368Z"}
+
+data: {"data":"Processed 5 documents from 5 files.\u001b[0m","timestamp":"2026-10-18T21:47:07.372Z"}
+
+data: {"data":"\u001b[38;2;0;128;0mCreated knowledge directory: /a0/knowledge/fragments\u001b[0m","timestamp":"2026-10-18T21:47:07.372Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;179;255;217mReasoning: \u001b[0m","timestamp":"2026-10-18T21:47:20.566Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;179;255;217m","timestamp":"2026-10-18T21:47:20.570Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mWe\u001b[0m\u001b[3m\u001b[38;2;179;255;217m need\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m reply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m seems\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m specific\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m system\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m must\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m valid\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m double\u001b[0m\u001b[3m\u001b[38;2;179;255;217m quotes\u001b[0m\u001b[3m\u001b[38;2;179;255;217m for\u001b[0m\u001b[3m\u001b[38;2;179;255;217m all\u001b[0m\u001b[3m\u001b[38;2;179;255;217m keys\u001b[0m\u001b[3m\u001b[38;2;179;255;217m and\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m values\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m's\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mresponse\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m expects\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m object\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m field\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m wants\u001b[0m\u001b[3m\u001b[38;2;179;255;217m just\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m Possibly\u001b[0m\u001b[3m\u001b[38;2;179;255;217m they\u001b[0m\u001b[3m\u001b[38;2;179;255;217m want\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m However\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m instruction\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mno\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m before\u001b[0m\u001b[3m\u001b[38;2;179;255;217m or\u001b[0m\u001b[3m\u001b[38;2;179;255;217m after\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m object\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m command\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m reply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m This\u001b[0m\u001b[3m\u001b[38;2;179;255;217m could\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m special\u001b[0m\u001b[3m\u001b[38;2;179;255;217m case\u001b[0m\u001b[3m\u001b[38;2;179;255;217m where\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m just\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m according\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m overall\u001b[0m\u001b[3m\u001b[38;2;179;255;217m formatting\u001b[0m\u001b[3m\u001b[38;2;179;255;217m rules\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m must\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mresponse\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m used\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m end\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m task\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m If\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m wants\u001b[0m\u001b[3m\u001b[38;2;179;255;217m just\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m specific\u001b[0m\u001b[3m\u001b[38;2;179;255;217m phrase\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m could\u001b[0m\u001b[3m\u001b[38;2;179;255;217m set\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m instruction\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m might\u001b[0m\u001b[3m\u001b[38;2;179;255;217m mean\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m entire\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m should\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m that\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m not\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m However\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m system\u001b[0m\u001b[3m\u001b[38;2;179;255;217m prompt\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217moutput\u001b[0m\u001b[3m\u001b[38;2;179;255;217m must\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m valid\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m double\u001b[0m\u001b[3m\u001b[38;2;179;255;217m quotes\u001b[0m\u001b[3m\u001b[38;2;179;255;217m for\u001b[0m\u001b[3m\u001b[38;2;179;255;217m all\u001b[0m\u001b[3m\u001b[38;2;179;255;217m keys\u001b[0m\u001b[3m\u001b[38;2;179;255;217m and\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m values\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m There\u001b[0m\u001b[3m\u001b[38;2;179;255;217m's\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m conflict\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m likely\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m test\u001b[0m\u001b[3m\u001b[38;2;179;255;217m of\u001b[0m\u001b[3m\u001b[38;2;179;255;217m following\u001b[0m\u001b[3m\u001b[38;2;179;255;217m instructions\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m starts\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m{\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217muser\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"}\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"?\u001b[0m\u001b[3m\u001b[38;2;179;255;217m Actually\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m?\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m?\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m interface\u001b[0m\u001b[3m\u001b[38;2;179;255;217m shows\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m as\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m extras\u001b[0m\u001b[3m\u001b[38;2;179;255;217m are\u001b[0m\u001b[3m\u001b[38;2;179;255;217m there\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m So\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m asking\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m reply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m that\u001b[0m\u001b[3m\u001b[38;2;179;255;217m phrase\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m system\u001b[0m\u001b[3m\u001b[38;2;179;255;217m prompt\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mNo\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m in\u001b[0m\u001b[3m\u001b[38;2;179;255;217m markdown\u001b[0m\u001b[3m\u001b[38;2;179;255;217m fences\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m and\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mOutput\u001b[0m\u001b[3m\u001b[38;2;179;255;217m must\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m valid\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m double\u001b[0m\u001b[3m\u001b[38;2;179;255;217m quotes\u001b[0m\u001b[3m\u001b[38;2;179;255;217m for\u001b[0m\u001b[3m\u001b[38;2;179;255;217m all\u001b[0m\u001b[3m\u001b[38;2;179;255;217m keys\u001b[0m\u001b[3m\u001b[38;2;179;255;217m and\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m values\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mresponse\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m call\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m not\u001b[0m\u001b[3m\u001b[38;2;179;255;217m plain\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m ends\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m loop\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m If\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m call\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\",\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m system\u001b[0m\u001b[3m\u001b[38;2;179;255;217m might\u001b[0m\u001b[3m\u001b[38;2;179;255;217m render\u001b[0m\u001b[3m\u001b[38;2;179;255;217m that\u001b[0m\u001b[3m\u001b[38;2;179;255;217m as\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m final\u001b[0m\u001b[3m\u001b[38;2;179;255;217m answer\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m However\u001b[0m\u001b[3m\u001b[38;2;179;255;217m,\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m might\u001b[0m\u001b[3m\u001b[38;2;179;255;217m expect\u001b[0m\u001b[3m\u001b[38;2;179;255;217m just\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m instructions\u001b[0m\u001b[3m\u001b[38;2;179;255;217m say\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mno\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m before\u001b[0m\u001b[3m\u001b[38;2;179;255;217m or\u001b[0m\u001b[3m\u001b[38;2;179;255;217m after\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m object\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m So\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m must\u001b[0m\u001b[3m\u001b[38;2;179;255;217m output\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m way\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m satisfy\u001b[0m\u001b[3m\u001b[38;2;179;255;217m both\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m use\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m object\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m field\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m string\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m seems\u001b[0m\u001b[3m\u001b[38;2;179;255;217m appropriate\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m Also\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m says\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m could\u001b[0m\u001b[3m\u001b[38;2;179;255;217m be\u001b[0m\u001b[3m\u001b[38;2;179;255;217m interpreted\u001b[0m\u001b[3m\u001b[38;2;179;255;217m as\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m content\u001b[0m\u001b[3m\u001b[38;2;179;255;217m of\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m So\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m should\u001b[0m\u001b[3m\u001b[38;2;179;255;217m set\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m We\u001b[0m\u001b[3m\u001b[38;2;179;255;217m'll\u001b[0m\u001b[3m\u001b[38;2;179;255;217m use\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m Let\u001b[0m\u001b[3m\u001b[38;2;179;255;217m's\u001b[0m\u001b[3m\u001b[38;2;179;255;217m craft\u001b[0m\u001b[3m\u001b[38;2;179;255;217m JSON\u001b[0m\u001b[3m\u001b[38;2;179;255;217m:\u001b[0m\u001b[3m\u001b[38;2;179;255;217m {\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mthought\u001b[0m\u001b[3m\u001b[38;2;179;255;217ms\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m [\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mUser\u001b[0m\u001b[3m\u001b[38;2;179;255;217m requested\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m simple\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"],\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mhead\u001b[0m\u001b[3m\u001b[38;2;179;255;217mline\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mResponding\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\",\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_name\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mresponse\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\",\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_args\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m {\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtext\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m }\u001b[0m\u001b[3m\u001b[38;2;179;255;217m }\u001b[0m\u001b[3m\u001b[38;2;179;255;217m That\u001b[0m\u001b[3m\u001b[38;2;179;255;217m should\u001b[0m\u001b[3m\u001b[38;2;179;255;217m work\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m But\u001b[0m\u001b[3m\u001b[38;2;179;255;217m wait\u001b[0m\u001b[3m\u001b[38;2;179;255;217m:\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m includes\u001b[0m\u001b[3m\u001b[38;2;179;255;217m [\u001b[0m\u001b[3m\u001b[38;2;179;255;217mEXT\u001b[0m\u001b[3m\u001b[38;2;179;255;217mR\u001b[0m\u001b[3m\u001b[38;2;179;255;217mAS\u001b[0m\u001b[3m\u001b[38;2;179;255;217m]\u001b[0m\u001b[3m\u001b[38;2;179;255;217m etc\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m It\u001b[0m\u001b[3m\u001b[38;2;179;255;217m's\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m valid\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m format\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m We\u001b[0m\u001b[3m\u001b[38;2;179;255;217m should\u001b[0m\u001b[3m\u001b[38;2;179;255;217m treat\u001b[0m\u001b[3m\u001b[38;2;179;255;217m it\u001b[0m\u001b[3m\u001b[38;2;179;255;217m as\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m normal\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m The\u001b[0m\u001b[3m\u001b[38;2;179;255;217m user\u001b[0m\u001b[3m\u001b[38;2;179;255;217m message\u001b[0m\u001b[3m\u001b[38;2;179;255;217m is\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mReply\u001b[0m\u001b[3m\u001b[38;2;179;255;217m only\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\".\u001b[0m\u001b[3m\u001b[38;2;179;255;217m So\u001b[0m\u001b[3m\u001b[38;2;179;255;217m we\u001b[0m\u001b[3m\u001b[38;2;179;255;217m follow\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\u001b[0m\u001b[3m\u001b[38;2;179;255;217m We\u001b[0m\u001b[3m\u001b[38;2;179;255;217m'll\u001b[0m\u001b[3m\u001b[38;2;179;255;217m use\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.","timestamp":"2026-10-18T21:47:21.177Z"}
+
+data: {"data":"\u001b[0m","timestamp":"2026-10-18T21:47:21.178Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;179;255;217mResponse: \u001b[0m","timestamp":"2026-10-18T21:47:21.178Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;179;255;217m","timestamp":"2026-10-18T21:47:21.182Z"}
+
+data: {"data":"","timestamp":"2026-10-18T21:47:21.182Z"}
+
+data: {"data":"{","timestamp":"2026-10-18T21:47:21.182Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mthought\u001b[0m\u001b[3m\u001b[38;2;179;255;217ms\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m [","timestamp":"2026-10-18T21:47:21.186Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m       \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mUser\u001b[0m\u001b[3m\u001b[38;2;179;255;217m requested\u001b[0m\u001b[3m\u001b[38;2;179;255;217m a\u001b[0m\u001b[3m\u001b[38;2;179;255;217m simple\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m:\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\",","timestamp":"2026-10-18T21:47:21.196Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m       \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mI\u001b[0m\u001b[3m\u001b[38;2;179;255;217m should\u001b[0m\u001b[3m\u001b[38;2;179;255;217m use\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m response\u001b[0m\u001b[3m\u001b[38;2;179;255;217m tool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m to\u001b[0m\u001b[3m\u001b[38;2;179;255;217m end\u001b[0m\u001b[3m\u001b[38;2;179;255;217m the\u001b[0m\u001b[3m\u001b[38;2;179;255;217m task\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m that\u001b[0m\u001b[3m\u001b[38;2;179;255;217m text\u001b[0m\u001b[3m\u001b[38;2;179;255;217m.\"","timestamp":"2026-10-18T21:47:21.221Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m ],","timestamp":"2026-10-18T21:47:21.222Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mhead\u001b[0m\u001b[3m\u001b[38;2;179;255;217mline\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mResponding\u001b[0m\u001b[3m\u001b[38;2;179;255;217m with\u001b[0m\u001b[3m\u001b[38;2;179;255;217m GENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\",","timestamp":"2026-10-18T21:47:21.232Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_name\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mresponse\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\",","timestamp":"2026-10-18T21:47:21.336Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtool\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_args\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m {","timestamp":"2026-10-18T21:47:21.419Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m       \u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mtext\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\":\u001b[0m\u001b[3m\u001b[38;2;179;255;217m \"\u001b[0m\u001b[3m\u001b[38;2;179;255;217mGENERAL\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_A\u001b[0m\u001b[3m\u001b[38;2;179;255;217m2\u001b[0m\u001b[3m\u001b[38;2;179;255;217mA\u001b[0m\u001b[3m\u001b[38;2;179;255;217m_OK\u001b[0m\u001b[3m\u001b[38;2;179;255;217m\"","timestamp":"2026-10-18T21:47:21.569Z"}
+
+data: {"data":"\u001b[0m\u001b[3m\u001b[38;2;179;255;217m   \u001b[0m\u001b[3m\u001b[38;2;179;255;217m }","timestamp":"2026-10-18T21:47:21.599Z"}
+
+data: {"data":"\u001b[0m","timestamp":"2026-10-18T21:47:21.987Z"}
+
+data: {"data":"\u001b[3m\u001b[38;2;128;0;128m[A2A] Completed task 2e51defd-8200-4c75-bc3b-41100bff368e and cleaned up context\u001b[0m","timestamp":"2026-10-18T21:47:21.987Z"}
+
+data: {"data":"ERROR:    Exception in ASGI application","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\", line 411, in run_asgi","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    result = await app(  # type: ignore[func-returns-value]","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\", line 63, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    return await self.app(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/engineio/async_drivers/asgi.py\", line 75, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.other_asgi_app(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 448, in handle","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/a0/helpers/fasta2a_server.py\", line 718, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await app(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 83, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await super().__call__(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/applications.py\", line 90, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 186, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/errors.py\", line 164, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.app(scope, receive, _send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 660, in __call__","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.middleware_stack(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 680, in app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await route.handle(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 276, in handle","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await self.app(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 64, in app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    raise exc","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    await app(scope, receive, sender)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/starlette/routing.py\", line 61, in app","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    response = await f(request)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"               ^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/fasta2a/applications.py\", line 124, in _agent_run_endpoint","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    a2a_request = a2a_request_ta.validate_json(data)","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  File \"/opt/venv-a0/lib/python3.12/site-packages/pydantic/type_adapter.py\", line 468, in validate_json","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    return self.validator.validate_json(","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest,JSONRPCRequest]","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"message/send.params.message.extensions.0","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"  Input should be a valid string [type=string_type, input_value={'uri': 'urn:openoperator:argus-supervisor:v1'}, input_type=dict]","timestamp":"2026-10-18T21:47:32.073Z"}
+
+data: {"data":"    For further information visit https://errors.pydantic.dev/2.11/v/string_type","timestamp":"2026-10-18T21:47:32.073Z"}
+
+: keep-alive
