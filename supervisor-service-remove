@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG="/etc/supervisor/conf.d/supervisord.conf"
+MANAGED_DIR="/a0/usr/supervisor"
+
+usage() {
+    echo "Usage: supervisor-service-remove NAME[.conf]" >&2
+    exit 2
+}
+
+[[ $# -eq 1 ]] || usage
+
+name="$(basename "$1")"
+[[ "$name" == *.conf ]] || name="${name}.conf"
+
+if [[ ! "$name" =~ ^[A-Za-z0-9._-]+\.conf$ ]]; then
+    echo "ERROR: unsafe service config filename: $name" >&2
+    exit 2
+fi
+
+dst="$MANAGED_DIR/$name"
+
+if [[ ! -f "$dst" ]]; then
+    echo "ERROR: managed service config not found: $dst" >&2
+    exit 2
+fi
+
+rm -f "$dst"
+
+if [[ -S /tmp/supervisor.sock ]]; then
+    /usr/bin/supervisorctl -c "$CONFIG" reread
+    /usr/bin/supervisorctl -c "$CONFIG" update
+fi
+
+echo "Removed: $dst"

@@ -1,11 +1,6 @@
 # SearXNG settings
 
-# Keep a minimal default engine set. Wikidata currently returns
-# variant payloads that break the 2026.04 searxng bootstrap init path.
-use_default_settings:
-  engines:
-    remove:
-      - wikidata
+use_default_settings: true
 
 general:
   debug: false
@@ -23,7 +18,7 @@ server:
   secret_key: "dummy"
   port: 55510
   limiter: false
-  image_proxy: false
+  image_delegate: false
   # public URL of the instance, to ensure correct inbound links. Is overwritten
   # by ${SEARXNG_URL}.
   # base_url: http://example.com/location

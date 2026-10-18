@@ -20,7 +20,10 @@
 /memory/
 /knowledge/custom/
 /instruments/
-/logs/
+
+# Handle logs directory
+logs/**
+!logs/**/
 
 # Handle tmp and usr directory
 tmp/**
@@ -47,4 +50,3 @@ agent_history.gif
 
 .agent/**
 .claude/**
-.playwright-cli/

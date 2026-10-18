@@ -87,10 +87,19 @@ class UiServerRuntime:
         webapp.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
         WerkzeugRequest.max_form_memory_size = UPLOAD_LIMIT_BYTES
+        # Hugging Face (and similar hosts) render the Space inside a cross-site
+        # iframe. A SameSite=Lax session cookie is dropped in that context, so
+        # every request loses its session and the CSRF check fails ("CSRF
+        # token missing or invalid") even though the token round-trip itself
+        # is fine. CSRF is already enforced by the token check below, not by
+        # SameSite, so relaxing it to None+Secure for public HTTPS
+        # deployments is safe and keeps the cookie working when embedded.
+        public_https = os.getenv("A0_PUBLIC_URL", "").startswith("https://")
         webapp.config.update(
             JSON_SORT_KEYS=False,
             SESSION_COOKIE_NAME="session_" + runtime.get_runtime_id(),
-            SESSION_COOKIE_SAMESITE="Lax",
+            SESSION_COOKIE_SAMESITE="None" if public_https else "Lax",
+            SESSION_COOKIE_SECURE=public_https,
             SESSION_PERMANENT=True,
             PERMANENT_SESSION_LIFETIME=timedelta(days=1),
             MAX_CONTENT_LENGTH=int(

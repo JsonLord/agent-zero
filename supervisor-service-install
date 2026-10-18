@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG="/etc/supervisor/conf.d/supervisord.conf"
+MANAGED_DIR="/a0/usr/supervisor"
+SOCKET="/tmp/supervisor.sock"
+
+usage() {
+    echo "Usage: supervisor-service-install /path/to/service.conf" >&2
+    exit 2
+}
+
+[[ $# -eq 1 ]] || usage
+
+src="$1"
+[[ -f "$src" ]] || {
+    echo "ERROR: file not found: $src" >&2
+    exit 2
+}
+
+base="$(basename "$src")"
+
+[[ "$base" == *.conf ]] || {
+    echo "ERROR: service definition must end in .conf" >&2
+    exit 2
+}
+
+if [[ ! "$base" =~ ^[A-Za-z0-9._-]+\.conf$ ]]; then
+    echo "ERROR: unsafe service config filename: $base" >&2
+    exit 2
+fi
+
+mkdir -p "$MANAGED_DIR"
+
+dst="$MANAGED_DIR/$base"
+tmp="$MANAGED_DIR/.${base}.new.$$"
+backup="$MANAGED_DIR/.${base}.bak.$$"
+
+cp "$src" "$tmp"
+chmod 0644 "$tmp"
+
+had_old=0
+if [[ -f "$dst" ]]; then
+    cp "$dst" "$backup"
+    had_old=1
+fi
+
+mv "$tmp" "$dst"
+
+rollback() {
+    rm -f "$dst"
+    if [[ "$had_old" -eq 1 && -f "$backup" ]]; then
+        mv "$backup" "$dst"
+    else
+        rm -f "$backup"
+    fi
+
+    if [[ -S "$SOCKET" ]]; then
+        /usr/bin/supervisorctl -c "$CONFIG" reread >/dev/null 2>&1 || true
+    fi
+}
+
+if [[ -S "$SOCKET" ]]; then
+    if ! reread_output="$(/usr/bin/supervisorctl -c "$CONFIG" reread 2>&1)"; then
+        echo "$reread_output" >&2
+        echo "ERROR: supervisor configuration validation failed; rolling back." >&2
+        rollback
+        exit 1
+    fi
+
+    echo "$reread_output"
+
+    if ! update_output="$(/usr/bin/supervisorctl -c "$CONFIG" update 2>&1)"; then
+        echo "$update_output" >&2
+        echo "ERROR: supervisor update failed; rolling back." >&2
+        rollback
+        /usr/bin/supervisorctl -c "$CONFIG" update >/dev/null 2>&1 || true
+        exit 1
+    fi
+
+    [[ -n "$update_output" ]] && echo "$update_output"
+else
+    echo "Installed: $dst"
+    echo "Supervisor socket is not live; service will load on next Supervisor start."
+    rm -f "$backup"
+    exit 0
+fi
+
+rm -f "$backup"
+
+echo "Installed: $dst"
+/usr/bin/supervisorctl -c "$CONFIG" status || true

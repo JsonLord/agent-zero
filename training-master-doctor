@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BUILD_CHECK=0
+if [[ "${1:-}" == "--build-check" ]]; then
+    BUILD_CHECK=1
+fi
+
+TM_PY="${TRAINING_MASTER_PYTHON_BIN:-/opt/venv-training-master/bin/python}"
+STATE_DIR="${TRAINING_MASTER_STATE_DIR:-/a0/usr/training-master}"
+
+fail=0
+
+check_cmd() {
+    local name="$1"
+    if command -v "$name" >/dev/null 2>&1; then
+        printf '[ok]   %-20s %s\n' "$name" "$(command -v "$name")"
+    else
+        printf '[fail] %-20s missing\n' "$name"
+        fail=1
+    fi
+}
+
+echo "OpenOperator Training Master doctor"
+echo "==================================="
+
+printf 'runtime user:       %s\n' "$(id -un)"
+printf 'runtime uid:        %s\n' "$(id -u)"
+printf 'state dir:          %s\n' "$STATE_DIR"
+printf 'training python:    %s\n' "$TM_PY"
+printf 'GH_CONFIG_DIR:      %s\n' "${GH_CONFIG_DIR:-unset}"
+printf 'KAGGLE_CONFIG_DIR:  %s\n' "${KAGGLE_CONFIG_DIR:-unset}"
+
+if [[ "$(id -u)" == "0" ]]; then
+    echo "[fail] runtime is root; expected non-root runtime"
+    fail=1
+else
+    echo "[ok]   runtime is non-root"
+fi
+
+if [[ -x "$TM_PY" ]]; then
+    echo "[ok]   $("$TM_PY" --version 2>&1)"
+else
+    echo "[fail] dedicated Training Master Python missing"
+    fail=1
+fi
+
+for cmd in git gh curl jq soup colab kaggle; do
+    check_cmd "$cmd"
+done
+
+"$TM_PY" - <<'PY' || fail=1
+modules = [
+    "httpx",
+    "pydantic",
+    "huggingface_hub",
+    "yaml",
+    "tenacity",
+    "filelock",
+    "orjson",
+    "apscheduler",
+    "optim_agent",
+]
+failed = []
+for name in modules:
+    try:
+        __import__(name)
+    except Exception as exc:
+        failed.append((name, str(exc)))
+
+if failed:
+    for name, exc in failed:
+        print(f"[fail] Python module {name}: {exc}")
+    raise SystemExit(1)
+
+print("[ok]   Training Master Python imports")
+PY
+
+for d in \
+    /a0/usr/config/colab-cli \
+    /a0/usr/config/kaggle \
+    /a0/usr/config/gh \
+    "$STATE_DIR/jobs" \
+    "$STATE_DIR/experiments" \
+    "$STATE_DIR/logs" \
+    "$STATE_DIR/indexes"
+do
+    if [[ -d "$d" && -w "$d" ]]; then
+        printf '[ok]   writable: %s\n' "$d"
+    else
+        printf '[fail] not writable: %s\n' "$d"
+        fail=1
+    fi
+done
+
+if [[ "$BUILD_CHECK" == "0" ]]; then
+    echo
+    training-master-auth-status || true
+fi
+
+exit "$fail"

@@ -1,47 +1,33 @@
-# MCP Setup
+# MCP Server Setup
 
-MCP lets Agent Zero use tools from other apps and services.
+Agent Zero can connect to external MCP (Model Context Protocol) servers to extend its capabilities with additional tools. This guide shows you how to add MCP servers through the Settings UI.
 
-Think of each MCP connection as a bridge. One bridge might connect Gmail,
-another might connect a database, and another might connect an automation app.
+## What are MCP Servers?
 
-Use MCP when you have a clear external tool you want Agent Zero to call. For
-normal browsing, start with Agent Zero's built-in Browser first.
+MCP servers are external tools that Agent Zero can use to perform specialized tasks. Popular examples include:
+
+- **Browser automation** (Chrome DevTools, Playwright)
+- **Workflow automation** (n8n)
+- **Email operations** (Gmail)
+- **Database access** (SQLite)
 
 > [!NOTE]
-> This page is about giving Agent Zero tools from other apps. For deeper MCP
-> details, see the [advanced MCP reference](../developer/mcp-configuration.md).
+> This guide covers connecting to external MCP servers as a client. For exposing Agent Zero as an MCP server, see the [advanced documentation](../developer/mcp-configuration.md).
 
-## When To Use MCP
+## Adding an MCP Server
 
-| Need | Good first stop |
-| --- | --- |
-| Browse, screenshot, annotate, or use the Docker browser | [Browser Guide](browser.md) |
-| Use your host Chrome-family browser through A0 CLI | [A0 CLI Connector](a0-cli-connector.md#host-browser) |
-| Connect a third-party app or service with MCP support | This guide |
-| Paste or review MCP JSON by hand | [Advanced MCP Configuration](../developer/mcp-configuration.md) |
+### Step 1: Open MCP Configuration
 
-## Before You Add One
-
-- [ ] You know what app or service you want to connect.
-- [ ] You trust the package or URL.
-- [ ] You know where it will run: inside Agent Zero, on your computer, or online.
-- [ ] You have any needed credentials ready.
-- [ ] You know whether the tool should be project-specific or global.
-
-## Open MCP Settings
-
-1. Click **Settings** in the sidebar.
-2. Open the **MCP/A2A** tab.
-3. Find **External MCP Servers**.
-4. Click **Open**.
+1. Click **Settings** in the sidebar
+2. Navigate to the **MCP/A2A** tab
+3. Click on **External MCP Servers**
+4. Click the **Open** button to access the configuration editor
 
 ![MCP Configuration Access](../res/setup/mcp/mcp-open-config.png)
 
-## Add A Connection
+### Step 2: Add Your MCP Server
 
-The configuration editor accepts JSON. A command-based MCP connection looks like
-this:
+In the JSON editor, add your MCP server configuration. Here's a simple example:
 
 ```json
 {
@@ -56,39 +42,20 @@ this:
 
 ![MCP Configuration Example](../res/setup/mcp/mcp-example-config.png)
 
-Click **Apply now** after editing.
+### Step 3: Apply and Verify
+
+1. Click **Apply now** to save your configuration
+2. The server status will appear below, showing:
+   - Server name (e.g., `chrome_devtools`)
+   - Number of available tools
+   - Connection status (green indicator = connected)
 
 > [!TIP]
-> The first launch of an `npx` or `uvx` server can take a little longer because
-> the package may need to download.
+> The first time you run an `npx`-based MCP server, it may take a few moments to download and initialize.
 
-## Check That It Connected
+## Common MCP Server Examples
 
-After applying the config, look for the status below the editor.
-
-| Signal | What it means |
-| --- | --- |
-| Name | The connection Agent Zero found. |
-| Tool count | How many tools are available. |
-| Green status | The connection is working. |
-| Error text | The command, URL, network, or credentials need attention. |
-
-After the connection works, Agent Zero discovers the MCP tools. The active
-Agent Profile's MCP policy still decides which discovered tools it may use. Use
-**Edit agent -> MCPs** to keep the category default or set an individual tool
-to **On** or **Off**. See [Agent Profiles](agent-profiles.md#choose-capability-access).
-
-You can still ask naturally:
-
-```text
-Use the connected Gmail tools to find the last message from Alice and summarize it.
-```
-
-## Common Examples
-
-### Tool Started By A Command
-
-Use this pattern when Agent Zero should start the tool itself.
+### Local Command-Based Server
 
 ```json
 {
@@ -101,9 +68,7 @@ Use this pattern when Agent Zero should start the tool itself.
 }
 ```
 
-### Tool At A URL
-
-Use this pattern when the tool is already running at a URL.
+### Remote HTTP Server
 
 ```json
 {
@@ -118,56 +83,35 @@ Use this pattern when the tool is already running at a URL.
 }
 ```
 
-> [!IMPORTANT]
-> Do not paste real API keys into public files, screenshots, or issue reports.
-> Prefer project secrets or environment variables when possible.
-
 ## Docker Networking
 
-If Agent Zero runs in Docker and the MCP tool runs somewhere else, the address
-matters.
+If Agent Zero runs in Docker and your MCP server runs on the host:
 
-| Where the MCP tool runs | What to use from Agent Zero |
-| --- | --- |
-| Host machine on macOS or Windows | `host.docker.internal` |
-| Another container | Same Docker network plus the container name |
-| Remote server | The reachable HTTPS URL |
-| Inside Agent Zero's container | Local command config |
+- **macOS/Windows:** Use `host.docker.internal` in URLs
+- **Linux:** Run the MCP server in the same Docker network and use the container name
 
-On Linux, `host.docker.internal` is not always available by default. Running the
-MCP tool in the same Docker network is usually cleaner.
+## Using MCP Tools
 
-## Browser MCP Or Built-In Browser?
+Once connected, MCP tools become available to Agent Zero automatically. Tools are named with the server prefix, for example:
 
-For most browsing tasks, use Agent Zero's built-in `_browser` plugin and direct
-`browser` tool. It covers the Docker browser surface, screenshots, annotations,
-Chrome extensions, and optional A0 CLI host-browser mode.
+- Server name: `chrome-devtools`
+- Tool becomes: `chrome_devtools.navigate_to_url`
 
-MCP-based browser tools are still useful when another browser tool is required
-for a specific workflow.
+Simply ask Agent Zero to perform tasks, and it will use the appropriate MCP tools when needed.
 
-See the [Browser Guide](browser.md) for the built-in workflow.
+## Advanced Configuration
 
-## Recommended Server Types
+For detailed configuration options, server types, environment variables, and troubleshooting, see the [Advanced MCP Configuration Guide](../developer/mcp-configuration.md).
 
-| Tool type | Useful for |
-| --- | --- |
-| Chrome DevTools MCP | Direct Chrome debugging/control workflows |
-| Playwright MCP | Alternative browser automation stacks |
-| n8n MCP | Workflow automation |
-| Gmail MCP | Email workflows |
-| VS Code MCP | IDE-centered workflows |
+## Recommended MCP Servers
 
-## Troubleshooting
+Community-tested and reliable MCP servers:
 
-- **No tools appear:** confirm the JSON is valid and click **Apply now** again.
-- **Command not found:** install the command where Agent Zero can run it, or use a URL-based tool instead.
-- **Package launch is slow:** wait for the first package download to finish.
-- **Host service unreachable:** check Docker networking and try `host.docker.internal` on macOS or Windows.
-- **Credentials fail:** rotate or re-enter the credential, then restart or reapply the config.
+- **Chrome DevTools MCP** - Direct Chrome control
+- **Playwright MCP** - Cross-browser automation
+- **n8n MCP** - Workflow automation
+- **Gmail MCP** - Email management
+- **VSCode MCP** - IDE workflows
 
-## Related
-
-- [Browser Guide](browser.md): built-in browsing, screenshots, annotations, Docker browser, and host-browser mode.
-- [A0 CLI Connector](a0-cli-connector.md): host-machine access and Bring Your Own Browser setup.
-- [Advanced MCP Configuration](../developer/mcp-configuration.md): complete configuration reference.
+> [!TIP]
+> For browser automation tasks, the built-in Browser Agent plugin covers the default workflow. MCP-based browser tools are still useful when you need a different browser stack, remote browser control, or an alternative to the built-in Playwright Chromium (preinstalled in Docker; on demand via `ensure_playwright_binary()` in local dev).

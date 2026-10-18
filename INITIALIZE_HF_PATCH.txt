@@ -1,0 +1,22 @@
+Add ONE of the following near the beginning of your existing root-level `initialize_hf.sh`.
+
+Preferred:
+
+    init-training-master
+
+Equivalent:
+
+    source /a0/init_training_master.sh
+
+Do this after any `set -euo pipefail` line and before OpenOperator/supervisord/application startup.
+
+Do NOT replace the rest of your existing initialize_hf.sh unless you intentionally want to change OpenOperator's startup behavior.
+
+Example:
+
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    init-training-master
+
+    # existing OpenOperator initialization continues below...

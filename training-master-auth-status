@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -u
+
+echo "Training Master authentication status"
+echo "====================================="
+
+# ------------------------------------------------------------
+# GitHub
+# ------------------------------------------------------------
+
+if command -v gh >/dev/null 2>&1; then
+    if gh auth status >/dev/null 2>&1; then
+        echo "[ok]   GitHub CLI authenticated"
+    else
+        echo "[info] GitHub CLI not authenticated"
+        echo "       Run: gh auth login"
+        echo "       Then optionally: gh auth setup-git"
+    fi
+else
+    echo "[fail] GitHub CLI missing"
+fi
+
+# ------------------------------------------------------------
+# Kaggle
+# ------------------------------------------------------------
+
+if command -v kaggle >/dev/null 2>&1; then
+    if kaggle auth token >/dev/null 2>&1; then
+        echo "[ok]   Kaggle CLI authenticated"
+    else
+        echo "[info] Kaggle CLI not authenticated"
+        echo "       Run: kaggle auth login"
+    fi
+else
+    echo "[fail] Kaggle CLI missing"
+fi
+
+# ------------------------------------------------------------
+# Colab
+# ------------------------------------------------------------
+
+COLAB_TOKEN="${HOME}/.config/colab-cli/token.json"
+
+if [[ -s "$COLAB_TOKEN" ]]; then
+    echo "[ok]   Colab OAuth cache present"
+else
+    echo "[info] Colab CLI not authenticated in this filesystem"
+    echo "       Trigger terminal OAuth with a credential-requiring command."
+    echo "       Example: colab new -s training-auth"
+fi
+
+echo
+echo "Config locations"
+echo "----------------"
+echo "GitHub: ${GH_CONFIG_DIR:-$HOME/.config/gh}"
+echo "Kaggle: ${KAGGLE_CONFIG_DIR:-$HOME/.kaggle}"
+echo "Colab:  $HOME/.config/colab-cli -> /a0/usr/config/colab-cli"

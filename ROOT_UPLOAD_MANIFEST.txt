@@ -1,0 +1,19 @@
+UPLOAD THESE FILES TO THE REPOSITORY ROOT
+
+Required new/replaced files:
+- Dockerfile
+- requirements-training-master.txt
+- init_training_master.sh
+- training-master-doctor
+- training-master-auth-status
+- TRAINING_MASTER_RUNTIME.md
+
+Keep your existing root-level files:
+- requirements.txt
+- initialize_hf.sh
+- any existing OpenOperator application/config files
+- supervisord.conf, if your current deployment uses one
+
+Patch initialize_hf.sh according to INITIALIZE_HF_PATCH.txt.
+
+No file in this bundle expects docker/hf/... paths.

@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto eol=lf
+webui/vendor/fonts/roboto-mono-italic-variable.ttf filter=lfs diff=lfs merge=lfs -text
+webui/vendor/fonts/roboto-mono-variable.ttf filter=lfs diff=lfs merge=lfs -text
+webui/vendor/fonts/rubik-italic-variable.ttf filter=lfs diff=lfs merge=lfs -text
+webui/vendor/fonts/rubik-variable.ttf filter=lfs diff=lfs merge=lfs -text
+webui/vendor/google/google-icons.ttf filter=lfs diff=lfs merge=lfs -text
+webui/vendor/google/google-icons.woff2 filter=lfs diff=lfs merge=lfs -text
