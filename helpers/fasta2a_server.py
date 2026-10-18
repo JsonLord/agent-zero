@@ -91,12 +91,100 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
         super().__init__(broker=broker, storage=storage)
         self.storage = storage
 
+    async def _handle_argus_request(self, task_id: str, message: Any) -> None:
+        argus_ns = "urn:openoperator:argus-supervisor:v1"
+        extensions = message.get("extensions", [])
+        metadata = message.get("metadata", {})
+
+        try:
+            # Resolve configuration dynamically inside the handler
+            from plugins.argus_supervisor.helpers.service import get, enabled
+
+            if not enabled():
+                argus_result = {
+                    "operation": None,
+                    "ok": False,
+                    "error": "Argus Supervisor is not enabled on this agent."
+                }
+            else:
+                argus_meta = metadata.get(argus_ns, {})
+                operation = argus_meta.get("operation")
+                request_id = argus_meta.get("request_id")
+
+                if operation == "supervisor.health":
+                    from plugins.argus_supervisor.api.health import health_status
+                    hs = health_status()
+
+                    argus_result = {
+                        "operation": operation,
+                        "request_id": request_id,
+                        "ok": True,
+                        **hs
+                    }
+                elif operation == "supervisor.status":
+                    sup = get()
+                    argus_result = {
+                        "operation": operation,
+                        "request_id": request_id,
+                        "ok": True,
+                        "status": "error" if sup.last_error else ("idle" if sup.last_tick is None else "running"),
+                        "last_tick": sup.last_tick,
+                        "last_error": sup.last_error,
+                        "capabilities": sup.capabilities,
+                        "campaigns_active": len(sup.store.ids())
+                    }
+                elif operation == "campaign.list":
+                    sup = get()
+                    campaigns = sup.store.ids()
+                    argus_result = {
+                        "operation": operation,
+                        "request_id": request_id,
+                        "ok": True,
+                        "campaigns": campaigns
+                    }
+                else:
+                    argus_result = {
+                        "operation": operation,
+                        "request_id": request_id,
+                        "ok": False,
+                        "error": f"Unknown argus operation: {operation}"
+                    }
+        except Exception as e:
+            argus_result = {
+                "operation": metadata.get(argus_ns, {}).get("operation"),
+                "ok": False,
+                "error": str(e)
+            }
+
+        # Format response as Message schema
+        import uuid
+        result_msg = {
+            "role": "agent",
+            "kind": "message",
+            "message_id": str(uuid.uuid4()),
+            "extensions": [argus_ns],
+            "parts": [{"kind": "data", "data": argus_result}]
+        }
+
+        # Update task to completed with result
+        await self.storage.update_task(
+            task_id=task_id,
+            state="completed",
+            new_messages=[result_msg]
+        )
+
     async def run_task(self, params: Any) -> None:  # params: TaskSendParams
         """Execute a task by processing the message through Agent Zero."""
         context = None
         try:
             task_id = params['id']
             message = params['message']
+
+            # 1. Deterministic Argus Intercept (pre-initialization)
+            extensions = message.get("extensions", [])
+            if "urn:openoperator:argus-supervisor:v1" in extensions:
+                await self._handle_argus_request(task_id, message)
+                return
 
             _PRINTER.print(f"[A2A] Processing task {task_id} with new temporary context")
 
@@ -257,6 +345,42 @@ class DynamicA2AProxy:
                 ],
                 "input_modes": ["text/plain", "application/octet-stream"],
                 "output_modes": ["text/plain", "application/json"]
+            },
+            {
+                "id": "argus_supervisor_health",
+                "name": "Argus Supervisor Health",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "supervisor", "health"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_supervisor_status",
+                "name": "Argus Supervisor Status",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "supervisor", "status"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_campaign_list",
+                "name": "Argus Campaign List",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "campaign", "list"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_campaign_control",
+                "name": "Argus Campaign Control",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "campaign", "control"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
             }]
 
             provider: AgentProvider = {  # type: ignore

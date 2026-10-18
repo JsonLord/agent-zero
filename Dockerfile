@@ -72,7 +72,8 @@ RUN if ! getent group 1000 >/dev/null; then groupadd --gid 1000 a0space; fi \
 RUN test -f /usr/local/searxng/searxng-src/searx/webapp.py \
     && /usr/local/searxng/searx-pyenv/bin/python -m pip install --no-cache-dir gunicorn==23.0.0 \
     && /usr/local/searxng/searx-pyenv/bin/python -c "import searx, gunicorn" \
-    && chmod -R a+rX /usr/local/searxng
+    && chmod -R a+rX /usr/local/searxng \
+    && git config --system --add safe.directory /usr/local/searxng/searxng-src
 
 RUN /opt/venv-a0/bin/python -m venv /opt/venv-dspy \
     && /opt/venv-dspy/bin/python -m pip install --no-cache-dir dspy==3.4.0 \
