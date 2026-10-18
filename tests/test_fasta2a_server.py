@@ -36,20 +36,7 @@ def _load_fasta2a_server(monkeypatch):
     print_style_stub.PrintStyle = _PrintStyle
     monkeypatch.setitem(sys.modules, "helpers.print_style", print_style_stub)
 
-    starlette_stub = types.ModuleType("starlette")
-    starlette_responses_stub = types.ModuleType("starlette.responses")
 
-    class _Response:
-        def __init__(self, content=b"", media_type=None, *args, **kwargs):
-            self.body = content if isinstance(content, bytes) else str(content).encode()
-            self.media_type = media_type
-
-    starlette_responses_stub.Response = _Response
-    starlette_requests_stub = types.ModuleType("starlette.requests")
-    starlette_requests_stub.Request = object
-    monkeypatch.setitem(sys.modules, "starlette", starlette_stub)
-    monkeypatch.setitem(sys.modules, "starlette.responses", starlette_responses_stub)
-    monkeypatch.setitem(sys.modules, "starlette.requests", starlette_requests_stub)
 
     agent_stub = types.ModuleType("agent")
     agent_stub.AgentContext = type(

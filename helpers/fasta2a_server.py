@@ -97,11 +97,11 @@ def _enable_streaming_capability(agent_card_body: bytes) -> bytes:
 
     agent_card["skills"] = skills
 
-    from helpers import settings
-    cfg = dict(settings.get_settings())
-    if cfg.get("A0_PUBLIC_URL"):
-        agent_card["documentationUrl"] = f"{cfg.get('A0_PUBLIC_URL').rstrip('/')}/docs"
-        agent_card["url"] = f"{cfg.get('A0_PUBLIC_URL').rstrip('/')}/a2a/"
+    import os
+    public_url = os.environ.get("A0_PUBLIC_URL", "")
+    if public_url:
+        agent_card["documentationUrl"] = f"{public_url.rstrip('/')}/docs"
+        agent_card["url"] = f"{public_url.rstrip('/')}/a2a/"
 
     return json.dumps(agent_card, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
