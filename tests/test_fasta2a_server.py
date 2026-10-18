@@ -1,3 +1,14 @@
+
+import sys
+from unittest.mock import MagicMock
+
+fasta2a_mock = MagicMock()
+fasta2a_mock.task_manager.TaskManager = object
+sys.modules['fasta2a'] = fasta2a_mock
+sys.modules['fasta2a.task_manager'] = fasta2a_mock.task_manager
+sys.modules['fasta2a.schema'] = fasta2a_mock.schema
+sys.modules['fasta2a.server'] = fasta2a_mock.server
+
 from __future__ import annotations
 
 import importlib
