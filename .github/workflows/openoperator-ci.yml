@@ -58,6 +58,7 @@ jobs:
             plugins/_chat_naming/tests \
             tests/test_blocking_a2a.py \
             tests/test_fasta2a_server.py \
+            tests/test_a2a_argus_supervisor.py \
             tests/test_fasta2a_client.py \
             tests/test_http_auth_csrf.py \
             tests/test_sidebar_row_actions.py \

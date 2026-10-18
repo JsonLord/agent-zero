@@ -33,10 +33,8 @@ def _make_super_response(task_id="task-123", state="submitted"):
         "jsonrpc": "2.0",
         "id": "req-1",
         "result": {
-            "task": {
-                "id": task_id,
-                "status": {"state": state},
-            }
+            "id": task_id,
+            "status": {"state": state},
         },
     }
 
@@ -84,7 +82,7 @@ async def test_blocking_immediate_completion(monkeypatch):
 
     assert resp["jsonrpc"] == "2.0"
     assert resp["id"] == "req-1"
-    assert resp["result"]["task"]["status"]["state"] == "completed"
+    assert resp["result"]["status"]["state"] == "completed"
 
 
 async def test_blocking_delayed_completion(monkeypatch):
@@ -122,7 +120,7 @@ async def test_blocking_delayed_completion(monkeypatch):
     resp = await tm.send_message(req)
     elapsed = time.monotonic() - start_time
 
-    assert resp["result"]["task"]["status"]["state"] == "completed"
+    assert resp["result"]["status"]["state"] == "completed"
     assert elapsed >= 0.9  # 2 polls * 0.5s sleep
 
 
@@ -149,7 +147,7 @@ async def test_blocking_failure_state(monkeypatch):
 
     resp = await tm.send_message(req)
 
-    assert resp["result"]["task"]["status"]["state"] == "failed"
+    assert resp["result"]["status"]["state"] == "failed"
 
 
 async def test_blocking_timeout_returns_current_task(monkeypatch):
@@ -178,7 +176,7 @@ async def test_blocking_timeout_returns_current_task(monkeypatch):
     resp = await tm.send_message(req)
     elapsed = time.monotonic() - start_time
 
-    assert resp["result"]["task"]["status"]["state"] == "running"
+    assert resp["result"]["status"]["state"] == "running"
     assert 0.9 <= elapsed <= 2.5
 
 
@@ -217,5 +215,5 @@ async def test_concurrent_blocking_requests(monkeypatch):
         tm.send_message(req_async),
     )
 
-    assert res_sync["result"]["task"]["status"]["state"] == "completed"
-    assert res_async["result"]["task"]["status"]["state"] == "submitted"
+    assert res_sync["result"]["status"]["state"] == "completed"
+    assert res_async["result"]["status"]["state"] == "submitted"

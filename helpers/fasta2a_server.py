@@ -112,15 +112,14 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
                 request_id = argus_meta.get("request_id")
 
                 if operation == "supervisor.health":
-                    from plugins.argus_supervisor.api.health import Health
-                    health_status = await Health(None, None).process()
-                    health_status["backend_configured"] = enabled()
+                    from plugins.argus_supervisor.api.health import health_status
+                    hs = health_status()
 
                     argus_result = {
                         "operation": operation,
                         "request_id": request_id,
                         "ok": True,
-                        **health_status
+                        **hs
                     }
                 elif operation == "supervisor.status":
                     sup = get()
@@ -133,6 +132,15 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
                         "last_error": sup.last_error,
                         "capabilities": sup.capabilities,
                         "campaigns_active": len(sup.store.ids())
+                    }
+                elif operation == "campaign.list":
+                    sup = get()
+                    campaigns = sup.store.ids()
+                    argus_result = {
+                        "operation": operation,
+                        "request_id": request_id,
+                        "ok": True,
+                        "campaigns": campaigns
                     }
                 else:
                     argus_result = {
@@ -149,9 +157,11 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
             }
 
         # Format response as Message schema
+        import uuid
         result_msg = {
             "role": "agent",
             "kind": "message",
+            "message_id": str(uuid.uuid4()),
             "extensions": [argus_ns],
             "parts": [{"kind": "data", "data": argus_result}]
         }
@@ -335,6 +345,42 @@ class DynamicA2AProxy:
                 ],
                 "input_modes": ["text/plain", "application/octet-stream"],
                 "output_modes": ["text/plain", "application/json"]
+            },
+            {
+                "id": "argus_supervisor_health",
+                "name": "Argus Supervisor Health",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "supervisor", "health"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_supervisor_status",
+                "name": "Argus Supervisor Status",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "supervisor", "status"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_campaign_list",
+                "name": "Argus Campaign List",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "campaign", "list"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
+            },
+            {
+                "id": "argus_campaign_control",
+                "name": "Argus Campaign Control",
+                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
+                "tags": ["argus", "campaign", "control"],
+                "examples": [],
+                "input_modes": ["text/plain"],
+                "output_modes": ["application/json"]
             }]
 
             provider: AgentProvider = {  # type: ignore

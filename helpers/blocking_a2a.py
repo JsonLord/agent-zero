@@ -12,12 +12,17 @@ except ImportError:
 
 
 class BlockingTaskManager(TaskManager):
+    def __init__(self, broker, storage, **kwargs):
+        super().__init__(broker, storage, **kwargs)
+        self.storage = storage
+
     async def send_message(self, request):
         response = await super().send_message(request)
         config = request["params"].get("configuration") or {}
         if not config.get("blocking", False):
             return response
-        task_id = response["result"]["task"]["id"]
+        task = response["result"]
+        task_id = task["id"]
         timeout = min(
             max(float(os.getenv("A2A_BLOCKING_TIMEOUT", "60")), 1),
             90,
@@ -37,14 +42,12 @@ class BlockingTaskManager(TaskManager):
                 return SendMessageResponse(
                     jsonrpc="2.0",
                     id=request["id"],
-                    result=SendMessageResult(task=task),
+                    result=task,
                 )
             if time.monotonic() >= deadline:
                 return SendMessageResponse(
                     jsonrpc="2.0",
                     id=request["id"],
-                    result=SendMessageResult(
-                        task=task or response["result"]["task"]
-                    ),
+                    result=task or response["result"],
                 )
             await asyncio.sleep(0.5)

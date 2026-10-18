@@ -61,7 +61,7 @@ async def test_supervisor_health_no_llm_call(a2a_worker):
         }
     }
 
-    with patch("plugins.argus_supervisor.api.health.Health.process", return_value={"enabled": True}), patch("plugins.argus_supervisor.api.health.Health.__init__", return_value=None) as health_mock, \
+    with patch("plugins.argus_supervisor.api.health.health_status", return_value={"enabled": True}) as health_mock, \
          patch("plugins.argus_supervisor.helpers.service.enabled", return_value=True) as enabled_mock:
 
         await a2a_worker.run_task(params)
@@ -208,16 +208,18 @@ async def test_malformed_envelope_fails_safely(a2a_worker):
 async def test_agent_card_advertises_skills(guard_agent_zero_initialization):
     from helpers.fasta2a_server import DynamicA2AProxy
 
-    # Needs a mock of AgentCard retrieval
     proxy = DynamicA2AProxy.get_instance()
 
-    # Fake fasta2a module imports if needed for mock skills
+    # We shouldn't actually call _configure because it connects brokers, we just test skills locally but wait, we can just mock out Storage/Broker.
     with patch("helpers.fasta2a_server.AgentZeroFastA2A") as fasta2a_mock:
-        try:
-            proxy._configure()
-        except Exception:
-            pass # ignore failure of configure, we just want to test app
+        proxy._configure()
 
-        # This is a bit too much mock setup since we bypass configure, let's just assert on the logic directly.
-        # It's tested elsewhere or irrelevant if we are testing run_task interception.
-        pass
+    call_kwargs = fasta2a_mock.call_args.kwargs
+    skills = call_kwargs["skills"]
+    skill_ids = [s["id"] for s in skills]
+
+    assert "general_assistance" in skill_ids
+    assert "argus_supervisor_health" in skill_ids
+    assert "argus_supervisor_status" in skill_ids
+    assert "argus_campaign_list" in skill_ids
+    assert "argus_campaign_control" in skill_ids
