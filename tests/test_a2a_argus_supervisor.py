@@ -179,7 +179,7 @@ async def test_unknown_operation_fails_safely(a2a_worker):
     result_data = update["new_messages"][0]["parts"][0]["data"]
     assert result_data["operation"] == "unknown.op"
     assert result_data["ok"] is False
-    assert "Unknown argus operation" in result_data["error"]
+    assert result_data["error"]["code"] == "unsupported_argus_operation"
 
 
 async def test_malformed_envelope_fails_safely(a2a_worker):
@@ -223,3 +223,27 @@ async def test_agent_card_advertises_skills(guard_agent_zero_initialization):
     assert "argus_supervisor_status" in skill_ids
     assert "argus_campaign_list" in skill_ids
     assert "argus_campaign_control" in skill_ids
+
+@pytest.mark.asyncio
+async def test_argus_without_backend_reads(a2a_worker):
+    with patch("plugins.argus_supervisor.helpers.service.enabled", return_value=True):
+        params = {
+            "id": "task-test-reads",
+            "message": {
+                "extensions": ["urn:openoperator:argus-supervisor:v1"],
+                "metadata": {
+                    "urn:openoperator:argus-supervisor:v1": {
+                        "operation": "supervisor.health",
+                        "requestId": "test-1"
+                    }
+                }
+            }
+        }
+        with patch("plugins.argus_supervisor.api.health.health_status", return_value={"backend_configured": False}):
+            await a2a_worker.run_task(params)
+            update = a2a_worker.storage.last_update
+            data = update["new_messages"][0]["parts"][0]["data"]
+            assert data["ok"] is True
+            assert data["operation"] == "supervisor.health"
+            assert data["enabled"] is True
+            assert data["backend_configured"] is False

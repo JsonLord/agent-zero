@@ -67,11 +67,44 @@ def _enable_streaming_capability(agent_card_body: bytes) -> bytes:
     """Return an agent-card JSON body with A2A streaming enabled."""
     agent_card = json.loads(agent_card_body)
     capabilities = agent_card.get("capabilities")
+
     if not isinstance(capabilities, dict):
         capabilities = {}
         agent_card["capabilities"] = capabilities
     capabilities["streaming"] = True
+
+    # Truthful skill advertisement
+    from plugins.argus_supervisor.helpers.service import enabled
+
+    skills = agent_card.get("skills", [])
+    skill_names = {s.get("name") for s in skills if isinstance(s, dict)}
+
+    if "general_assistance" not in skill_names:
+        skills.append({"name": "general_assistance", "description": "General open-ended interaction."})
+
+    if enabled():
+        if "argus_supervisor_health" not in skill_names:
+            skills.append({"name": "argus_supervisor_health", "description": "Check Argus supervisor health."})
+        if "argus_supervisor_status" not in skill_names:
+            skills.append({"name": "argus_supervisor_status", "description": "Check Argus supervisor status."})
+        if "argus_campaign_list" not in skill_names:
+            skills.append({"name": "argus_campaign_list", "description": "List Argus campaigns."})
+    else:
+        # Filter out operational skills if disabled
+        skills = [s for s in skills if not (isinstance(s, dict) and s.get("name") in {
+            "argus_supervisor_health", "argus_supervisor_status", "argus_campaign_list", "argus_campaign_control"
+        })]
+
+    agent_card["skills"] = skills
+
+    from helpers import settings
+    cfg = dict(settings.get_settings())
+    if cfg.get("A0_PUBLIC_URL"):
+        agent_card["documentationUrl"] = f"{cfg.get('A0_PUBLIC_URL').rstrip('/')}/docs"
+        agent_card["url"] = f"{cfg.get('A0_PUBLIC_URL').rstrip('/')}/a2a/"
+
     return json.dumps(agent_card, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
 
 
 class AgentZeroFastA2A(FastA2A):  # type: ignore[misc]
@@ -82,6 +115,37 @@ class AgentZeroFastA2A(FastA2A):  # type: ignore[misc]
         body = _enable_streaming_capability(response.body)
         self._agent_card_json_schema = body
         return StarletteResponse(content=body, media_type="application/json")
+
+    async def _agent_run_endpoint(self, request: Request) -> StarletteResponse:
+        try:
+            from pydantic import ValidationError
+        except ImportError:
+            return await super()._agent_run_endpoint(request)
+
+        try:
+            body = await request.body()
+            data = json.loads(body)
+        except Exception:
+            pass # Super method handles malformed JSON parsing
+
+        try:
+            return await super()._agent_run_endpoint(request)
+        except ValidationError as e:
+            return StarletteResponse(
+                content=json.dumps({
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {
+                        "code": -32600,
+                        "message": "Request payload validation error"
+                    }
+                }),
+                status_code=400,
+                media_type="application/json"
+            )
+
+    async def _agent_card_compat_endpoint(self, request: Request) -> StarletteResponse:
+        return await self._agent_card_endpoint(request)
 
 
 class AgentZeroWorker(Worker):  # type: ignore[misc]
@@ -96,65 +160,88 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
         extensions = message.get("extensions", [])
         metadata = message.get("metadata", {})
 
-        try:
-            # Resolve configuration dynamically inside the handler
-            from plugins.argus_supervisor.helpers.service import get, enabled
+        argus_meta = metadata.get(argus_ns, {})
+        operation = argus_meta.get("operation")
+        request_id = argus_meta.get("requestId") or argus_meta.get("request_id")
 
-            if not enabled():
-                argus_result = {
-                    "operation": None,
-                    "ok": False,
-                    "error": "Argus Supervisor is not enabled on this agent."
+        if not operation:
+            argus_result = {
+                "operation": None,
+                "requestId": request_id,
+                "ok": False,
+                "error": {
+                    "code": "invalid_argus_envelope",
+                    "message": "Malformed Argus envelope: missing operation."
                 }
-            else:
-                argus_meta = metadata.get(argus_ns, {})
-                operation = argus_meta.get("operation")
-                request_id = argus_meta.get("request_id")
+            }
+        else:
+            try:
+                # Resolve configuration dynamically inside the handler
+                from plugins.argus_supervisor.helpers.service import get, enabled
 
-                if operation == "supervisor.health":
-                    from plugins.argus_supervisor.api.health import health_status
-                    hs = health_status()
-
+                if not enabled():
                     argus_result = {
                         "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        **hs
-                    }
-                elif operation == "supervisor.status":
-                    sup = get()
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        "status": "error" if sup.last_error else ("idle" if sup.last_tick is None else "running"),
-                        "last_tick": sup.last_tick,
-                        "last_error": sup.last_error,
-                        "capabilities": sup.capabilities,
-                        "campaigns_active": len(sup.store.ids())
-                    }
-                elif operation == "campaign.list":
-                    sup = get()
-                    campaigns = sup.store.ids()
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        "campaigns": campaigns
+                        "requestId": request_id,
+                        "ok": False,
+                        "error": {
+                            "code": "argus_supervisor_disabled",
+                            "message": "Argus Supervisor is disabled."
+                        }
                     }
                 else:
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": False,
-                        "error": f"Unknown argus operation: {operation}"
+                    if operation == "supervisor.health":
+                        from plugins.argus_supervisor.api.health import health_status
+                        hs = health_status()
+                        hs["enabled"] = True
+
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            **hs
+                        }
+                    elif operation == "supervisor.status":
+                        sup = get()
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            "status": "error" if sup.last_error else ("idle" if sup.last_tick is None else "running"),
+                            "last_tick": sup.last_tick,
+                            "last_error": sup.last_error,
+                            "capabilities": sup.capabilities,
+                            "campaigns_active": len(sup.store.ids())
+                        }
+                    elif operation == "campaign.list":
+                        sup = get()
+                        campaigns = sup.store.ids()
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            "campaigns": campaigns
+                        }
+                    else:
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": False,
+                            "error": {
+                                "code": "unsupported_argus_operation",
+                                "message": f"Unsupported Argus operation: {operation}"
+                            }
+                        }
+            except Exception as e:
+                argus_result = {
+                    "operation": operation,
+                    "requestId": request_id,
+                    "ok": False,
+                    "error": {
+                        "code": "argus_supervisor_unavailable",
+                        "message": "Internal supervisor error."
                     }
-        except Exception as e:
-            argus_result = {
-                "operation": metadata.get(argus_ns, {}).get("operation"),
-                "ok": False,
-                "error": str(e)
-            }
+                }
 
         # Format response as Message schema
         import uuid
