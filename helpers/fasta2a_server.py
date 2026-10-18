@@ -113,7 +113,7 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
 
                 if operation == "supervisor.health":
                     from plugins.argus_supervisor.api.health import Health
-                    health_status = Health().process()
+                    health_status = await Health(None, None).process()
                     health_status["backend_configured"] = enabled()
 
                     argus_result = {
