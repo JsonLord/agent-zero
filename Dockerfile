@@ -27,7 +27,6 @@ ENV HOME=/home/user \
     PYTHONPATH=/a0 \
     WEB_UI_PORT=7860 \
     PORT=7860 \
-    A0_PUBLIC_URL=https://leon4gr45-openoperator.hf.space \
     PLAYWRIGHT_BROWSERS_PATH=/a0/tmp/playwright \
     HF_HOME=/a0/usr/cache/huggingface \
     XDG_CACHE_HOME=/a0/usr/cache \

@@ -22,7 +22,7 @@
   - `get_instance()`
   - `reconfigure(self, token: str)`
 - Top-level functions:
-- `_enable_streaming_capability(agent_card_body: bytes) -> bytes`: Ensure the generated A2A agent card advertises streaming support.
+- `_finalize_agent_card(agent_card_body: bytes) -> bytes`: Set accurate transport capabilities and public identity.
 - `is_available()`: Check if FastA2A is available and properly configured.
 - `get_proxy()`: Get the FastA2A proxy instance.
 - Notable constants/configuration names: `_PRINTER`.
@@ -31,7 +31,7 @@
 
 - Helper modules own reusable framework APIs and must preserve public callers unless all callers, tests, and docs are updated together.
 - Update this file whenever public functions, classes, persistence behavior, path/security assumptions, side effects, or cross-module contracts change.
-- Agent Zero wraps `FastA2A` with `AgentZeroFastA2A` so the generated agent card sets `capabilities.streaming` to `true` by default.
+- Agent Zero wraps `FastA2A` with `AgentZeroFastA2A` so the generated agent card sets `capabilities.streaming` to `false` because the pinned transport does not implement streaming.
 - Observed side-effect areas: filesystem writes, filesystem deletion, settings/state persistence, secret handling, scheduler state.
 - Imported dependency areas include: `agent`, `asyncio`, `atexit`, `contextlib`, `helpers`, `helpers.persist_chat`, `helpers.print_style`, `initialize`, `json`, `starlette.requests`, `starlette.responses`, `threading`, `typing`, `uuid`.
 
@@ -55,3 +55,15 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## OpenTraining boundary hardening
+
+- Generated settings token remains the sole credential authority; blank authority is 503.
+- Bearer/X-API-KEY headers and legacy token/project paths authenticate before worker startup.
+  Query-string credentials are no longer accepted. Constant-time comparisons avoid timing disclosure.
+- Mounted ASGI path/root_path normalization reaches internal `/`; lifecycle startup is serialized.
+- Pydantic protocol validation is mapped to bounded JSON-RPC HTTP 400 at the RPC endpoint.
+- Both card discovery aliases share one serializer. Only general assistance is advertised;
+  streaming is false because FastA2A 0.5 does not implement it. Public URL/docs come from
+  validated A0_PUBLIC_URL, HF SPACE_HOST/SPACE_ID, or the dedicated HF fallback.
+- Tests: tests/test_opentraining_a2a.py exercises real pinned ASGI, broker/storage and worker.

@@ -15,6 +15,11 @@ def _make_app() -> Flask:
     def login_handler():
         return Response("login", status=200)
 
+    # The production login redirect resolves the index endpoint as its safe fallback.
+    @app.get("/")
+    def serve_index():
+        return Response("index", status=200)
+
     return app
 
 

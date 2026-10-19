@@ -23,6 +23,7 @@ from flask import (
 from socketio import ASGIApp
 from starlette.applications import Starlette
 from starlette.middleware.gzip import GZipMiddleware
+from helpers.opentraining_discovery import discovery_routes
 from starlette.routing import Mount
 from uvicorn.middleware.wsgi import WSGIMiddleware
 from werkzeug.wrappers.request import Request as WerkzeugRequest
@@ -247,6 +248,7 @@ class UiServerRuntime:
         with startup_monitor.stage("starlette.app.create"):
             starlette_app = Starlette(
                 routes=[
+                    *discovery_routes(),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),

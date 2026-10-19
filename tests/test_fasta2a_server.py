@@ -36,21 +36,6 @@ def _load_fasta2a_server(monkeypatch):
     print_style_stub.PrintStyle = _PrintStyle
     monkeypatch.setitem(sys.modules, "helpers.print_style", print_style_stub)
 
-    starlette_stub = types.ModuleType("starlette")
-    starlette_responses_stub = types.ModuleType("starlette.responses")
-
-    class _Response:
-        def __init__(self, content=b"", media_type=None, *args, **kwargs):
-            self.body = content if isinstance(content, bytes) else str(content).encode()
-            self.media_type = media_type
-
-    starlette_responses_stub.Response = _Response
-    starlette_requests_stub = types.ModuleType("starlette.requests")
-    starlette_requests_stub.Request = object
-    monkeypatch.setitem(sys.modules, "starlette", starlette_stub)
-    monkeypatch.setitem(sys.modules, "starlette.responses", starlette_responses_stub)
-    monkeypatch.setitem(sys.modules, "starlette.requests", starlette_requests_stub)
-
     agent_stub = types.ModuleType("agent")
     agent_stub.AgentContext = type(
         "AgentContext",
@@ -73,27 +58,27 @@ def _load_fasta2a_server(monkeypatch):
     return importlib.import_module("helpers.fasta2a_server")
 
 
-def test_a2a_agent_card_streaming_capability_is_enabled_by_default(monkeypatch):
+def test_a2a_agent_card_streaming_capability_is_disabled_until_supported(monkeypatch):
     module = _load_fasta2a_server(monkeypatch)
 
-    updated = module._enable_streaming_capability(
+    updated = module._finalize_agent_card(
         b'{"name":"Agent Zero","capabilities":{"streaming":false,"pushNotifications":false}}'
     )
 
     agent_card = json.loads(updated)
-    assert agent_card["capabilities"]["streaming"] is True
+    assert agent_card["capabilities"]["streaming"] is False
     assert agent_card["capabilities"]["pushNotifications"] is False
 
 
 def test_a2a_agent_card_streaming_capability_creates_missing_block(monkeypatch):
     module = _load_fasta2a_server(monkeypatch)
 
-    updated = module._enable_streaming_capability(b'{"name":"Agent Zero"}')
+    updated = module._finalize_agent_card(b'{"name":"Agent Zero"}')
 
-    assert json.loads(updated)["capabilities"] == {"streaming": True}
+    assert json.loads(updated)["capabilities"] == {"streaming": False}
 
 
-def test_a2a_proxy_uses_streaming_enabled_fast_a2a_wrapper(monkeypatch):
+def test_a2a_proxy_uses_accurate_fast_a2a_wrapper(monkeypatch):
     module = _load_fasta2a_server(monkeypatch)
     proxy = object.__new__(module.DynamicA2AProxy)
 

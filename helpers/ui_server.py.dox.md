@@ -65,3 +65,10 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## OpenTraining discovery
+
+The ASGI router registers shared `opentraining_discovery.discovery_routes()` before the
+WSGI catch-all: public lightweight `/health`, `/docs`, `/docs/a2a.json`, `/api-docs`.
+The legacy HF UI overlay uses the same route factory; the new source launcher no longer
+applies overlays. Existing browser auth, CSRF and WebSocket handling are unchanged.

@@ -20,7 +20,8 @@ from flask import (
 )
 from socketio import ASGIApp
 from starlette.applications import Starlette
-from starlette.routing import Mount, Route
+from starlette.routing import Mount
+from helpers.opentraining_discovery import discovery_routes
 from starlette.responses import JSONResponse
 from uvicorn.middleware.wsgi import WSGIMiddleware
 from werkzeug.wrappers.request import Request as WerkzeugRequest
@@ -185,20 +186,10 @@ class UiServerRuntime:
         with startup_monitor.stage("a2a.proxy.init"):
             a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
 
-        async def health_endpoint(request):
-            return JSONResponse({"status": "ok", "service": "agent-zero"})
-
-        async def api_docs_endpoint(request):
-            from api.api_docs import ApiDocs
-            handler = ApiDocs(self.webapp, self.lock)
-            result = await handler.process({}, None)
-            return JSONResponse(result)
-
         with startup_monitor.stage("starlette.app.create"):
             starlette_app = Starlette(
                 routes=[
-                    Route("/health", endpoint=health_endpoint, methods=["GET"]),
-                    Route("/api-docs", endpoint=api_docs_endpoint, methods=["GET"]),
+                    *discovery_routes(),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),

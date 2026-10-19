@@ -39,49 +39,10 @@ def get_test_urls():
 
 
 def print_test_commands():
-    """Print curl commands to test FastA2A authentication."""
-    data = get_test_urls()
-    if not data:
-        return
-
-    token = data["token"]
-    urls = data["urls"]
-
-    print("🚀 FastA2A Agent Card Testing Commands")
-    print("=" * 60)
-    print(f"Current token: {token}")
-    print()
-
-    print("1️⃣  Token-based URL (recommended):")
-    print(f"   curl -v '{urls['token_based']}'")
-    print()
-
-    print("2️⃣  Bearer authentication:")
-    print(f"   curl -v -H 'Authorization: Bearer {token}' '{urls['bearer_auth']}'")
-    print()
-
-    print("3️⃣  API key header:")
-    print(f"   curl -v -H 'X-API-KEY: {token}' '{urls['api_key_header']}'")
-    print()
-
-    print("4️⃣  API key query parameter:")
-    print(f"   curl -v '{urls['api_key_query']}'")
-    print()
-
-    print("Expected response (if working):")
-    print("   HTTP/1.1 200 OK")
-    print("   Content-Type: application/json")
-    print("   {")
-    print('     "name": "Agent Zero",')
-    print('     "version": "1.0.0",')
-    print('     "skills": [...]')
-    print("   }")
-    print()
-
-    print("Expected error (if auth fails):")
-    print("   HTTP/1.1 401 Unauthorized")
-    print("   Unauthorized")
-    print()
+    """Print secret-free header-auth guidance, never generated credential values."""
+    print('Use scripts/qualify_opentraining_a2a.sh after deployment.')
+    print('Set OPENTRAINING_A2A_TOKEN securely; prefer Authorization: Bearer or X-API-KEY.')
+    print('RPC methods all use POST /a2a/; discovery uses /a2a/.well-known/agent.json.')
 
 
 def print_troubleshooting():
@@ -125,7 +86,7 @@ def validate_token_format():
             print("❌ No token found")
             return False
 
-        print(f"✅ Token found: {token}")
+        print("✅ Token authority available (value withheld)")
         print(f"✅ Token length: {len(token)} characters")
 
         if len(token) != 16:

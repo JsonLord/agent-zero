@@ -1,28 +1,32 @@
-# noqa: D401 (docstrings) – internal helper
 import asyncio
-import uuid
 import atexit
-import json
-from typing import Any, List
 import contextlib
+import json
+import secrets
 import threading
+import uuid
+from typing import Any
 
-from helpers import settings, projects
-from starlette.responses import Response as StarletteResponse
+from pydantic import ValidationError
 from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.responses import Response as StarletteResponse
+
+from agent import AgentContext, AgentContextType, UserMessage
+from helpers import projects, settings
+from helpers.opentraining_discovery import public_url
+from helpers.persist_chat import remove_chat
 
 # Local imports
 from helpers.print_style import PrintStyle
-from agent import AgentContext, UserMessage, AgentContextType
 from initialize import initialize_agent
-from helpers.persist_chat import remove_chat
 
 # Import FastA2A
 try:
-    from fasta2a import Worker, FastA2A  # type: ignore
+    from fasta2a import FastA2A, Worker  # type: ignore
     from fasta2a.broker import InMemoryBroker  # type: ignore
+    from fasta2a.schema import AgentProvider, Artifact, Message, Skill  # type: ignore
     from fasta2a.storage import InMemoryStorage  # type: ignore
-    from fasta2a.schema import Message, Artifact, AgentProvider, Skill  # type: ignore
     FASTA2A_AVAILABLE = True
 except ImportError:  # pragma: no cover – library not installed
     FASTA2A_AVAILABLE = False
@@ -63,23 +67,39 @@ except ImportError:  # pragma: no cover – library not installed
 _PRINTER = PrintStyle(italic=True, font_color="purple", padding=False)
 
 
-def _enable_streaming_capability(agent_card_body: bytes) -> bytes:
-    """Return an agent-card JSON body with A2A streaming enabled."""
+def _finalize_agent_card(agent_card_body: bytes) -> bytes:
+    """Set accurate transport capabilities and canonical public discovery URLs."""
     agent_card = json.loads(agent_card_body)
     capabilities = agent_card.get("capabilities")
     if not isinstance(capabilities, dict):
         capabilities = {}
         agent_card["capabilities"] = capabilities
-    capabilities["streaming"] = True
+    capabilities["streaming"] = False
+    base = public_url()
+    if base:
+        agent_card["url"] = base + "/a2a/"
+        agent_card["documentationUrl"] = base + "/docs"
     return json.dumps(agent_card, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
 class AgentZeroFastA2A(FastA2A):  # type: ignore[misc]
     """FastA2A app with Agent Zero defaults layered over library defaults."""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.router.add_route('/.well-known/agent-card.json', self._agent_card_endpoint,
+                              methods=['HEAD', 'GET', 'OPTIONS'])
+
+    async def _agent_run_endpoint(self, request: Request):
+        try:
+            return await super()._agent_run_endpoint(request)
+        except ValidationError:
+            return JSONResponse({"jsonrpc": "2.0", "id": None, "error": {
+                "code": -32600, "message": "Request payload validation error"}}, status_code=400)
+
     async def _agent_card_endpoint(self, request: Request) -> StarletteResponse:
         response = await super()._agent_card_endpoint(request)
-        body = _enable_streaming_capability(response.body)
+        body = _finalize_agent_card(response.body)
         self._agent_card_json_schema = body
         return StarletteResponse(content=body, media_type="application/json")
 
@@ -148,8 +168,8 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
 
             _PRINTER.print(f"[A2A] Completed task {task_id} and cleaned up context")
 
-        except Exception as e:
-            _PRINTER.print(f"[A2A] Error processing task {params.get('id', 'unknown')}: {e}")
+        except Exception:
+            _PRINTER.print("[A2A] Task processing failed")
             await self.storage.update_task(
                 task_id=params.get('id', 'unknown'),
                 state='failed'
@@ -170,11 +190,11 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
 
         # Note: No context cleanup needed since contexts are always temporary and cleaned up in run_task
 
-    def build_message_history(self, history: List[Any]) -> List[Message]:  # type: ignore
+    def build_message_history(self, history: list[Any]) -> list[Message]:  # type: ignore
         # Not used in this simplified implementation
         return []
 
-    def build_artifacts(self, result: Any) -> List[Artifact]:  # type: ignore
+    def build_artifacts(self, result: Any) -> list[Artifact]:  # type: ignore
         # No artifacts for now
         return []
 
@@ -206,6 +226,7 @@ class DynamicA2AProxy:
     def __init__(self):
         self.app = None
         self.token = ""
+        self._lifecycle_lock = asyncio.Lock()
         self._lock = threading.Lock()  # Use threading.Lock instead of asyncio.Lock
         self._startup_done: bool = False
         self._worker_bg_task: asyncio.Task | None = None
@@ -243,7 +264,7 @@ class DynamicA2AProxy:
             broker = InMemoryBroker()  # type: ignore[arg-type]
 
             # Define Agent Zero's skills
-            skills: List[Skill] = [{  # type: ignore
+            skills: list[Skill] = [{  # type: ignore
                 "id": "general_assistance",
                 "name": "General AI Assistant",
                 "description": "Provides general AI assistance including code execution, file management, web browsing, and problem solving",
@@ -268,7 +289,8 @@ class DynamicA2AProxy:
             new_app = AgentZeroFastA2A(  # type: ignore
                 storage=storage,
                 broker=broker,
-                name="Agent Zero",
+                name="OpenTraining",
+                url=(public_url() + "/a2a/") if public_url() else "http://localhost:8000/a2a/",
                 description=(
                     "A general AI assistant that can execute code, manage files, browse the web, and "
                     "solve complex problems in an isolated Linux environment."
@@ -352,8 +374,6 @@ class DynamicA2AProxy:
         """Ensure TaskManager and Worker are running inside current event-loop."""
         if self._startup_done or not FASTA2A_AVAILABLE:
             return
-        self._startup_done = True
-
         # Start task manager
         await self.app.task_manager.__aenter__()  # type: ignore[attr-defined]
 
@@ -363,6 +383,7 @@ class DynamicA2AProxy:
 
         # fire-and-forget background task – keep reference
         self._worker_bg_task = asyncio.create_task(_worker_loop())
+        self._startup_done = True
         _PRINTER.print("[A2A] Worker & TaskManager started")
 
     async def __call__(self, scope, receive, send):
@@ -382,7 +403,11 @@ class DynamicA2AProxy:
             return
 
         from helpers import settings
-        cfg = settings.get_settings()
+        try:
+            cfg = settings.get_settings()
+        except Exception:
+            await StarletteResponse("A2A authentication unavailable", status_code=503)(scope, receive, send)
+            return
         if not cfg["a2a_server_enabled"]:
             response = b'HTTP/1.1 403 Forbidden\r\n\r\nA2A server is disabled'
             await send({
@@ -396,202 +421,72 @@ class DynamicA2AProxy:
             })
             return
 
-        # Check if reconfiguration is needed
-        if self._reconfigure_needed:
-            try:
-                await self._async_reconfigure()
-            except Exception as e:
-                _PRINTER.print(f"[A2A] Error during reconfiguration: {e}")
-                # Return 503 if reconfiguration failed
-                await send({
-                    'type': 'http.response.start',
-                    'status': 503,
-                    'headers': [[b'content-type', b'text/plain']],
-                })
-                await send({
-                    'type': 'http.response.body',
-                    'body': b'FastA2A reconfiguration failed',
-                })
-                return
-
-        if self.app is None:
-            # FastA2A not configured, return 503
-            response = b'HTTP/1.1 503 Service Unavailable\r\n\r\nFastA2A not configured'
-            await send({
-                'type': 'http.response.start',
-                'status': 503,
-                'headers': [[b'content-type', b'text/plain']],
-            })
-            await send({
-                'type': 'http.response.body',
-                'body': response,
-            })
+        expected = cfg.get("mcp_server_token")
+        if not isinstance(expected, str) or not expected.strip():
+            await StarletteResponse("A2A authentication unavailable", status_code=503)(scope, receive, send)
             return
 
-        # Lazy-start background components the first time we get a request
-        if not self._startup_done:
-            try:
-                _PRINTER.print("[A2A] Starting up FastA2A components")
-                await self._startup()
-            except Exception as e:
-                _PRINTER.print(f"[A2A] Error during startup: {e}")
-                # Return 503 if startup failed
-                await send({
-                    'type': 'http.response.start',
-                    'status': 503,
-                    'headers': [[b'content-type', b'text/plain']],
-                })
-                await send({
-                    'type': 'http.response.body',
-                    'body': b'FastA2A startup failed',
-                })
-                return
-
-        # Handle token-based routing: /a2a/t-{token}/... or /t-{token}/...
-        path = scope.get('path', '')
-
-        # Strip /a2a prefix if present (DispatcherMiddleware doesn't always strip it)
-        if path.startswith('/a2a'):
-            path = path[4:]  # Remove '/a2a' prefix
-
-        # Initialize project name
+        # Starlette 1.x keeps the external path and communicates the mount via root_path.
+        path = scope.get("path", "/")
+        root_path = scope.get("root_path", "")
+        if root_path and (path == root_path or path.startswith(root_path + "/")):
+            path = path[len(root_path):] or "/"
+        elif path == "/a2a" or path.startswith("/a2a/"):
+            path = path[4:] or "/"
         project_name = None
-
-        # Check if path matches token pattern /t-{token}/
-        if path.startswith('/t-'):
-            # Extract token from path
-            if '/' in path[3:]:
-                path_parts = path[3:].split('/', 1)  # Remove '/t-' prefix
-                request_token = path_parts[0]
-                remaining_path = '/' + path_parts[1] if len(path_parts) > 1 else '/'
-
-                # Check for project pattern /p-{project}/
-                if remaining_path.startswith('/p-'):
-                    project_parts = remaining_path[3:].split('/', 1)
-                    if project_parts[0]:
-                        project_name = project_parts[0]
-                        remaining_path = '/' + project_parts[1] if len(project_parts) > 1 else '/'
-                        _PRINTER.print(f"[A2A] Extracted project from URL: {project_name}")
-            else:
-                request_token = path[3:]
-                remaining_path = '/'
-
-            # Validate token
-            cfg = settings.get_settings()
-            expected_token = cfg.get("mcp_server_token")
-
-            if expected_token and request_token != expected_token:
-                # Invalid token, return 401
-                await send({
-                    'type': 'http.response.start',
-                    'status': 401,
-                    'headers': [[b'content-type', b'text/plain']],
-                })
-                await send({
-                    'type': 'http.response.body',
-                    'body': b'Unauthorized',
-                })
-                return
-
-            # If project specified, inject it into the request payload
-            if project_name:
-                # Buffer messages and modify before returning the complete body
-                received_messages = []
-                body_modified = False
-                original_receive = receive
-
-                async def receive_wrapper():
-                    nonlocal body_modified
-
-                    # Receive and buffer the next message
-                    message = await original_receive()
-                    received_messages.append(message)
-
-                    # When we get the complete body, inject project into JSON
-                    if message['type'] == 'http.request' and not message.get('more_body', False) and not body_modified:
-                        body_modified = True
-                        try:
-                            import json
-                            # Reconstruct full body from all buffered messages
-                            body_parts = [msg.get('body', b'') for msg in received_messages if msg['type'] == 'http.request']
-                            full_body = b''.join(body_parts)
-                            data = json.loads(full_body)
-
-                            # INJECT project into message.metadata (standard A2A pattern)
-                            if 'params' in data and 'message' in data['params']:
-                                msg_data = data['params']['message']
-                                # Initialize metadata if it doesn't exist
-                                if 'metadata' not in msg_data or msg_data['metadata'] is None:
-                                    msg_data['metadata'] = {}
-                                msg_data['metadata']['project'] = project_name
-
-                            # Serialize back to JSON
-                            modified_body = json.dumps(data).encode('utf-8')
-
-                            # Return modified message IMMEDIATELY (before FastA2A processes it)
-                            return {
-                                'type': 'http.request',
-                                'body': modified_body,
-                                'more_body': False
-                            }
-                        except Exception as e:
-                            _PRINTER.print(f"[A2A] Failed to inject project into payload: {e}")
-
-                    return message
-
-                receive = receive_wrapper
-
-            # Update scope with cleaned path
-            scope = dict(scope)
-            scope['path'] = remaining_path
+        request = Request(scope, receive=receive)
+        if path.startswith("/t-"):
+            request_token, _, suffix = path[3:].partition("/")
+            path = "/" + suffix
+            authorized = secrets.compare_digest(request_token.encode(), expected.encode())
+            if path.startswith("/p-"):
+                project_name, _, suffix = path[3:].partition("/")
+                path = "/" + suffix
         else:
-            # No token in path, check other auth methods
-            request = Request(scope, receive=receive)
-
-            cfg = settings.get_settings()
-            expected = cfg.get("mcp_server_token")
-
-            if expected:
-                auth_header = request.headers.get("Authorization", "")
-                api_key = request.headers.get("X-API-KEY") or request.query_params.get("api_key")
-
-                is_authorized = (
-                    (auth_header.startswith("Bearer ") and auth_header.split(" ", 1)[1] == expected) or
-                    (api_key == expected)
-                )
-
-                if not is_authorized:
-                    # No valid auth, return 401
-                    await send({
-                        'type': 'http.response.start',
-                        'status': 401,
-                        'headers': [[b'content-type', b'text/plain']],
-                    })
-                    await send({
-                        'type': 'http.response.body',
-                        'body': b'Unauthorized',
-                    })
-                    return
-            else:
-                _PRINTER.print("[A2A] No expected token found in settings")
-
-        # Delegate to FastA2A app with cleaned scope
-        with self._lock:
-            app = self.app
-        if app:
-            await app(scope, receive, send)
-        else:
-            # App not configured, return 503
-            await send({
-                'type': 'http.response.start',
-                'status': 503,
-                'headers': [[b'content-type', b'text/plain']],
-            })
-            await send({
-                'type': 'http.response.body',
-                'body': b'FastA2A app not configured',
-            })
+            bearer = request.headers.get("Authorization", "")
+            bearer = bearer[7:] if bearer.startswith("Bearer ") else ""
+            api_key = request.headers.get("X-API-KEY", "")
+            authorized = any(secrets.compare_digest(value.encode(), expected.encode())
+                             for value in (bearer, api_key) if value)
+        if not authorized:
+            await StarletteResponse("Unauthorized", status_code=401)(scope, receive, send)
             return
+
+        async with self._lifecycle_lock:
+            try:
+                if self._reconfigure_needed:
+                    await self._async_reconfigure()
+                if self.app is None:
+                    raise RuntimeError("Application unavailable")
+                await self._startup()
+            except Exception:
+                await StarletteResponse("FastA2A startup unavailable", status_code=503)(scope, receive, send)
+                return
+            app = self.app
+
+        # Normalize both fields together so mounted requests reach FastA2A's '/' route.
+        scope = dict(scope, path=path, root_path="", raw_path=path.encode())
+        if project_name and scope.get("method") == "POST":
+            body = await request.body()
+            try:
+                data = json.loads(body)
+                message = data["params"]["message"]
+                if not isinstance(message, dict):
+                    raise TypeError("Message must be an object")
+                metadata = message.setdefault("metadata", {})
+                if metadata is None:
+                    metadata = message["metadata"] = {}
+                metadata["project"] = project_name
+                body = json.dumps(data).encode()
+            except (ValueError, KeyError, TypeError):
+                await JSONResponse({"jsonrpc": "2.0", "id": None, "error": {
+                    "code": -32600, "message": "Request payload validation error"}},
+                    status_code=400)(scope, receive, send)
+                return
+            async def project_receive():
+                return {"type": "http.request", "body": body, "more_body": False}
+            receive = project_receive
+        await app(scope, receive, send)
 
 
 def is_available():
