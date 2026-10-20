@@ -345,3 +345,62 @@ async def test_legacy_project_path_preserves_multiline_task(boundary):
         response = await client.post('/a2a/t-local-test-only-token/p-project/', json={
             'params': {'message': []}})
         assert response.status_code == 400
+
+def test_a2a_virtual_desktop_hook_preserves_discovery_routes(monkeypatch, tmp_path):
+    from helpers.ui_server import UiServerRuntime
+    from helpers import virtual_desktop_routes
+    import os
+
+    class DummyWebApp:
+        wsgi_app = "dummy_wsgi"
+        def add_url_rule(self, *args, **kwargs): pass
+        config = {}
+        secret_key = "dummy"
+
+    class DummySocketIO: pass
+    class DummyWsManager:
+        def set_server_restart_broadcast(self, b): pass
+
+    class DummyLock:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+
+    class DummyMonitor:
+        def stage(self, name): return DummyLock()
+        def lifespan(self): return None
+
+    # Patch proxy instances so they don't hit the filesystem or actual sockets
+    class DummyProxy:
+        @classmethod
+        def get_instance(cls): return cls()
+        async def __call__(self, scope, receive, send): pass
+
+    monkeypatch.setattr("helpers.mcp_server.DynamicMcpProxy", DummyProxy)
+    monkeypatch.setattr("helpers.fasta2a_server.DynamicA2AProxy", DummyProxy)
+
+    monkeypatch.setenv("HF_SPACE", "true")
+    runtime = UiServerRuntime.create()
+
+    virtual_desktop_routes.install_route_hooks()
+    asgi_app = runtime.build_asgi_app(DummyMonitor())
+
+    # Navigate the ASGIApp to find Starlette routes
+    starlette_app = getattr(asgi_app, "other_asgi_app", None)
+
+    # Check if GZipMiddleware wraps it
+    if hasattr(starlette_app, "app"):
+        starlette_app = starlette_app.app
+
+    routes = [getattr(r, "path", "") for r in getattr(starlette_app, "routes", [])]
+
+    assert "/health" in routes
+    assert "/docs" in routes
+    assert "/docs/a2a.json" in routes
+    assert "/api-docs" in routes
+    assert "/desktop" in routes
+    assert "/mcp" in routes
+    assert "/a2a" in routes
+    assert "/" in routes
+
+    # Ensure / is last
+    assert routes[-1] == "/"

@@ -411,6 +411,7 @@ def install_route_hooks() -> None:
         from uvicorn.middleware.wsgi import WSGIMiddleware
 
         from helpers import fasta2a_server, mcp_server
+        from helpers.opentraining_discovery import discovery_routes
 
         with startup_monitor.stage("wsgi.middleware.create"):
             wsgi_app = WSGIMiddleware(self.webapp)
@@ -424,6 +425,7 @@ def install_route_hooks() -> None:
         with startup_monitor.stage("starlette.app.create"):
             starlette_app = Starlette(
                 routes=[
+                    *discovery_routes(),
                     Mount("/desktop", app=VirtualDesktopGateway(self.webapp, "/desktop")),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
@@ -433,7 +435,14 @@ def install_route_hooks() -> None:
             )
 
         with startup_monitor.stage("socketio.asgi.create"):
-            return ASGIApp(self.socketio_server, other_asgi_app=starlette_app)
+            from starlette.middleware.gzip import GZipMiddleware
+            from helpers.ui_server import GZIP_MINIMUM_RESPONSE_BYTES, GZIP_COMPRESSION_LEVEL
+            compressed_http_app = GZipMiddleware(
+                starlette_app,
+                minimum_size=GZIP_MINIMUM_RESPONSE_BYTES,
+                compresslevel=GZIP_COMPRESSION_LEVEL,
+            )
+            return ASGIApp(self.socketio_server, other_asgi_app=compressed_http_app)
 
     UiServerRuntime.build_asgi_app = build_asgi_app
     UiServerRuntime._a0_virtual_desktop_route_hooks_installed = True
