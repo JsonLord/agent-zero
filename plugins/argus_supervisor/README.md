@@ -104,7 +104,7 @@ or new significant event can request another finite decision boundary.
 
 ## Remote compatibility contract
 
-See [the wire contract](../../docs/argus/a2a-compatibility.md). Standard A2A is
+See [the public A2A contract](../../docs/openoperator-a2a.md). Standard A2A is
 sufficient for tentative `message/send`, `tasks/get` and task evidence; every
 mutation is still prohibited without an advertised and verified lease extension.
 Skill prose never grants authority. Unsupported methods are reported explicitly.

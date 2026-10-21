@@ -65,3 +65,11 @@
 ## Child DOX Index
 
 No child DOX files.
+
+## OpenOperator integration discovery
+
+`/health` retains source provenance and adds safe bootstrap links. `/docs` serves the
+tracked A2A Markdown using Starlette's response class; `/docs/a2a.json` describes the
+qualified read-only extension and camelCase FastA2A transport. Routes precede the WSGI
+catch-all; API docs, MCP/A2A mounts, browser auth and CSRF remain unchanged.
+No secrets or arbitrary exception strings are emitted by these discovery endpoints.

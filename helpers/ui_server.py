@@ -236,7 +236,7 @@ class UiServerRuntime:
             a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
 
         with startup_monitor.stage("starlette.app.create"):
-            from starlette.responses import JSONResponse
+            from starlette.responses import JSONResponse, Response as ASGIResponse
             from starlette.routing import Route
 
             async def _starlette_health(request):
@@ -260,6 +260,13 @@ class UiServerRuntime:
                 payload = {"status": "ok"}
                 if sha:
                     payload["sha"] = sha
+                payload["docs"] = "/docs"
+                payload["apiDocs"] = "/api-docs"
+                payload["a2a"] = {
+                    "base": "/a2a/",
+                    "agentCard": "/a2a/.well-known/agent.json",
+                    "contract": "/docs/a2a.json"
+                }
                 return JSONResponse(payload)
 
             async def _starlette_api_docs(request):
@@ -267,10 +274,53 @@ class UiServerRuntime:
                 api_docs_mod = import_module(get_abs_path("api/api_docs.py"))
                 return JSONResponse(api_docs_mod.API_DOCS_PAYLOAD)
 
+            async def _starlette_docs(request):
+                from helpers.files import read_file, get_abs_path
+                try:
+                    content = read_file(get_abs_path("docs/openoperator-a2a.md"))
+                    return ASGIResponse(content, media_type="text/markdown; charset=utf-8")
+                except Exception:
+                    return ASGIResponse("Documentation not found.", status_code=404, media_type="text/plain")
+
+            async def _starlette_docs_a2a_json(request):
+                contract = {
+                  "service": "OpenOperator",
+                  "a2a": {
+                    "basePath": "/a2a/",
+                    "agentCard": "/a2a/.well-known/agent.json",
+                    "agentCardCompatibility": "/a2a/.well-known/agent-card.json",
+                    "rpcEndpoint": "/a2a/",
+                    "protocolVersion": "0.2.5",
+                    "transport": "JSON-RPC",
+                    "auth": [
+                      "Authorization: Bearer",
+                      "X-API-KEY"
+                    ],
+                    "methods": [
+                      "message/send",
+                      "tasks/get",
+                      "tasks/cancel"
+                    ],
+                    "wireCase": "camelCase"
+                  },
+                  "argusSupervisor": {
+                    "extension": "urn:openoperator:argus-supervisor:v1",
+                    "readOperations": [
+                      "supervisor.health",
+                      "supervisor.status",
+                      "campaign.list"
+                    ],
+                    "mutationOperationsQualified": False
+                  }
+                }
+                return JSONResponse(contract)
+
             starlette_app = Starlette(
                 routes=[
                     Route("/health", endpoint=_starlette_health, methods=["GET", "POST"]),
                     Route("/api-docs", endpoint=_starlette_api_docs, methods=["GET"]),
+                    Route("/docs", endpoint=_starlette_docs, methods=["GET"]),
+                    Route("/docs/a2a.json", endpoint=_starlette_docs_a2a_json, methods=["GET"]),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),

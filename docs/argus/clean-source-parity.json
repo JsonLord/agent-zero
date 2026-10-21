@@ -1,0 +1,45 @@
+{
+  "clean_base": "1cd0489b8a5236bc1aaafbf7de01a93842d71896",
+  "github_qualified_comparison": "1b6017a395dfa7c0857bf5431d7c33a2eccd1cc7",
+  "hf_snapshot_revision": "35437d7b352e6e7c47ebc1d7b0364e2e1c464ad4",
+  "live_reported_source_sha": "5446faae1f0bbee5cd0a1fc3b5a5d83fe4ab6b0c",
+  "live_reference_changed_python_ast_equal": {
+    "helpers/fasta2a_server.py": true,
+    "tests/test_a2a_argus_supervisor.py": true,
+    "helpers/ui_server.py": true
+  },
+  "runtime_differences": [
+    "helpers/fasta2a_server.py",
+    "helpers/hf_space_defaults.py",
+    "helpers/ui_server.py",
+    "scripts/qualify_openoperator_a2a.sh"
+  ],
+  "changed_functions": {
+    "helpers/fasta2a_server.py": [
+      "AgentZeroFastA2A.__init__",
+      "AgentZeroFastA2A._agent_run_endpoint",
+      "AgentZeroWorker._handle_argus_request",
+      "DynamicA2AProxy._configure",
+      "_a2a_skills",
+      "_enable_streaming_capability"
+    ],
+    "helpers/hf_space_defaults.py": [],
+    "helpers/ui_server.py": [
+      "UiServerRuntime.build_asgi_app"
+    ]
+  },
+  "intentional_differences": {
+    "helpers/fasta2a_server.py": "Complete ID-based conditional skills, no control advertisement; registered compatibility route; remove unused validation preparse; bounded malformed-envelope handling; canonical health enablement.",
+    "helpers/ui_server.py": "Use ASGI Response for the docs endpoint instead of incompatible Flask Response.",
+    "helpers/hf_space_defaults.py": "Require installed argus-supervisor profile without enabling backend or runtime.",
+    "scripts/qualify_openoperator_a2a.sh": "Secret-free, bounded read-only assertions instead of raw authenticated curl output.",
+    "tests_and_ci": "Real ASGI/card/auth/error tests, restored discovery test and explicit CI no-skip gate.",
+    "docs": "Source parity evidence and paired helper contracts."
+  },
+  "unexplained_runtime_differences": [],
+  "scratch_files_included": [],
+  "known_exposed_value_occurrences": 0,
+  "high_confidence_credential_literals": 0,
+  "qualified_behavior_tree_parity": "PASS",
+  "qualification_limit": "User-attested historical live chain plus public source comparison; no new live authenticated chain claim."
+}

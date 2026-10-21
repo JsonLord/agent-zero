@@ -1,0 +1,77 @@
+# Clean OpenOperator source reconstruction
+
+Clean parent: `1cd0489b8a5236bc1aaafbf7de01a93842d71896`.
+Branch: `jules/openoperator-a2a-clean-production`.
+
+The implementation is reconstructed from reviewed file contents, not merged or
+cherry-picked history. PR #31 must not be merged. PR #32 is separate OpenTraining
+work and is untouched. Incoming API/MCP/A2A authority is unchanged. No Argus
+controller/mutation authority or new listener is added.
+
+## Comparison evidence
+
+The user reports that the full read-only OpenOperator → Spynel → argus-supervisor →
+existing OpenTrainingA2AClient → OpenTraining tasks/get → persisted observer →
+response chain already passed live qualification. This task does not relabel local
+mocked tests as a new live qualification.
+
+The GitHub comparison tree is `1b6017a395dfa7c0857bf5431d7c33a2eccd1cc7`.
+The public Space was independently read at HF snapshot revision
+`35437d7b352e6e7c47ebc1d7b0364e2e1c464ad4`. Both its build manifest and live `/health`
+report source `5446faae1f0bbee5cd0a1fc3b5a5d83fe4ab6b0c`; GitHub does not serve that
+commit. It must not be confused with the HF repository revision.
+
+The snapshot differs from the GitHub reference in 328 paths: 322 omitted non-source
+assets/markers, generated `.gitattributes` and build manifest, and whitespace changes
+in two runtime modules, one test and the A2A Markdown. All changed shared Python
+files have identical ASTs. No missing Python/shell/JS/HTML/config source was found.
+These deployment-packaging differences are recorded, not imported into product Git.
+The new source retains the clean base's assets.
+
+## Intentional differences
+
+- Agent cards use one complete registry keyed by skill ID before serialization;
+  disabled mode has general assistance only, enabled mode adds the three read skills,
+  and campaign_control and fabricated/duplicate skills are removed.
+- Register the compatibility card route inside FastA2A's actual router.
+- Keep bounded HTTP400 / JSON-RPC -32600 validation while removing unused pre-parsing.
+- Handle malformed extension metadata with bounded errors. Use canonical health
+  enablement instead of overriding its result. Do not echo unknown operation text.
+- `/docs` uses Starlette's response class; the reference incorrectly passes ASGI
+  arguments to Flask's Response. Discovery links and contract otherwise match.
+- Add the installed Argus profile to the dedicated HF inventory. This does not enable
+  Argus or require a model backend.
+- Retain the clean base's real discovery test instead of the reference's unconditional
+  skip. Add actual ASGI serialization/auth/RPC tests, an explicit CI no-skip gate, and
+  the fonttools dependency needed by the existing icon test.
+- Qualification tooling now performs bounded assertions without raw authenticated
+  output. Paired helper contracts and this source-parity report are updated.
+
+Every other runtime file is byte-identical to the GitHub comparison tree, including
+Spynel, OpenTrainingA2AClient, observer persistence/reducer, lease logic, Argus/Foreman
+bridges, incoming settings/authentication authority and the HF entrypoint diagnostics.
+The existing streaming advertisement is retained for parity; it is not newly qualified.
+
+Machine-readable evidence: [clean-source-parity.json](clean-source-parity.json).
+There are no unexplained runtime-code differences. Qualified behavior tree parity
+passes for the read-only chain; broad historical requalification is unnecessary.
+A new exact-SHA deployment still requires fresh CI and the prescribed narrow smoke.
+
+## Validation and deployment gates
+
+Use `/workspace/venvs/openoperator/bin/python` for framework checks and isolated pinned
+Argus/Foreman interpreters for upstream runtime contracts. Real discovery must execute;
+CI checks the JUnit testcase has neither skip, failure nor error. The full selected
+suite and final results are recorded in the new PR and local JUnit results, never
+borrowed from PR #31.
+
+Compile `helpers` and `plugins/argus_supervisor`, syntax-check the qualification and
+entrypoint scripts, and run `git diff --check`. Scan both current source and the
+new commit delta for exposed/provider credentials; report counts only. Scratch probes,
+logs, raw responses and unsafe ancestry are excluded.
+
+Deployment is conditional on clean ancestry, explained tree parity and new-head CI
+success. Use `scripts/deploy_hf_space.py --sha <full-clean-sha> --space
+Leon4gr45/openoperator --verify`; the tool rejects dirty state and records exact source
+provenance. A push alone is not deployment verification. Do not deploy OpenTraining,
+change its secrets or acquire any controller as part of this work.
