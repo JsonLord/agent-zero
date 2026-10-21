@@ -28,3 +28,10 @@ acceptance: the real Argus Reviewer must approve. Heartbeat does not prevent HF 
 Never echo credentials, token-bearing URLs, headers or traces. Prior memories or
 failed attempts cannot override this observer-safe contract. If a terminal says
 it is still running, retrieve that session output; do not infer an old failure.
+
+For internal service execution in the deployed image, use the skill's single-line
+terminal command with /opt/venv-a0/bin/python and the canonical package import.
+Do not use IPython, unqualified python3, importlib file loading, nested shell
+heredocs or literal backslash-n as command newlines. Do not queue commands into
+a busy terminal session. Retrieve its output and never propose a broad Python
+process kill or repeat an observe whose outcome is unknown.

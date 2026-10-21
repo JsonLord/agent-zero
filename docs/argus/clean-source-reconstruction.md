@@ -123,3 +123,11 @@ claim/read_control/mutate/authority calls, and no model backend calls. Negative
 mutation cases retain stable stale_controller_epoch failure. Live acceptance must
 independently find the requested observer in production storage; model response
 or dispatcher completion alone does not qualify the chain.
+
+The first live attempt after the observer authority clarification loaded the new
+skill and stopped requesting an epoch, but failed before creation: unavailable
+IPython followed by malformed nested heredoc quoting left a terminal waiting.
+The agent also proposed loading the service by filename rather than its package.
+The skill now provides an exact single-line framework-interpreter command with
+canonical imports and bounded session handling. No backend authority or transport
+changes are needed for these agent execution failures.

@@ -61,6 +61,31 @@ process remains running requires retrieval of that session, not resubmission or
 reuse of a previous error. A completed task is an attempt outcome, not mission
 acceptance.
 
+### Framework terminal execution
+
+In the deployed image use code_execution_tool runtime=terminal, from `/a0`, with
+`/opt/venv-a0/bin/python`. The code_execution_tool Python runtime may require
+unavailable IPython; do not use it for this workflow. Do not use unqualified
+python3 or import service.py by filename: its relative imports require the
+canonical package import below. In a development checkout use its configured
+framework virtualenv instead.
+
+For a NEW campaign, replace the example identifiers and execute this as one
+single-line terminal command (no nested bash, heredoc or literal backslash-n):
+
+```sh
+cd /a0 && timeout 60s /opt/venv-a0/bin/python -c 'import asyncio,json; from plugins.argus_supervisor.helpers import service; service.create({"campaign_id":"chain-smoke-123","objective":"Observe existing OpenTraining task","remote_task_id":"<existing-task>"}); asyncio.run(service.action("chain-smoke-123","observe",{})); print(json.dumps(service.public(service.get().store.load("chain-smoke-123"))))'
+```
+
+This is the production create/observe/read path, not a replacement implementation.
+Read its actual output and require completed remote_state and populated last_seen
+for a known completed task. Never substitute expected values. If the terminal
+returns still-running after 30 seconds, retrieve output from that SAME session;
+do not queue another command in a busy session, reset it, or start another observe.
+If it times out, independently read the campaign before considering any retry.
+Never propose killing all Python processes; report a bounded execution failure
+with the known session and do not seek takeover or epoch for recovery.
+
 ## Controlled operations
 
 Supported actions also include pause, resume, resolve_intent and answer under the
