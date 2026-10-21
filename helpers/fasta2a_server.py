@@ -67,21 +67,118 @@ def _enable_streaming_capability(agent_card_body: bytes) -> bytes:
     """Return an agent-card JSON body with A2A streaming enabled."""
     agent_card = json.loads(agent_card_body)
     capabilities = agent_card.get("capabilities")
+
     if not isinstance(capabilities, dict):
         capabilities = {}
         agent_card["capabilities"] = capabilities
     capabilities["streaming"] = True
+
+    import os
+    public_url = os.environ.get("A0_PUBLIC_URL", "")
+    if public_url:
+        agent_card["documentationUrl"] = f"{public_url.rstrip('/')}/docs"
+        agent_card["url"] = f"{public_url.rstrip('/')}/a2a/"
+
     return json.dumps(agent_card, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+
+
+def _a2a_skills() -> list[Skill]:
+    """Construct supported skills by stable ID before FastA2A serializes aliases."""
+    from plugins.argus_supervisor.helpers.service import enabled
+
+    skills = [
+        {
+            "id": "general_assistance",
+            "name": "General AI Assistant",
+            "description": "Provides general AI assistance including code execution, file management, "
+            "web browsing, and problem solving",
+            "tags": ["ai", "assistant", "code", "files", "web", "automation"],
+            "examples": [
+                "Write and execute Python code",
+                "Manage files and directories",
+                "Browse the web and extract information",
+                "Solve complex problems step by step",
+                "Install software and manage systems",
+            ],
+            "input_modes": ["text/plain", "application/octet-stream"],
+            "output_modes": ["text/plain", "application/json"],
+        },
+        {
+            "id": "argus_supervisor_health",
+            "name": "Argus Supervisor Health",
+            "description": "Transported through standard message/send using "
+            "urn:openoperator:argus-supervisor:v1",
+            "tags": ["argus", "supervisor", "health"],
+            "examples": [],
+            "input_modes": ["text/plain"],
+            "output_modes": ["application/json"],
+        },
+        {
+            "id": "argus_supervisor_status",
+            "name": "Argus Supervisor Status",
+            "description": "Transported through standard message/send using "
+            "urn:openoperator:argus-supervisor:v1",
+            "tags": ["argus", "supervisor", "status"],
+            "examples": [],
+            "input_modes": ["text/plain"],
+            "output_modes": ["application/json"],
+        },
+        {
+            "id": "argus_campaign_list",
+            "name": "Argus Campaign List",
+            "description": "Transported through standard message/send using "
+            "urn:openoperator:argus-supervisor:v1",
+            "tags": ["argus", "campaign", "list"],
+            "examples": [],
+            "input_modes": ["text/plain"],
+            "output_modes": ["application/json"],
+        },
+    ]
+    if not enabled():
+        skills = [skill for skill in skills if skill["id"] == "general_assistance"]
+    assert len({skill["id"] for skill in skills}) == len(skills)
+    return skills
 
 
 class AgentZeroFastA2A(FastA2A):  # type: ignore[misc]
     """FastA2A app with Agent Zero defaults layered over library defaults."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.router.add_route('/.well-known/agent-card.json', self._agent_card_compat_endpoint,
+                              methods=['GET', 'HEAD', 'OPTIONS'])
 
     async def _agent_card_endpoint(self, request: Request) -> StarletteResponse:
         response = await super()._agent_card_endpoint(request)
         body = _enable_streaming_capability(response.body)
         self._agent_card_json_schema = body
         return StarletteResponse(content=body, media_type="application/json")
+
+    async def _agent_run_endpoint(self, request: Request) -> StarletteResponse:
+        try:
+            from pydantic import ValidationError
+        except ImportError:
+            return await super()._agent_run_endpoint(request)
+
+        try:
+            return await super()._agent_run_endpoint(request)
+        except ValidationError:
+            return StarletteResponse(
+                content=json.dumps({
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {
+                        "code": -32600,
+                        "message": "Request payload validation error"
+                    }
+                }),
+                status_code=400,
+                media_type="application/json"
+            )
+
+    async def _agent_card_compat_endpoint(self, request: Request) -> StarletteResponse:
+        return await self._agent_card_endpoint(request)
 
 
 class AgentZeroWorker(Worker):  # type: ignore[misc]
@@ -94,67 +191,91 @@ class AgentZeroWorker(Worker):  # type: ignore[misc]
     async def _handle_argus_request(self, task_id: str, message: Any) -> None:
         argus_ns = "urn:openoperator:argus-supervisor:v1"
         extensions = message.get("extensions", [])
-        metadata = message.get("metadata", {})
+        metadata = message.get("metadata") or {}
 
-        try:
-            # Resolve configuration dynamically inside the handler
-            from plugins.argus_supervisor.helpers.service import get, enabled
+        argus_meta = metadata.get(argus_ns, {}) if isinstance(metadata, dict) else {}
+        if not isinstance(argus_meta, dict):
+            argus_meta = {}
+        operation = argus_meta.get("operation")
+        request_id = argus_meta.get("requestId") or argus_meta.get("request_id")
 
-            if not enabled():
-                argus_result = {
-                    "operation": None,
-                    "ok": False,
-                    "error": "Argus Supervisor is not enabled on this agent."
+        if not isinstance(operation, str) or not operation:
+            argus_result = {
+                "operation": None,
+                "requestId": request_id,
+                "ok": False,
+                "error": {
+                    "code": "invalid_argus_envelope",
+                    "message": "Malformed Argus envelope: missing operation."
                 }
-            else:
-                argus_meta = metadata.get(argus_ns, {})
-                operation = argus_meta.get("operation")
-                request_id = argus_meta.get("request_id")
+            }
+        else:
+            try:
+                # Resolve configuration dynamically inside the handler
+                from plugins.argus_supervisor.helpers.service import get, enabled
 
-                if operation == "supervisor.health":
-                    from plugins.argus_supervisor.api.health import health_status
-                    hs = health_status()
-
+                if not enabled():
                     argus_result = {
                         "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        **hs
-                    }
-                elif operation == "supervisor.status":
-                    sup = get()
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        "status": "error" if sup.last_error else ("idle" if sup.last_tick is None else "running"),
-                        "last_tick": sup.last_tick,
-                        "last_error": sup.last_error,
-                        "capabilities": sup.capabilities,
-                        "campaigns_active": len(sup.store.ids())
-                    }
-                elif operation == "campaign.list":
-                    sup = get()
-                    campaigns = sup.store.ids()
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": True,
-                        "campaigns": campaigns
+                        "requestId": request_id,
+                        "ok": False,
+                        "error": {
+                            "code": "argus_supervisor_disabled",
+                            "message": "Argus Supervisor is disabled."
+                        }
                     }
                 else:
-                    argus_result = {
-                        "operation": operation,
-                        "request_id": request_id,
-                        "ok": False,
-                        "error": f"Unknown argus operation: {operation}"
+                    if operation == "supervisor.health":
+                        from plugins.argus_supervisor.api.health import health_status
+                        hs = health_status()
+
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            **hs
+                        }
+                    elif operation == "supervisor.status":
+                        sup = get()
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            "status": "error" if sup.last_error else ("idle" if sup.last_tick is None else "running"),
+                            "last_tick": sup.last_tick,
+                            "last_error": sup.last_error,
+                            "capabilities": sup.capabilities,
+                            "campaigns_active": len(sup.store.ids())
+                        }
+                    elif operation == "campaign.list":
+                        sup = get()
+                        campaigns = sup.store.ids()
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": True,
+                            "campaigns": campaigns
+                        }
+                    else:
+                        argus_result = {
+                            "operation": operation,
+                            "requestId": request_id,
+                            "ok": False,
+                            "error": {
+                                "code": "unsupported_argus_operation",
+                                "message": "Unsupported Argus operation."
+                            }
+                        }
+            except Exception as e:
+                argus_result = {
+                    "operation": operation,
+                    "requestId": request_id,
+                    "ok": False,
+                    "error": {
+                        "code": "argus_supervisor_unavailable",
+                        "message": "Internal supervisor error."
                     }
-        except Exception as e:
-            argus_result = {
-                "operation": metadata.get(argus_ns, {}).get("operation"),
-                "ok": False,
-                "error": str(e)
-            }
+                }
 
         # Format response as Message schema
         import uuid
@@ -330,59 +451,6 @@ class DynamicA2AProxy:
             storage = InMemoryStorage()  # type: ignore[arg-type]
             broker = InMemoryBroker()  # type: ignore[arg-type]
 
-            # Define Agent Zero's skills
-            skills: List[Skill] = [{  # type: ignore
-                "id": "general_assistance",
-                "name": "General AI Assistant",
-                "description": "Provides general AI assistance including code execution, file management, web browsing, and problem solving",
-                "tags": ["ai", "assistant", "code", "files", "web", "automation"],
-                "examples": [
-                    "Write and execute Python code",
-                    "Manage files and directories",
-                    "Browse the web and extract information",
-                    "Solve complex problems step by step",
-                    "Install software and manage systems"
-                ],
-                "input_modes": ["text/plain", "application/octet-stream"],
-                "output_modes": ["text/plain", "application/json"]
-            },
-            {
-                "id": "argus_supervisor_health",
-                "name": "Argus Supervisor Health",
-                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
-                "tags": ["argus", "supervisor", "health"],
-                "examples": [],
-                "input_modes": ["text/plain"],
-                "output_modes": ["application/json"]
-            },
-            {
-                "id": "argus_supervisor_status",
-                "name": "Argus Supervisor Status",
-                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
-                "tags": ["argus", "supervisor", "status"],
-                "examples": [],
-                "input_modes": ["text/plain"],
-                "output_modes": ["application/json"]
-            },
-            {
-                "id": "argus_campaign_list",
-                "name": "Argus Campaign List",
-                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
-                "tags": ["argus", "campaign", "list"],
-                "examples": [],
-                "input_modes": ["text/plain"],
-                "output_modes": ["application/json"]
-            },
-            {
-                "id": "argus_campaign_control",
-                "name": "Argus Campaign Control",
-                "description": "Transported through standard message/send using urn:openoperator:argus-supervisor:v1",
-                "tags": ["argus", "campaign", "control"],
-                "examples": [],
-                "input_modes": ["text/plain"],
-                "output_modes": ["application/json"]
-            }]
-
             provider: AgentProvider = {  # type: ignore
                 "organization": "Agent Zero",
                 "url": "https://github.com/frdel/agent-zero"
@@ -399,7 +467,7 @@ class DynamicA2AProxy:
                 ),
                 version="1.0.0",
                 provider=provider,
-                skills=skills,
+                skills=_a2a_skills(),
                 lifespan=None,  # We manage lifespan manually
                 middleware=[],  # No middleware - we handle auth in wrapper
             )

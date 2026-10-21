@@ -35,6 +35,22 @@ PY
 
 echo "Space URL: ${A0_PUBLIC_URL:-https://leon4gr45-openoperator.hf.space}"
 echo "External endpoints share port 7860; browser authentication and CSRF remain required."
+
+# Safe Argus diagnostic
+argus_enabled="false"
+if [ "${ARGUS_SUPERVISOR_ENABLED:-0}" = "1" ]; then
+  argus_enabled="true"
+fi
+argus_runtime_present="false"
+if [ -x "/opt/venv-argus/bin/python" ]; then
+  argus_runtime_present="true"
+fi
+argus_backend_configured="false"
+if [ -n "${ARGUS_SUPERVISOR_BACKEND:-}" ]; then
+  argus_backend_configured="true"
+fi
+echo "Argus Supervisor: enabled=$argus_enabled runtime_present=$argus_runtime_present backend_configured=$argus_backend_configured"
+
 echo "Starting Agent Zero as uid=$(id -u) on ${WEB_UI_HOST:-0.0.0.0}:${WEB_UI_PORT:-7860}."
 echo "Runtime mode: dockerized production"
 

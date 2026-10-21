@@ -36,20 +36,7 @@ def _load_fasta2a_server(monkeypatch):
     print_style_stub.PrintStyle = _PrintStyle
     monkeypatch.setitem(sys.modules, "helpers.print_style", print_style_stub)
 
-    starlette_stub = types.ModuleType("starlette")
-    starlette_responses_stub = types.ModuleType("starlette.responses")
 
-    class _Response:
-        def __init__(self, content=b"", media_type=None, *args, **kwargs):
-            self.body = content if isinstance(content, bytes) else str(content).encode()
-            self.media_type = media_type
-
-    starlette_responses_stub.Response = _Response
-    starlette_requests_stub = types.ModuleType("starlette.requests")
-    starlette_requests_stub.Request = object
-    monkeypatch.setitem(sys.modules, "starlette", starlette_stub)
-    monkeypatch.setitem(sys.modules, "starlette.responses", starlette_responses_stub)
-    monkeypatch.setitem(sys.modules, "starlette.requests", starlette_requests_stub)
 
     agent_stub = types.ModuleType("agent")
     agent_stub.AgentContext = type(
@@ -69,8 +56,10 @@ def _load_fasta2a_server(monkeypatch):
     persist_chat_stub.remove_chat = lambda *args, **kwargs: None
     monkeypatch.setitem(sys.modules, "helpers.persist_chat", persist_chat_stub)
 
-    sys.modules.pop("helpers.fasta2a_server", None)
-    return importlib.import_module("helpers.fasta2a_server")
+    spec = importlib.util.spec_from_file_location("isolated_fasta2a_server", ROOT / "helpers/fasta2a_server.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_a2a_agent_card_streaming_capability_is_enabled_by_default(monkeypatch):

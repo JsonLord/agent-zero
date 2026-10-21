@@ -3,6 +3,7 @@ from helpers import dotenv
 from helpers.print_style import PrintStyle
 
 REQUIRED_PROFILES = {
+    "argus-supervisor",
     "developer",
     "hacker",
     "spynel",

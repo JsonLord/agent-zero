@@ -148,6 +148,7 @@ class OpenTrainingA2AClient:
         rpc_id = str(uuid.uuid4())
         response = await self._request(
             "POST",
+            "/",  # Canonical JSON-RPC mount root; discovery uses URL suffixes.
             payload={
                 "jsonrpc": "2.0",
                 "id": rpc_id,

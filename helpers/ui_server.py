@@ -1,3 +1,4 @@
+from helpers.a2a_discovery import a2a_contract, bootstrap_links, integration_docs
 from dataclasses import dataclass, field
 from datetime import timedelta
 import asyncio
@@ -236,7 +237,7 @@ class UiServerRuntime:
             a2a_app = fasta2a_server.DynamicA2AProxy.get_instance()
 
         with startup_monitor.stage("starlette.app.create"):
-            from starlette.responses import JSONResponse
+            from starlette.responses import JSONResponse, Response as ASGIResponse
             from starlette.routing import Route
 
             async def _starlette_health(request):
@@ -260,6 +261,7 @@ class UiServerRuntime:
                 payload = {"status": "ok"}
                 if sha:
                     payload["sha"] = sha
+                payload.update(bootstrap_links())
                 return JSONResponse(payload)
 
             async def _starlette_api_docs(request):
@@ -267,10 +269,22 @@ class UiServerRuntime:
                 api_docs_mod = import_module(get_abs_path("api/api_docs.py"))
                 return JSONResponse(api_docs_mod.API_DOCS_PAYLOAD)
 
+            async def _starlette_docs(request):
+                try:
+                    content = integration_docs()
+                    return ASGIResponse(content, media_type="text/markdown; charset=utf-8")
+                except Exception:
+                    return ASGIResponse("Documentation not found.", status_code=404, media_type="text/plain")
+
+            async def _starlette_docs_a2a_json(request):
+                return JSONResponse(a2a_contract())
+
             starlette_app = Starlette(
                 routes=[
                     Route("/health", endpoint=_starlette_health, methods=["GET", "POST"]),
                     Route("/api-docs", endpoint=_starlette_api_docs, methods=["GET"]),
+                    Route("/docs", endpoint=_starlette_docs, methods=["GET"]),
+                    Route("/docs/a2a.json", endpoint=_starlette_docs_a2a_json, methods=["GET"]),
                     Mount("/mcp", app=mcp_app),
                     Mount("/a2a", app=a2a_app),
                     Mount("/", app=wsgi_app),

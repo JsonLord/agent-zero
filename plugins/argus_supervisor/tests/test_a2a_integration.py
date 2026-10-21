@@ -78,3 +78,41 @@ async def test_submit_poll_terminal_recovery_over_http(setup, terminal):
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+@pytest.mark.asyncio
+async def test_read_only_status_uses_canonical_rpc_mount_root():
+    paths = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            paths.append(self.path)
+            payload = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            if self.path != '/a2a/':
+                self.send_error(405)
+                return
+            body = json.dumps({'jsonrpc': '2.0', 'id': payload['id'],
+                               'result': {'id': 'existing-task', 'status': {'state': 'completed'}}}).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        client = OpenTrainingA2AClient('https://test.example/a2a')
+        client.url = f'http://127.0.0.1:{server.server_port}/a2a'
+        client.capabilities = {'status': 'tasks/get'}
+        result = await client.status('existing-task')
+        assert result['state'] == 'completed'
+        assert paths == ['/a2a/']
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

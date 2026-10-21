@@ -37,3 +37,8 @@
 ## Child DOX Index
 
 No child DOX files.
+
+The OpenOperator integration workflow explicitly runs the real Argus profile/plugin/
+lifecycle discovery test and verifies its JUnit result contains no skip, error or failure.
+It also runs the real ASGI read-only A2A boundary suite; no deployment is triggered by
+this workflow. Use the clean branch's own check results, never prior PR evidence.

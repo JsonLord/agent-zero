@@ -59,3 +59,20 @@ No child DOX files.
 ## HF deployment authority
 
 Every request resolves shared incoming token authority before dispatch. Missing Space deployment secret fails closed with 503; Bearer, X-API-KEY and URL-token paths retain the same canonical token authority.
+
+## Read-only Argus A2A reconstruction
+
+- `_a2a_skills()` is the single complete, ID-based registry passed to FastA2A.
+  Disabled mode has only general_assistance; enabled mode adds health/status/list.
+  No campaign_control skill or duplicate ID is advertised. FastA2A owns wire aliases.
+- Card postprocessing retains the qualified streaming flag and adds A0_PUBLIC_URL
+  URL/documentationUrl. The compatibility card is registered on the real router.
+- The RPC endpoint catches Pydantic protocol validation and emits bounded HTTP400 /
+  JSON-RPC -32600. No redundant body pre-parser or installed-library patch is used.
+- Deterministic Argus interception remains before initialize_agent/AgentContext.
+  Canonical requestId (legacy request_id accepted) and bounded structured errors are
+  returned. Malformed metadata cannot fall into ordinary model routing. Health uses
+  canonical service enablement without requiring a model backend.
+- Incoming token authority remains the existing settings resolver; no second
+  OpenOperator credential and no changes to outgoing OpenTrainingA2AClient.
+- Tests: test_a2a_argus_supervisor.py, test_a2a_boundary.py, test_fasta2a_server.py.

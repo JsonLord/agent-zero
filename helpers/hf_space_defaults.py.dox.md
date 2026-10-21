@@ -19,3 +19,7 @@
 ## Verification
 
 - Run `pytest tests/test_hf_space_defaults.py`.
+
+The dedicated OpenOperator HF profile inventory includes argus-supervisor. This
+asserts profile installation/discovery only; it neither enables Argus nor requires
+ARGUS_SUPERVISOR_BACKEND. Missing profile fails the existing startup assertion.
