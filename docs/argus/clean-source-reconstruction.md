@@ -89,7 +89,7 @@ transport-coverage correction rather than a controller or observer redesign.
 
 The rebuild also demonstrated ephemeral observer storage: one campaign before
 rebuild, zero afterward. Operator-managed persistent storage remains separate work.
-The user subsequently authorized harmless new A2A tasks, but none was accepted:
+During the initial credential probe, no harmless new A2A task was accepted:
 OpenTraining RPC returned 401 with the supplied credential. Creating a fresh test task
 and attaching its observer requires the current valid OpenTraining token. No controller
 or training job has been started by these tests. Never substitute exposed credentials.
@@ -99,5 +99,27 @@ OpenTrainingA2AClient now supplies `/` when posting its JSON-RPC envelope, prese
 well-known discovery suffixes and enforcing the documented `/a2a/` mount contract.
 A real loopback HTTP regression rejects `/a2a` and accepts only `/a2a/`. This one
 call-site correction is an intentional, explained runtime difference; the client is
-not replaced, and credential/method/controller validation is unchanged. The separate
-HTTP401 on the canonical path still requires a valid current OpenTraining token.
+not replaced, and credential/method/controller validation is unchanged. That historical HTTP401 was resolved by the operator updating the secure credential.
+Two harmless tasks later completed and bounded concurrent status reads passed.
+Initial model/task execution latency is separate from observer transport latency;
+no performance redesign is part of this correction.
+
+
+## Observer execution contract correction
+
+The backend already supports local observer creation and one tasks/get poll without
+a controller epoch, lease extension, Argus backend or Foreman. Live delegation
+over-applied the mutation guard and refused observer attachment. Only the profile
+specifics and both semantically aligned skills change execution instructions:
+explicit authority matrix, exact create/observe/readback path, and prohibition on
+inventing epoch errors or persistence. Backend service, leases, authority checks,
+transport and incoming authentication are unchanged. Mission binding remains
+separate; remote submit/intervene/cancel/release still require controller authority.
+
+Deterministic service and real authenticated/CSRF-protected plugin API regressions
+use the production client with controlled transport, without lease capabilities.
+They require exactly one tasks/get, persisted completed state and last_seen, no
+claim/read_control/mutate/authority calls, and no model backend calls. Negative
+mutation cases retain stable stale_controller_epoch failure. Live acceptance must
+independently find the requested observer in production storage; model response
+or dispatcher completion alone does not qualify the chain.

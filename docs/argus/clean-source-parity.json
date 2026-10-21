@@ -15,7 +15,10 @@
     "helpers/hf_space_defaults.py",
     "helpers/ui_server.py",
     "plugins/argus_supervisor/helpers/a2a_client.py",
-    "scripts/qualify_openoperator_a2a.sh"
+    "scripts/qualify_openoperator_a2a.sh",
+    "agents/argus-supervisor/prompts/agent.system.main.specifics.md",
+    "agents/argus-supervisor/skills/argus-supervision/SKILL.md",
+    "plugins/argus_supervisor/skills/argus-runtime-orchestration/SKILL.md"
   ],
   "changed_functions": {
     "helpers/fasta2a_server.py": [
@@ -51,12 +54,15 @@
     "docs": "Source parity evidence and paired helper contracts.",
     "helpers/api.py": "Live-proven Flask fallback serves the same intended public discovery contract as ASGI; protected API auth/CSRF unchanged.",
     "helpers/a2a_discovery.py": "Pure shared links/contract/Markdown; no credentials, model calls, outbound requests or controller authority.",
-    "plugins/argus_supervisor/helpers/a2a_client.py": "Same production client posts JSON-RPC to canonical trailing-slash mount root; strict loopback regression reproduces bare-path HTTP405. No auth, method or authority change."
+    "plugins/argus_supervisor/helpers/a2a_client.py": "Same production client posts JSON-RPC to canonical trailing-slash mount root; strict loopback regression reproduces bare-path HTTP405. No auth, method or authority change.",
+    "agents/argus-supervisor/prompts/agent.system.main.specifics.md": "Observer-safe authority matrix and exact create/observe/persisted-read path; no epoch or backend requirement for observation. Backend remote authority remains unchanged.",
+    "agents/argus-supervisor/skills/argus-supervision/SKILL.md": "Observer-safe authority matrix and exact create/observe/persisted-read path; no epoch or backend requirement for observation. Backend remote authority remains unchanged.",
+    "plugins/argus_supervisor/skills/argus-runtime-orchestration/SKILL.md": "Observer-safe authority matrix and exact create/observe/persisted-read path; no epoch or backend requirement for observation. Backend remote authority remains unchanged."
   },
   "unexplained_runtime_differences": [],
   "scratch_files_included": [],
   "known_exposed_value_occurrences": 0,
   "high_confidence_credential_literals": 0,
   "qualified_behavior_tree_parity": "PASS",
-  "qualification_limit": "User-attested historical live chain plus public source comparison; no new live authenticated chain claim."
+  "qualification_limit": "Historical source parity plus deterministic observer service/API regressions; new live chain requires independent production readback after exact-SHA deployment."
 }
