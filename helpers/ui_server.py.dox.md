@@ -73,3 +73,6 @@ tracked A2A Markdown using Starlette's response class; `/docs/a2a.json` describe
 qualified read-only extension and camelCase FastA2A transport. Routes precede the WSGI
 catch-all; API docs, MCP/A2A mounts, browser auth and CSRF remain unchanged.
 No secrets or arbitrary exception strings are emitted by these discovery endpoints.
+
+ASGI discovery uses helpers.a2a_discovery, shared with the Flask fallback; neither
+transport maintains an independent protocol contract.

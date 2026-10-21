@@ -21,6 +21,7 @@ from werkzeug.wrappers.response import Response as BaseResponse
 from helpers.print_style import PrintStyle
 from helpers.errors import format_error
 from helpers import files, cache
+from helpers.a2a_discovery import a2a_contract, bootstrap_links, integration_docs
 
 ThreadLockType = Union[threading.Lock, threading.RLock]
 
@@ -233,7 +234,19 @@ def register_api_route(app: Flask, lock: ThreadLockType) -> None:
         payload = {"status": "ok"}
         if sha:
             payload["sha"] = sha
+        payload.update(bootstrap_links())
         return Response(json.dumps(payload), status=200, mimetype="application/json")
+
+    @app.route("/docs", methods=["GET"])
+    def _root_integration_docs():
+        try:
+            return Response(integration_docs(), mimetype="text/markdown")
+        except OSError:
+            return Response("Documentation not found.", status=404, mimetype="text/plain")
+
+    @app.route("/docs/a2a.json", methods=["GET"])
+    def _root_a2a_contract():
+        return Response(json.dumps(a2a_contract()), mimetype="application/json")
 
     @app.route("/api-docs", methods=["GET"])
     def _root_api_docs():

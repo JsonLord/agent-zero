@@ -48,7 +48,7 @@ The new source retains the clean base's assets.
   output. Paired helper contracts and this source-parity report are updated.
 
 Every other runtime file is byte-identical to the GitHub comparison tree, including
-Spynel, OpenTrainingA2AClient, observer persistence/reducer, lease logic, Argus/Foreman
+Spynel, observer persistence/reducer, lease logic, Argus/Foreman
 bridges, incoming settings/authentication authority and the HF entrypoint diagnostics.
 The existing streaming advertisement is retained for parity; it is not newly qualified.
 
@@ -75,3 +75,29 @@ success. Use `scripts/deploy_hf_space.py --sha <full-clean-sha> --space
 Leon4gr45/openoperator --verify`; the tool rejects dirty state and records exact source
 provenance. A push alone is not deployment verification. Do not deploy OpenTraining,
 change its secrets or acquire any controller as part of this work.
+
+## Live deployment follow-up: WSGI discovery fallback
+
+The first clean deployment reported its exact SHA and passed all three deterministic
+Argus reads. Both external and loopback requests returned 404 for `/docs` and
+`/docs/a2a.json`, with health using the existing Flask fallback response. ASGI-only
+coverage missed this serving path. The follow-up adds discovery to the existing
+Flask registration and shares pure links/contract/Markdown functions with ASGI.
+Protected auth/CSRF and all observer/controller behavior remain unchanged. The real
+Flask regression reproduces the previously missing routes. This is an explained
+transport-coverage correction rather than a controller or observer redesign.
+
+The rebuild also demonstrated ephemeral observer storage: one campaign before
+rebuild, zero afterward. Operator-managed persistent storage remains separate work.
+The user subsequently authorized harmless new A2A tasks, but none was accepted:
+OpenTraining RPC returned 401 with the supplied credential. Creating a fresh test task
+and attaching its observer requires the current valid OpenTraining token. No controller
+or training job has been started by these tests. Never substitute exposed credentials.
+
+The live RPC probe also returned HTTP405 on the bare base path. The same production
+OpenTrainingA2AClient now supplies `/` when posting its JSON-RPC envelope, preserving
+well-known discovery suffixes and enforcing the documented `/a2a/` mount contract.
+A real loopback HTTP regression rejects `/a2a` and accepts only `/a2a/`. This one
+call-site correction is an intentional, explained runtime difference; the client is
+not replaced, and credential/method/controller validation is unchanged. The separate
+HTTP401 on the canonical path still requires a valid current OpenTraining token.

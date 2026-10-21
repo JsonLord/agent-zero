@@ -74,3 +74,9 @@ No child DOX files.
 ## HF deployment authority
 
 Incoming API-key routes return 503 deployment token missing when shared authority is unavailable. Existing browser requires_auth and csrf_protect remain unchanged on Spaces; there is no runtime-based bypass.
+
+Public WSGI fallback routes `/health`, `/docs`, and `/docs/a2a.json` share the same
+credential-free bootstrap links/contract/Markdown as the ASGI router. This covers
+runtime ingress paths that reach Flask directly; auth and CSRF gates on all existing
+protected APIs remain unchanged. No model, outbound call or controller operation is
+used to serve discovery. Tests exercise real Flask fallback in test_a2a_boundary.py.

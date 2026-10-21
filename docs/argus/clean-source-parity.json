@@ -9,9 +9,12 @@
     "helpers/ui_server.py": true
   },
   "runtime_differences": [
+    "helpers/a2a_discovery.py",
+    "helpers/api.py",
     "helpers/fasta2a_server.py",
     "helpers/hf_space_defaults.py",
     "helpers/ui_server.py",
+    "plugins/argus_supervisor/helpers/a2a_client.py",
     "scripts/qualify_openoperator_a2a.sh"
   ],
   "changed_functions": {
@@ -26,6 +29,17 @@
     "helpers/hf_space_defaults.py": [],
     "helpers/ui_server.py": [
       "UiServerRuntime.build_asgi_app"
+    ],
+    "helpers/api.py": [
+      "register_api_route"
+    ],
+    "helpers/a2a_discovery.py": [
+      "bootstrap_links",
+      "a2a_contract",
+      "integration_docs"
+    ],
+    "plugins/argus_supervisor/helpers/a2a_client.py": [
+      "OpenTrainingA2AClient.rpc"
     ]
   },
   "intentional_differences": {
@@ -34,7 +48,10 @@
     "helpers/hf_space_defaults.py": "Require installed argus-supervisor profile without enabling backend or runtime.",
     "scripts/qualify_openoperator_a2a.sh": "Secret-free, bounded read-only assertions instead of raw authenticated curl output.",
     "tests_and_ci": "Real ASGI/card/auth/error tests, restored discovery test and explicit CI no-skip gate.",
-    "docs": "Source parity evidence and paired helper contracts."
+    "docs": "Source parity evidence and paired helper contracts.",
+    "helpers/api.py": "Live-proven Flask fallback serves the same intended public discovery contract as ASGI; protected API auth/CSRF unchanged.",
+    "helpers/a2a_discovery.py": "Pure shared links/contract/Markdown; no credentials, model calls, outbound requests or controller authority.",
+    "plugins/argus_supervisor/helpers/a2a_client.py": "Same production client posts JSON-RPC to canonical trailing-slash mount root; strict loopback regression reproduces bare-path HTTP405. No auth, method or authority change."
   },
   "unexplained_runtime_differences": [],
   "scratch_files_included": [],

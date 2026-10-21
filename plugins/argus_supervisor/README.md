@@ -132,3 +132,7 @@ To include real isolated package contracts, set `ARGUS_TEST_ARGUS_PYTHON` and
 installs the pinned environments and selects them. Fake endpoint tests use real
 loopback HTTP; no model/provider key is required. Follow the qualification report
 for live release checks. Heartbeat does not prevent Hugging Face platform sleep.
+
+JSON-RPC requests use the canonical trailing-slash mount root (`/a2a/`); Agent Card
+discovery appends its own well-known suffix. The same production client performs
+both. No redirect carrying credentials and no alternate client are introduced.

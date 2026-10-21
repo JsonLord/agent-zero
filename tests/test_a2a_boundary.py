@@ -189,3 +189,22 @@ def test_hf_inventory_requires_installed_argus_profile(monkeypatch):
         name: {} for name in hf_space_defaults.REQUIRED_PROFILES if name != 'argus-supervisor'})
     with pytest.raises(RuntimeError, match='missing profiles.*argus-supervisor'):
         hf_space_defaults.assert_profiles_and_skills()
+
+
+def test_wsgi_discovery_fallback_matches_asgi_contract(monkeypatch):
+    from helpers import api
+    from helpers.a2a_discovery import a2a_contract
+    monkeypatch.setenv('OPENOPERATOR_SOURCE_SHA', '1' * 40)
+    app = Flask('wsgi-discovery-boundary')
+    api.register_api_route(app, threading.RLock())
+    client = app.test_client()
+    health = client.get('/health')
+    assert health.status_code == 200
+    assert health.get_json()['sha'] == '1' * 40
+    assert health.get_json()['a2a']['contract'] == '/docs/a2a.json'
+    docs = client.get('/docs')
+    assert docs.status_code == 200 and b'POST /a2a/' in docs.data
+    contract = client.get('/docs/a2a.json')
+    assert contract.status_code == 200
+    assert contract.get_json() == a2a_contract()
+    assert contract.get_json()['argusSupervisor']['mutationOperationsQualified'] is False

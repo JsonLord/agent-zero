@@ -1,3 +1,4 @@
+from helpers.a2a_discovery import a2a_contract, bootstrap_links, integration_docs
 from dataclasses import dataclass, field
 from datetime import timedelta
 import asyncio
@@ -260,13 +261,7 @@ class UiServerRuntime:
                 payload = {"status": "ok"}
                 if sha:
                     payload["sha"] = sha
-                payload["docs"] = "/docs"
-                payload["apiDocs"] = "/api-docs"
-                payload["a2a"] = {
-                    "base": "/a2a/",
-                    "agentCard": "/a2a/.well-known/agent.json",
-                    "contract": "/docs/a2a.json"
-                }
+                payload.update(bootstrap_links())
                 return JSONResponse(payload)
 
             async def _starlette_api_docs(request):
@@ -275,45 +270,14 @@ class UiServerRuntime:
                 return JSONResponse(api_docs_mod.API_DOCS_PAYLOAD)
 
             async def _starlette_docs(request):
-                from helpers.files import read_file, get_abs_path
                 try:
-                    content = read_file(get_abs_path("docs/openoperator-a2a.md"))
+                    content = integration_docs()
                     return ASGIResponse(content, media_type="text/markdown; charset=utf-8")
                 except Exception:
                     return ASGIResponse("Documentation not found.", status_code=404, media_type="text/plain")
 
             async def _starlette_docs_a2a_json(request):
-                contract = {
-                  "service": "OpenOperator",
-                  "a2a": {
-                    "basePath": "/a2a/",
-                    "agentCard": "/a2a/.well-known/agent.json",
-                    "agentCardCompatibility": "/a2a/.well-known/agent-card.json",
-                    "rpcEndpoint": "/a2a/",
-                    "protocolVersion": "0.2.5",
-                    "transport": "JSON-RPC",
-                    "auth": [
-                      "Authorization: Bearer",
-                      "X-API-KEY"
-                    ],
-                    "methods": [
-                      "message/send",
-                      "tasks/get",
-                      "tasks/cancel"
-                    ],
-                    "wireCase": "camelCase"
-                  },
-                  "argusSupervisor": {
-                    "extension": "urn:openoperator:argus-supervisor:v1",
-                    "readOperations": [
-                      "supervisor.health",
-                      "supervisor.status",
-                      "campaign.list"
-                    ],
-                    "mutationOperationsQualified": False
-                  }
-                }
-                return JSONResponse(contract)
+                return JSONResponse(a2a_contract())
 
             starlette_app = Starlette(
                 routes=[
