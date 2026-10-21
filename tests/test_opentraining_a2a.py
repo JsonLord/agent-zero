@@ -378,7 +378,7 @@ def test_a2a_virtual_desktop_hook_preserves_discovery_routes(monkeypatch, tmp_pa
     monkeypatch.setattr("helpers.mcp_server.DynamicMcpProxy", DummyProxy)
     monkeypatch.setattr("helpers.fasta2a_server.DynamicA2AProxy", DummyProxy)
 
-    monkeypatch.setenv("HF_SPACE", "true")
+    os.environ["HF_SPACE"] = "true"
     runtime = UiServerRuntime.create()
 
     virtual_desktop_routes.install_route_hooks()
