@@ -345,3 +345,35 @@ async def test_legacy_project_path_preserves_multiline_task(boundary):
         response = await client.post('/a2a/t-local-test-only-token/p-project/', json={
             'params': {'message': []}})
         assert response.status_code == 400
+
+def test_a2a_virtual_desktop_hook_preserves_discovery_routes():
+    import ast
+    from pathlib import Path
+    tree = ast.parse(Path("helpers/virtual_desktop_routes.py").read_text())
+
+    found_discovery = False
+    found_gzip = False
+    found_mount_order = False
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "build_asgi_app":
+            for call in ast.walk(node):
+                if isinstance(call, ast.Call) and getattr(call.func, "id", "") == "Starlette":
+                    for kw in call.keywords:
+                        if kw.arg == "routes":
+                            elements = kw.value.elts
+                            has_discovery = any(isinstance(elt, ast.Starred) and isinstance(elt.value, ast.Call) and getattr(elt.value.func, "id", "") == "discovery_routes" for elt in elements)
+                            last_is_root = isinstance(elements[-1], ast.Call) and getattr(elements[-1].func, "id", "") == "Mount" and isinstance(elements[-1].args[0], ast.Constant) and elements[-1].args[0].value == "/"
+
+                            if has_discovery:
+                                found_discovery = True
+                            if last_is_root:
+                                found_mount_order = True
+
+            code = ast.unparse(node)
+            if "GZipMiddleware(" in code:
+                found_gzip = True
+
+    assert found_discovery, "discovery_routes() not found in routes"
+    assert found_gzip, "GZipMiddleware not found"
+    assert found_mount_order, "Mount('/', app=wsgi_app) is not the last route"
