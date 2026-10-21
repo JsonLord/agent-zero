@@ -408,6 +408,7 @@ def install_route_hooks() -> None:
         from socketio import ASGIApp
         from starlette.applications import Starlette
         from starlette.routing import Mount
+        from starlette.middleware.gzip import GZipMiddleware
         from uvicorn.middleware.wsgi import WSGIMiddleware
 
         from helpers import fasta2a_server, mcp_server
